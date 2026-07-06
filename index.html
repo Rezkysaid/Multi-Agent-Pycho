@@ -5,117 +5,215 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mind Office — HQ</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap');
 
   :root {
-    --bg: #0d0f18; --panel: #2a2f45; --panel-edge: #454b6b;
-    --glow: #8fd3ff; --accent: #f4c95d; --text: #e8e6e3; --tile: #1a1d2b; --crisis: #e05a5a;
+    --ink: #17120d;        /* warm near-black page */
+    --ink2:#1e1811;
+    --surface:#241d15;     /* warm panel */
+    --surface2:#2d251b;
+    --line:#3c3225;        /* warm hairline */
+    --text:#f1e9dc;        /* warm off-white */
+    --muted:#a6957f;       /* warm muted */
+    --accent:#e0894e;      /* terracotta — ties to the room's armchair */
+    --accent-ink:#241305;
+    --sage:#93ad86;        /* calm secondary */
+    --crisis:#e07a5f;
   }
   * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    display: flex; flex-direction: column; align-items: center;
-    min-height: 100vh; padding: 16px 8px;
+    margin: 0; background:
+      radial-gradient(140% 120% at 22% -10%, #221a12 0%, var(--ink) 60%) fixed;
+    color: var(--text);
+    font-family: 'Nunito', system-ui, sans-serif;
+    min-height: 100vh; padding: 0 0 40px;
   }
-  h1 {
-    font-family: 'Press Start 2P', monospace; font-size: 13px;
-    color: var(--accent); letter-spacing: 1px; margin-bottom: 4px; text-align: center;
+  /* faint paper grain — a tactile, hand-made touch */
+  body::after {
+    content:''; position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: .04; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  .subtitle { font-size: 11px; color: #8b90ad; margin-bottom: 12px; text-align: center; }
 
-  /* roster bar of workers (like the reference HQ header) */
-  #roster {
-    width: min(760px, 96vw); display: flex; gap: 6px; overflow-x: auto;
-    padding: 6px 2px; margin-bottom: 10px; scrollbar-width: thin;
+  /* ---- header (asymmetric: brand left, live meta right) ---- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: min(1000px, 94vw); margin: 0 auto; padding: 18px 4px 14px;
   }
-  .chip {
-    display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
-    background: #171a28; border: 1px solid var(--panel-edge); border-radius: 20px;
-    padding: 4px 10px 4px 8px; font-size: 10px; white-space: nowrap;
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .logo-mark {
+    font-family: 'Press Start 2P', monospace; font-size: 15px; color: var(--accent);
+    -webkit-text-stroke: 0.5px #00000030; line-height: 1;
   }
-  .chip .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 5px currentColor; }
-  .chip .cname { color: var(--text); }
-  .chip .cstat { color: #7b80a0; font-size: 9px; }
+  .wordmark { font-family: 'Press Start 2P', monospace; font-size: 15px; letter-spacing: .5px; color: var(--text); line-height: 1; }
+  .brand-sub {
+    font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 2px 6px; align-self: center;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 12px; }
+  .live { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: 1px; color: var(--sage); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 6px var(--sage); animation: pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+  .clock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+  .rule { width: min(1000px, 94vw); height: 1px; margin: 0 auto 14px; background: linear-gradient(90deg, var(--accent) 0%, transparent 42%); }
 
-  #stage { position: relative; margin: 0 auto; max-width: 100%; }
+  /* ---- main: office hero + team rail (asymmetric two-column) ---- */
+  .app {
+    width: min(1000px, 94vw); margin: 0 auto; display: grid;
+    grid-template-columns: minmax(0,1fr) 214px; gap: 20px; align-items: start;
+  }
+  .stage-caption { font-size: 12px; color: var(--muted); margin: 0 2px 8px; }
+  .stage-caption b { color: var(--text); font-weight: 700; }
+
+  #stage { position: relative; }
   #office {
     position: absolute; left: 0; top: 0; width: 632px; height: 420px;
     transform-origin: top left; image-rendering: pixelated; cursor: pointer;
     background: none; overflow: visible;
+    filter: drop-shadow(0 24px 34px #0008);
   }
   .layer { position: absolute; left: 0; top: 0; width: 632px; height: 420px; pointer-events: none; }
-  .tile { transition: filter .18s; }
+  .tile { transition: filter .2s ease; }
   .deco { position: absolute; pointer-events: none; }
 
   .sprite { position: absolute; pointer-events: none; }
   .facing { position: absolute; inset: 0; transform-origin: bottom center; }
   .sprite-canvas { position: relative; image-rendering: pixelated; }
-  .walking .sprite-canvas { animation: bob 0.32s steps(2) infinite; }
+  .sprite .sprite-canvas { animation: breathe 3.6s ease-in-out infinite; }
+  .walking .sprite-canvas { animation: bob 0.30s steps(2) infinite; }
+  @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
   @keyframes bob { 0% { transform: translateY(0); } 100% { transform: translateY(-2px); } }
   .name {
     position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
     font-size: 5px; font-family: 'Press Start 2P', monospace;
-    color: #cdd0e4; white-space: nowrap; text-shadow: 0 1px 2px #000;
-    background: rgba(13,15,24,.6); padding: 2px 3px; border-radius: 2px; margin-bottom: 1px;
+    color: #f3ecdf; white-space: nowrap; text-shadow: 0 1px 2px #000;
+    background: rgba(23,18,13,.62); padding: 2px 3px; border-radius: 2px; margin-bottom: 1px;
   }
   .boss .name { color: var(--accent); }
 
-  #status { margin-top: 12px; font-size: 11px; color: #8b90ad; min-height: 16px; text-align:center; }
+  /* speech bubble anchored above the speaking character */
+  #bubble {
+    position: absolute; z-index: 60; max-width: 210px; padding: 9px 12px 10px;
+    background: var(--surface2); color: var(--text);
+    border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 10px 22px #0007; transform: translate(-50%, -100%);
+    transform-origin: 50% 100%; animation: pop .26s cubic-bezier(.2,1.3,.35,1);
+  }
+  #bubble[hidden] { display: none; }
+  #bubble::after {
+    content: ''; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+    border: 8px solid transparent; border-top-color: var(--surface2); border-bottom: 0;
+  }
+  #bubble .who { display: block; font-size: 9px; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
+  #bubble .say { font-family: 'Fraunces', Georgia, serif; font-size: 13.5px; line-height: 1.45; }
+  #bubble.boss { background: #33261a; } #bubble.boss::after { border-top-color: #33261a; }
+  #bubble.boss .who { color: #f0b877; }
+  @keyframes pop { from { opacity: 0; transform: translate(-50%, calc(-100% + 8px)) scale(.9); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
 
+  .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
+
+  /* team rail */
+  .rail { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 12px; }
+  .rail-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 10px 2px; }
+  #roster { display: flex; flex-direction: column; gap: 4px; }
+  .member {
+    display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 9px;
+    transition: background .18s ease; cursor: default;
+  }
+  .member:hover { background: var(--surface2); }
+  .member .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 6px currentColor; }
+  .m-info { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .m-name { font-size: 12px; font-weight: 700; color: var(--text); }
+  .m-role { font-size: 10px; color: var(--muted); }
+  .m-stat { font-size: 10px; color: var(--sage); font-style: italic; }
+
+  /* conversation */
+  .convo { width: min(1000px, 94vw); margin: 20px auto 0; }
   #dialog {
-    width: min(760px, 96vw); margin-top: 12px;
-    background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 4px;
-    padding: 14px 16px; min-height: 66px;
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 12px; padding: 14px 16px; min-height: 64px;
   }
-  #dialog .speaker {
-    font-family: 'Press Start 2P', monospace; font-size: 10px;
-    color: var(--accent); margin-bottom: 8px; display: block;
-  }
-  #dialog .line { font-size: 13px; line-height: 1.6; }
-  #dialog.crisis { border-color: var(--crisis); box-shadow: 0 0 12px 1px var(--crisis); }
+  #dialog .speaker { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 7px; display: block; }
+  #dialog .line { font-family: 'Fraunces', Georgia, serif; font-size: 15px; line-height: 1.6; }
+  #dialog.crisis { border-color: var(--crisis); border-left-color: var(--crisis); box-shadow: 0 0 0 1px #e07a5f55, 0 10px 24px #0006; }
   #dialog.crisis .speaker { color: var(--crisis); }
-  #dialog .crisis-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.8; }
+  #dialog .crisis-list { margin: 8px 0 0; padding-left: 18px; font-family: 'Nunito', sans-serif; font-size: 14px; line-height: 1.85; }
 
-  #input-row { width: min(760px, 96vw); display: flex; gap: 8px; margin-top: 10px; }
+  #input-row { display: flex; gap: 8px; margin-top: 12px; }
   #user-input {
-    flex: 1; background: var(--tile); border: 2px solid var(--panel-edge); border-radius: 3px;
-    color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 12px;
+    flex: 1; background: var(--ink2); border: 1px solid var(--line); border-radius: 10px;
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 12px 14px;
+    transition: border-color .18s ease, box-shadow .18s ease;
   }
-  #user-input:focus { outline: none; border-color: var(--glow); }
+  #user-input::placeholder { color: #8a7c6a; }
+  #user-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #e0894e22; }
   #send-btn {
-    font-family: 'Press Start 2P', monospace; font-size: 10px;
-    background: var(--accent); color: #1a1d2b; border: none; border-radius: 3px;
-    padding: 0 16px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .3px;
+    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px;
+    padding: 0 22px; cursor: pointer; transition: transform .1s ease, filter .15s ease;
   }
-  #send-btn:hover { filter: brightness(1.08); }
-  .note { max-width: 700px; font-size: 11px; color: #6b7093; margin-top: 14px; line-height: 1.6; text-align: center; }
+  #send-btn:hover { filter: brightness(1.06); }
+  #send-btn:active { transform: translateY(1px) scale(.98); }
+
+  .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
+  .foot b { color: var(--muted); font-weight: 700; }
+
+  /* stack on narrow screens */
+  @media (max-width: 720px) {
+    .app { grid-template-columns: 1fr; }
+    .rail { order: 2; }
+    #roster { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .member { flex: 0 0 auto; background: var(--surface2); }
+    .topbar-right .clock { display: none; }
+  }
 </style>
 </head>
 <body>
 
-  <h1>MIND OFFICE — HQ</h1>
-  <div class="subtitle">kau boss. staff bergerak buat kerja sendiri — tanya, dia datang lapor.</div>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-mark">&#9636;</span>
+      <span class="wordmark">MIND OFFICE</span>
+      <span class="brand-sub">HQ</span>
+    </div>
+    <div class="topbar-right">
+      <span class="live"><i class="live-dot"></i> LIVE</span>
+      <span class="clock" id="clock">--:--</span>
+    </div>
+  </header>
+  <div class="rule"></div>
 
-  <div id="roster"></div>
+  <main class="app">
+    <section class="stage-wrap">
+      <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b></div>
+      <div id="stage">
+        <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
+        <div id="bubble" hidden></div>
+      </div>
+      <p class="hint" id="status">Klik lantai untuk kau melangkah · taip di bawah untuk panggil staff datang jumpa</p>
+    </section>
 
-  <div id="stage">
-    <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
-  </div>
+    <aside class="rail">
+      <h2 class="rail-title">Pasukan kau</h2>
+      <div id="roster"></div>
+    </aside>
+  </main>
 
-  <div id="status">taip soalan — staff relevan akan datang jumpa kau · klik lantai untuk kau berjalan</div>
+  <section class="convo">
+    <div id="dialog">
+      <span class="speaker">Nota HQ</span>
+      <div class="line">Selamat pagi, boss. Semua orang dah masuk — ada yang di meja, ada yang singgah pantry. Cuba tanya sesuatu, contohnya <em>"aku takut nampak bodoh depan colleague"</em> atau <em>"macam mana Islam pandang self-worth"</em>, dan orang yang paling sesuai akan datang jumpa kau.</div>
+    </div>
+    <div id="input-row">
+      <input id="user-input" type="text" placeholder="Cakap apa yang kau nak tanya…" autocomplete="off">
+      <button id="send-btn">Panggil</button>
+    </div>
+  </section>
 
-  <div id="dialog">
-    <span class="speaker">SYSTEM</span>
-    <div class="line">Selamat datang ke HQ, boss. Staff kau tengah sibuk — ada yang kat pantry, ada kat meja masing-masing. Cuba taip: "aku takut nampak bodoh depan colleague" atau "macam mana Islam pandang self-worth" dan staff yang berkenaan akan datang.</div>
-  </div>
-
-  <div id="input-row">
-    <input id="user-input" type="text" placeholder="taip apa yang kau nak tanya staff...">
-    <button id="send-btn">HANTAR</button>
-  </div>
-
-  <div class="note">Layer AI (routing + crisis safety) kekal. Pergerakan staff autonomous (wander + idle). Next: walk-cycle 4-arah + sambung LLM API.</div>
+  <footer class="foot">
+    Dibina tangan sebagai <b>proof-of-concept</b> — layer AI (routing + safety) berasingan daripada layer game (ruang, gerak, dialog).
+    Staff bergerak sendiri; kau memandu dengan bertanya. <b>Bukan pengganti bantuan profesional.</b>
+  </footer>
 
 <script>
   // =====================================================================
@@ -123,13 +221,14 @@
   // =====================================================================
   const office = document.getElementById('office');
 
-  const TILE_W = 48, TILE_H = 24;      // 2:1 iso tile
-  const GRID_X = 15, GRID_Y = 10;      // wide open-plan floor
+  const TILE_W = 48, TILE_H = 24;
+  const GRID_X = 15, GRID_Y = 10;
   const WALL_H = 88;
-  const ORIGIN_X = 256, ORIGIN_Y = 104;  // tuned so the room fills a tight 632x420 board
+  const ORIGIN_X = 256, ORIGIN_Y = 104;
   const BOARD_W = 632, BOARD_H = 420;
-  const SCALE = 3;                     // px per sprite cell (smaller = zoomed-out look)
+  const SCALE = 3;
   const SPR_W = 13 * SCALE, SPR_H = 19 * SCALE, SPR_HALF = SPR_W / 2;
+  const EASE = 'cubic-bezier(.45,.05,.35,1)';   // crafted glide instead of linear
 
   function project(gx, gy) {
     return { x: ORIGIN_X + (gx - gy) * TILE_W / 2, y: ORIGIN_Y + (gx + gy) * TILE_H / 2 };
@@ -142,8 +241,8 @@
     office.appendChild(d); return d;
   }
 
-  // --- floor (light office tiles) ---
-  const F_A = '#e4dfd1', F_B = '#dbd5c4', SEAM = '#c7c0ac';
+  // --- floor (warm office tiles) ---
+  const F_A = '#e4dfd1', F_B = '#dbd5c4';
   for (let gy = 0; gy < GRID_Y; gy++)
     for (let gx = 0; gx < GRID_X; gx++) {
       const a = project(gx, gy), b = project(gx + 1, gy), c = project(gx + 1, gy + 1), d = project(gx, gy + 1);
@@ -151,14 +250,13 @@
       t.classList.add('tile'); t.dataset.tile = gx + ',' + gy;
     }
 
-  // --- walls (light grey) ---
+  // --- walls (warm greige) ---
   const A = project(0, 0), B = project(GRID_X, 0), D = project(0, GRID_Y);
-  face([up(A, WALL_H), A, D, up(D, WALL_H)], 'linear-gradient(180deg,#aab0bd 0%,#b7bcc8 60%,#8f95a4 100%)', 1); // left
-  face([up(A, WALL_H), up(B, WALL_H), B, A], 'linear-gradient(180deg,#c4c9d3 0%,#ced2db 60%,#a7adb9 100%)', 1); // right
-  face([A, D, { x: D.x, y: D.y - 5 }, { x: A.x, y: A.y - 5 }], '#7d8493', 2).style.zIndex = 3; // left skirting
-  face([A, B, { x: B.x, y: B.y - 5 }, { x: A.x, y: A.y - 5 }], '#9299a6', 2).style.zIndex = 3; // right skirting
+  face([up(A, WALL_H), A, D, up(D, WALL_H)], 'linear-gradient(180deg,#b3a897 0%,#bfb5a3 60%,#968b79 100%)', 1);
+  face([up(A, WALL_H), up(B, WALL_H), B, A], 'linear-gradient(180deg,#c8c0b0 0%,#d2cbbb 60%,#a89e8c 100%)', 1);
+  face([A, D, { x: D.x, y: D.y - 5 }, { x: A.x, y: A.y - 5 }], '#7c7362', 2).style.zIndex = 3;
+  face([A, B, { x: B.x, y: B.y - 5 }, { x: A.x, y: A.y - 5 }], '#918777', 2).style.zIndex = 3;
 
-  // wall windows (right wall) + a whiteboard (left wall)
   function wallItem(side, t, hpx, w, h, css, html) {
     const base = side === 'R' ? project(t, 0) : project(0, t);
     const el = document.createElement('div'); el.className = 'deco';
@@ -168,16 +266,17 @@
     el.style.zIndex = 2; if (html) el.innerHTML = html; Object.assign(el.style, css);
     office.appendChild(el); return el;
   }
-  const win = { background: 'linear-gradient(150deg,#dcecf7 0%,#b7d7ee 60%,#9cc6e4 100%)', border: '3px solid #eef0f3', boxShadow: 'inset 0 0 0 1px #99a' };
-  wallItem('R', 3.2, 58, 66, 40, win, '<div style="position:absolute;inset:0;background:linear-gradient(#eef0f3,#eef0f3) 50% 0/2px 100% no-repeat,linear-gradient(#eef0f3,#eef0f3) 0 50%/100% 2px no-repeat"></div>');
-  wallItem('R', 6.4, 58, 66, 40, win, '<div style="position:absolute;inset:0;background:linear-gradient(#eef0f3,#eef0f3) 50% 0/2px 100% no-repeat,linear-gradient(#eef0f3,#eef0f3) 0 50%/100% 2px no-repeat"></div>');
-  wallItem('R', 10.5, 58, 66, 40, win, '<div style="position:absolute;inset:0;background:linear-gradient(#eef0f3,#eef0f3) 50% 0/2px 100% no-repeat,linear-gradient(#eef0f3,#eef0f3) 0 50%/100% 2px no-repeat"></div>');
-  wallItem('L', 3.5, 56, 72, 40, { background: '#f3f1ea', border: '3px solid #b9c0cc' },
-    '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(90deg,#5b8bd0 0 14px,transparent 14px 30px),repeating-linear-gradient(90deg,#d06b6b 6px 16px,transparent 16px 34px);opacity:.5"></div>');
+  const win = { background: 'linear-gradient(150deg,#dcecf7 0%,#b7d7ee 60%,#9cc6e4 100%)', border: '3px solid #f2efe8', boxShadow: 'inset 0 0 0 1px #9a9384' };
+  const pane = '<div style="position:absolute;inset:0;background:linear-gradient(#f2efe8,#f2efe8) 50% 0/2px 100% no-repeat,linear-gradient(#f2efe8,#f2efe8) 0 50%/100% 2px no-repeat"></div>';
+  wallItem('R', 3.2, 58, 66, 40, win, pane);
+  wallItem('R', 6.4, 58, 66, 40, win, pane);
+  wallItem('R', 10.5, 58, 66, 40, win, pane);
+  wallItem('L', 3.5, 56, 72, 40, { background: '#f3f1ea', border: '3px solid #b7ad9a' },
+    '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(90deg,#5b8bd0 0 14px,transparent 14px 30px),repeating-linear-gradient(90deg,#e0894e 6px 16px,transparent 16px 34px);opacity:.5"></div>');
   wallItem('L', 6.8, 54, 40, 34, { background: '#caa84e', border: '3px solid #a4863c' },
     '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center"><span style="color:#b83f8f;font-size:15px;line-height:1">&#10084;</span></div>');
 
-  // --- isometric cuboid --- (solid=true records a footprint characters can't stand on)
+  // --- isometric cuboid (solid=true records a footprint) ---
   const solids = [];
   function box(gx, gy, w, d, h, col, solid) {
     const b0 = project(gx, gy), b1 = project(gx + w, gy), b2 = project(gx + w, gy + d), b3 = project(gx, gy + d);
@@ -213,7 +312,7 @@
   const green  = { top:'#3f9d5a', left:'#2c7040', right:'#35864b' };
 
   function chair(gx, gy) { box(gx, gy, 0.4, 0.4, 11, chairC, false); }
-  function desk(gx, gy) {                                   // desk (solid) + monitor + chair (both walkable)
+  function desk(gx, gy) {
     box(gx, gy, 1.15, 0.62, 18, wood);
     box(gx + 0.3, gy + 0.12, 0.42, 0.09, 15, chairC, false);
     chair(gx + 0.38, gy + 0.78);
@@ -235,76 +334,62 @@
     const leg = document.createElement('div'); leg.className='deco';
     Object.assign(leg.style,{ width:(w*0.14)+'px', height:h+'px', left:(c.x - w*0.07)+'px', top:(c.y - h)+'px', background:legCol, zIndex:z });
     office.appendChild(leg);
-    mk(legCol, w, hh, 4, z + 1);                                  // thickness
-    mk(topCol, w, hh, 0, z + 2);                                  // top
+    mk(legCol, w, hh, 4, z + 1);
+    mk(topCol, w, hh, 0, z + 2);
     solids.push([gx - rt * 0.7, gy - rt * 0.55, gx + rt * 0.7, gy + rt * 0.55]);
   }
 
-  // ---- BUILD THE OFFICE (open-plan HQ) ----
-  // pantry / kitchen along back-right wall
-  box(8.6, 0.15, 3.4, 0.7, 30, white);                 // counter
-  box(8.7, 0.2, 0.7, 0.55, 24, navy); box(9.9, 0.2, 0.7, 0.55, 24, { top:'#3a3f4c', left:'#22262f', right:'#2c3038' }); // sink/stove
-  box(11.9, 0.12, 0.85, 0.75, 62, white);              // fridge
+  // ---- BUILD THE OFFICE ----
+  box(8.6, 0.15, 3.4, 0.7, 30, white);
+  box(8.7, 0.2, 0.7, 0.55, 24, navy); box(9.9, 0.2, 0.7, 0.55, 24, { top:'#3a3f4c', left:'#22262f', right:'#2c3038' });
+  box(11.9, 0.12, 0.85, 0.75, 62, white);
   plant(12.9, 0.3);
-  // lockers / cabinets along back-left wall
   box(0.15, 2.4, 0.7, 3.2, 44, navy);
   box(0.15, 6.0, 0.7, 1.6, 30, woodDk);
   plant(0.5, 8.6);
-
-  // gathering / meeting round table (top-left corner)
   roundTable(2.9, 2.2, 1.8, 24, '#c99a5e', '#8a6236');
   [[1.7,2.2],[2.9,1.1],[4.1,2.2],[2.9,3.3],[2.0,1.3],[3.8,1.3]].forEach(p => chair(p[0], p[1]));
-
-  // workstation desks — two tidy rows with an aisle (specialists back, staff front)
-  desk(5.0, 1.9); desk(7.0, 1.9); desk(9.0, 1.9);   // row 1 (amal, hakim, ridhwan)
-  desk(5.0, 4.4); desk(7.0, 4.4); desk(9.0, 4.4);   // row 2 (aiman, farah, wei)
+  desk(5.0, 1.9); desk(7.0, 1.9); desk(9.0, 1.9);
+  desk(5.0, 4.4); desk(7.0, 4.4); desk(9.0, 4.4);
   plant(10.6, 1.9); plant(4.0, 4.6);
-
-  // lounge (front-right)
-  box(11.6, 5.2, 1.7, 0.85, 20, blue); box(11.6, 5.95, 1.7, 0.22, 40, blue);   // sofa + back
-  box(13.3, 4.5, 0.8, 1.5, 20, orange);                                        // armchair
-  box(12.4, 6.3, 0.95, 0.7, 13, glass);                                        // coffee table
+  box(11.6, 5.2, 1.7, 0.85, 20, blue); box(11.6, 5.95, 1.7, 0.22, 40, blue);
+  box(13.3, 4.5, 0.8, 1.5, 20, orange);
+  box(12.4, 6.3, 0.95, 0.7, 13, glass);
   plant(13.8, 6.6);
-  // ping-pong (front, bottom)
   box(11.4, 7.8, 1.9, 1.0, 17, green);
-  const pc = project(12.35, 8.3); const net = document.createElement('div'); net.className='deco';
-  Object.assign(net.style,{ width:(1.9*TILE_W*0.5)+'px', height:'3px', left:(pc.x - 1.9*TILE_W*0.25)+'px', top:(pc.y - 17)+'px', background:'#eef0f3', zIndex: Math.round((12.35+8.3)*10)+103, transform:'skewY(26.57deg)' });
+  const pcn = project(12.35, 8.3); const net = document.createElement('div'); net.className='deco';
+  Object.assign(net.style,{ width:(1.9*TILE_W*0.5)+'px', height:'3px', left:(pcn.x - 1.9*TILE_W*0.25)+'px', top:(pcn.y - 17)+'px', background:'#eef0f3', zIndex: Math.round((12.35+8.3)*10)+103, transform:'skewY(26.57deg)' });
   office.appendChild(net);
-
-  // boss desk (front-left) — where you preside
   box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, chairC);
 
   // --- floor target marker ---
   const spot = document.createElement('div'); spot.className = 'layer'; spot.style.zIndex = 4; spot.style.opacity = 0;
-  spot.style.transition = 'opacity .25s'; spot.style.filter = 'drop-shadow(0 0 4px #f4c95d)';
+  spot.style.transition = 'opacity .25s ease'; spot.style.filter = 'drop-shadow(0 0 4px #e0894e)';
   office.appendChild(spot);
   function moveSpot(gx, gy) {
     const x = Math.floor(gx), y = Math.floor(gy);
     spot.style.clipPath = poly([project(x, y), project(x + 1, y), project(x + 1, y + 1), project(x, y + 1)]);
-    spot.style.background = 'rgba(244,201,93,.30)'; spot.style.opacity = 1;
+    spot.style.background = 'rgba(224,137,78,.32)'; spot.style.opacity = 1;
   }
 
   // =====================================================================
-  //  PIXEL SPRITE BUILDER (box-shadow grid) — stays upright
+  //  PIXEL SPRITE BUILDER — stays upright, 3 leg frames for walk-cycle
   // =====================================================================
   const basePalette = {
     '.': null, K:'#3a2a1e', H:'#5a3d28', S:'#d9a066', s:'#c68a52', E:'#2a2a2a',
     R:'#c9463a', r:'#9e3128', B:'#4a90c2', b:'#3a6f99', W:'#e8e6e3', J:'#40454f', j:'#2c3038'
   };
-  // body is shared; only the leg rows (14-18) differ per walk frame
   const TOP = [
     ".....KKK.....","....KKKKK....","...KHHHHHK...","...HSSSSSH...","...SSEsEsS...",
     "...SSSSSSS...","...sSSSSSs...","....sSSSs....","..JJJRRRJJJ..",".JJJRrrrRJJJ.",
     ".JJSRRRRRSJJ.",".JJSRrrrRSJJ.",".JJSRRRRRSJJ.",".JJjRRRRRjJJ."
   ];
   const LEGS_STAND = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB.BBb...","..WWW...WWW.."];
-  const LEGS_WALK1 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","..BbB..BBb...",".WWW....WW..."]; // left leg fwd, right lifted
-  const LEGS_WALK2 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB..BbB..","...WW....WWW."]; // right leg fwd, left lifted
-  const MAP_STAND = TOP.concat(LEGS_STAND);
-  const MAP_WALK1 = TOP.concat(LEGS_WALK1);
-  const MAP_WALK2 = TOP.concat(LEGS_WALK2);
+  const LEGS_WALK1 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","..BbB..BBb...",".WWW....WW..."];
+  const LEGS_WALK2 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB..BbB..","...WW....WWW."];
+  const MAP_STAND = TOP.concat(LEGS_STAND), MAP_WALK1 = TOP.concat(LEGS_WALK1), MAP_WALK2 = TOP.concat(LEGS_WALK2);
   const skins = {
-    user:    { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#f4c95d', jacketSh:'#c9a542', shirt:'#2a2f45', shirtSh:'#1e2233' },
+    user:    { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#e6a84e', jacketSh:'#c08432', shirt:'#2a2418', shirtSh:'#1e1a10' },
     general: { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#3f7d5a', jacketSh:'#2c5940' },
     cbt:     { hairA:'#2a2a35', hairB:'#40404f', jacket:'#3a6ea5', jacketSh:'#294f78' },
     islamic: { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#6a4a8f', jacketSh:'#4a3266' },
@@ -341,6 +426,7 @@
     const facing = document.createElement('div'); facing.className = 'facing';
     const canvas = document.createElement('div'); canvas.className = 'sprite-canvas';
     canvas.style.width = SPR_W + 'px'; canvas.style.height = SPR_H + 'px';
+    canvas.style.animationDelay = (Math.random() * -3.6) + 's';   // desync idle breathing
     const name = document.createElement('span'); name.className = 'name'; name.textContent = label;
     facing.appendChild(canvas); wrap.appendChild(facing); wrap.appendChild(name);
     office.appendChild(wrap);
@@ -354,23 +440,23 @@
   }
 
   // =====================================================================
-  //  WORKERS — data + autonomous movement
+  //  WORKERS
   // =====================================================================
   const staff = {
-    amal:    { name:'DR. AMAL',      skin:'general', role:'specialist', dot:'#3f7d5a', home:{gx:5.6,gy:2.9}, keywords:[],
+    amal:    { name:'DR. AMAL', role:'Pendengar', skin:'general', kind:'specialist', dot:'#3f7d5a', home:{gx:5.6,gy:2.9}, keywords:[],
                reply:'Aku dengar, boss. Cerita lagi — apa yang buat kau rasa macam tu hari ni?' },
-    hakim:   { name:'DR. HAKIM',     skin:'cbt', role:'specialist', dot:'#3a6ea5', home:{gx:7.6,gy:2.9},
+    hakim:   { name:'DR. HAKIM', role:'CBT / Mekanisme', skin:'cbt', kind:'specialist', dot:'#3a6ea5', home:{gx:7.6,gy:2.9},
                keywords:['takut','bodoh','malu','cemas','anxiety','colleague','kerja','office','panic','stress'],
                reply:'Bunyi macam ada automatic thought yang trigger threat response. Sebelum kau sempat fikir, badan dah react dulu. Kita boleh breakdown pattern ni step by step.' },
-    ridhwan: { name:'USTAZ RIDHWAN', skin:'islamic', role:'specialist', dot:'#6a4a8f', home:{gx:9.6,gy:2.9},
+    ridhwan: { name:'USTAZ RIDHWAN', role:'Perspektif Islam', skin:'islamic', kind:'specialist', dot:'#6a4a8f', home:{gx:9.6,gy:2.9},
                keywords:['islam','tuhan','allah','doa','iman','self-worth','makna','tawakkul','sabar'],
                reply:'Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?' },
-    aiman:   { name:'AIMAN',  skin:'staffA', role:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
-    farah:   { name:'FARAH',  skin:'staffB', role:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
-    wei:     { name:'WEI',    skin:'staffC', role:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
+    aiman:   { name:'AIMAN', role:'Staf', skin:'staffA', kind:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
+    farah:   { name:'FARAH', role:'Staf', skin:'staffB', kind:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
+    wei:     { name:'WEI', role:'Staf', skin:'staffC', kind:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
   };
+  const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
 
-  // shared roam points — open aisles only (isBlocked is the safety net)
   const waypoints = [
     {gx:3.0,gy:3.6}, {gx:6.5,gy:3.6}, {gx:9.0,gy:3.6}, {gx:10.8,gy:4.5},
     {gx:6.0,gy:6.6}, {gx:8.5,gy:6.8}, {gx:10.8,gy:7.3}, {gx:3.0,gy:6.2},
@@ -383,7 +469,6 @@
   const BOSS_POS = { gx: 4.3, gy: 8.6 }, BOSS_MEET = { gx: 5.6, gy: 7.7 };
   place(boss, BOSS_POS.gx, BOSS_POS.gy);
 
-  // walk-cycle ticker — swap alternating leg frames on every moving character
   const everyone = [...Object.values(sprites), boss];
   let walkPhase = 0;
   setInterval(() => {
@@ -391,17 +476,18 @@
     for (const s of everyone) if (s.isWalking) s.px.style.boxShadow = walkPhase ? s.frames.walk2 : s.frames.walk1;
   }, 120);
 
-  // roster bar
+  // team rail
   const roster = document.getElementById('roster');
   for (const k in staff) {
-    const c = document.createElement('div'); c.className = 'chip';
-    c.innerHTML = `<span class="dot" style="color:${staff[k].dot};background:${staff[k].dot}"></span>`
-      + `<span class="cname">${staff[k].name}</span><span class="cstat" id="stat-${k}">bekerja</span>`;
-    roster.appendChild(c); sprites[k].statEl = document.getElementById('stat-' + k);
+    const m = document.createElement('div'); m.className = 'member';
+    m.innerHTML = `<span class="dot" style="color:${staff[k].dot};background:${staff[k].dot}"></span>`
+      + `<div class="m-info"><span class="m-name">${staff[k].name}</span>`
+      + `<span class="m-role">${staff[k].role}</span><span class="m-stat" id="stat-${k}">kat meja</span></div>`;
+    roster.appendChild(m); sprites[k].statEl = document.getElementById('stat-' + k);
   }
   function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
 
-  // generic walk (variable speed by distance)
+  // generic walk (variable speed, crafted easing)
   let currentScale = 1;
   function walk(s, gx, gy) {
     gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
@@ -409,7 +495,7 @@
     const dur = Math.min(1.7, Math.max(0.45, Math.hypot(gx - s.gx, gy - s.gy) * 0.26));
     const curX = parseFloat(s.wrap.style.left) + SPR_HALF;
     s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
-    s.wrap.style.transition = `left ${dur}s linear, top ${dur}s linear`;
+    s.wrap.style.transition = `left ${dur}s ${EASE}, top ${dur}s ${EASE}`;
     s.wrap.classList.add('walking'); s.isWalking = true;
     s.wrap.style.left = (p.x - SPR_HALF) + 'px'; s.wrap.style.top = (p.y - SPR_H) + 'px';
     s.wrap.style.zIndex = Math.round((gx + gy) * 10) + 120; s.gx = gx; s.gy = gy;
@@ -434,9 +520,12 @@
   function doWander(k) {
     const s = sprites[k]; if (s.busy) return;
     const t = openTarget(k);
-    setStat(k, 'berjalan');
+    setStat(k, 'jalan-jalan');
     const dur = walk(s, t.gx, t.gy);
-    s.arriveT = setTimeout(() => { setStat(k, 'bekerja'); scheduleWander(k); }, dur * 1000 + 700 + Math.random() * 2800);
+    s.arriveT = setTimeout(() => {
+      setStat(k, IDLE_PHRASES[(Math.random() * IDLE_PHRASES.length) | 0]);
+      scheduleWander(k);
+    }, dur * 1000 + 700 + Math.random() * 2800);
   }
   for (const k in staff) setTimeout(() => scheduleWander(k), Math.random() * 1500);
 
@@ -446,7 +535,7 @@
   function routeAgent(text) {
     const l = text.toLowerCase(); let best = 'amal', bs = 0;
     for (const k in staff) {
-      if (staff[k].role !== 'specialist') continue;
+      if (staff[k].kind !== 'specialist') continue;
       const s = staff[k].keywords.filter(w => l.includes(w)).length;
       if (s > bs) { bs = s; best = k; }
     }
@@ -459,13 +548,38 @@
   ];
   const checkCrisis = t => crisisKeywords.some(w => t.toLowerCase().includes(w));
 
-  function showDialog(sp, ln) {
-    const d = document.getElementById('dialog'); d.classList.remove('crisis');
-    d.innerHTML = `<span class="speaker">${sp}</span><div class="line">${ln}</div>`;
+  const bubble = document.getElementById('bubble');
+  let bubbleT = null;
+  function showBubble(sprite, who, text, variant) {
+    const p = project(sprite.gx, sprite.gy);
+    bubble.className = variant || '';
+    bubble.innerHTML = '';
+    const w = document.createElement('span'); w.className = 'who'; w.textContent = who;
+    const say = document.createElement('span'); say.className = 'say'; say.textContent = text;
+    bubble.append(w, say);
+    bubble.hidden = false;
+    // position above the character's head, in stage (screen) space, clamped horizontally
+    const stageW = BOARD_W * currentScale;
+    let x = p.x * currentScale, y = (p.y - SPR_H - 2) * currentScale;
+    x = Math.max(112, Math.min(stageW - 112, x));
+    bubble.style.left = x + 'px'; bubble.style.top = Math.max(6, y) + 'px';
+    bubble.style.animation = 'none'; void bubble.offsetWidth; bubble.style.animation = '';
+    clearTimeout(bubbleT); bubbleT = setTimeout(() => { bubble.hidden = true; }, 8000);
+  }
+  function hideBubble() { bubble.hidden = true; clearTimeout(bubbleT); }
+
+  function logDialog(sp, ln, crisis) {
+    const d = document.getElementById('dialog'); d.classList.toggle('crisis', !!crisis);
+    d.innerHTML = '';
+    const s = document.createElement('span'); s.className = 'speaker'; s.textContent = sp;
+    const l = document.createElement('div'); l.className = 'line'; l.textContent = ln;
+    d.append(s, l);
+    return d;
   }
   function showCrisisResources() {
+    hideBubble();
     const d = document.getElementById('dialog'); d.classList.add('crisis');
-    d.innerHTML = `<span class="speaker">SOKONGAN SEGERA</span>
+    d.innerHTML = `<span class="speaker">Sokongan segera</span>
       <div class="line">Terima kasih sebab beritahu. Apa yang kau rasa sekarang penting, dan kau tak perlu hadap benda ni sorang-sorang. App ni bukan pengganti bantuan profesional — tolong hubungi salah satu talian ni sekarang:</div>
       <ul class="crisis-list">
         <li><strong>Talian HEAL (KKM):</strong> 15555 — 24 jam, percuma</li>
@@ -473,31 +587,35 @@
         <li><strong>Talian Kasih:</strong> 15999 (atau WhatsApp 019-261 5999)</li>
         <li>Kalau bahaya segera: <strong>999</strong></li>
       </ul>`;
-    document.getElementById('status').textContent = 'safety layer aktif — routing di-override, hubungi talian di atas';
+    setStatus('Kami dengar kau. Talian di atas ada orang sebenar, sekarang juga.');
   }
+
+  const setStatus = t => document.getElementById('status').textContent = t;
 
   // summon a specialist over to the boss
   function summon(k, text) {
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
-    setStat(k, 'ke boss →');
+    setStat(k, 'menuju kau →');
+    showBubble(boss, 'Kau', text, 'boss');
+    logDialog('Kau', text);
     moveSpot(BOSS_MEET.gx, BOSS_MEET.gy);
     const dur = walk(s, BOSS_MEET.gx, BOSS_MEET.gy);
-    if (text) showDialog('KAU (BOSS)', text);
-    document.getElementById('status').textContent = `memanggil ${a.name}...`;
+    setStatus(`${a.name} tengah berjalan datang…`);
     s.talkT = setTimeout(() => {
-      // face the boss
       s.facing.style.transform = (project(boss.gx, boss.gy).x < project(s.gx, s.gy).x) ? 'scaleX(-1)' : 'scaleX(1)';
-      showDialog(a.name, a.reply); setStat(k, 'bercakap');
-      document.getElementById('status').textContent = `${a.name} tengah lapor kat kau`;
-    }, dur * 1000 + 150);
-    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'bekerja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 8000);
+      showBubble(s, a.name, a.reply);
+      logDialog(a.name, a.reply);
+      setStat(k, 'dengan kau');
+      setStatus(`${a.name} dengan kau sekarang.`);
+    }, dur * 1000 + 180);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 8000);
   }
 
   function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     i.value = '';
-    if (checkCrisis(t)) { showCrisisResources(); return; }   // safety WAJIB dulu
+    if (checkCrisis(t)) { logDialog('Kau', t); showCrisisResources(); return; }
     summon(routeAgent(t), t);
   }
   document.getElementById('send-btn').addEventListener('click', handleSend);
@@ -510,19 +628,28 @@
     const aa = (mx - ORIGIN_X) * 2 / TILE_W, bb = (my - ORIGIN_Y) * 2 / TILE_H;
     let gx = (aa + bb) / 2, gy = (bb - aa) / 2;
     if (gx < -0.5 || gy < -0.5 || gx > GRID_X + 0.5 || gy > GRID_Y + 0.5) return;
-    const t = nearestOpen(gx, gy);           // don't let the boss stand on furniture either
+    const t = nearestOpen(gx, gy);
     moveSpot(t.gx, t.gy); walk(boss, t.gx, t.gy);
   });
 
-  // --- responsive scaling: office fills the width (a touch of upscale allowed) ---
+  // --- responsive scaling: office fills its column ---
   function fit() {
     const stage = document.getElementById('stage');
-    const avail = Math.min(760, window.innerWidth - 16);
+    const col = stage.parentElement;                 // the .stage-wrap column
+    const avail = Math.min(820, col.clientWidth);
     const s = avail / BOARD_W; currentScale = s;
     office.style.transform = 'scale(' + s + ')';
     stage.style.width = (BOARD_W * s) + 'px'; stage.style.height = (BOARD_H * s) + 'px';
   }
-  window.addEventListener('resize', fit); fit();
+  window.addEventListener('resize', fit); requestAnimationFrame(fit); fit();
+
+  // ambient live clock (a small human detail)
+  function tickClock() {
+    const d = new Date();
+    document.getElementById('clock').textContent =
+      String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  tickClock(); setInterval(tickClock, 15000);
 </script>
 </body>
 </html>
