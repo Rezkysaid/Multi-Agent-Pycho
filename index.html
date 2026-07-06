@@ -16,7 +16,7 @@
     margin: 0; background: var(--bg); color: var(--text);
     font-family: 'JetBrains Mono', monospace;
     display: flex; flex-direction: column; align-items: center;
-    min-height: 100vh; padding: 20px 12px;
+    min-height: 100vh; padding: 16px 8px;
   }
   h1 {
     font-family: 'Press Start 2P', monospace; font-size: 13px;
@@ -26,7 +26,7 @@
 
   /* roster bar of workers (like the reference HQ header) */
   #roster {
-    width: min(880px, 96vw); display: flex; gap: 6px; overflow-x: auto;
+    width: min(760px, 96vw); display: flex; gap: 6px; overflow-x: auto;
     padding: 6px 2px; margin-bottom: 10px; scrollbar-width: thin;
   }
   .chip {
@@ -40,12 +40,11 @@
 
   #stage { position: relative; margin: 0 auto; max-width: 100%; }
   #office {
-    position: absolute; left: 0; top: 0; width: 880px; height: 520px;
+    position: absolute; left: 0; top: 0; width: 632px; height: 420px;
     transform-origin: top left; image-rendering: pixelated; cursor: pointer;
-    background: radial-gradient(130% 100% at 50% 20%, #1c2033 0%, #0e1120 72%);
-    border: 3px solid var(--panel-edge); border-radius: 6px; overflow: hidden;
+    background: none; overflow: visible;
   }
-  .layer { position: absolute; left: 0; top: 0; width: 880px; height: 520px; pointer-events: none; }
+  .layer { position: absolute; left: 0; top: 0; width: 632px; height: 420px; pointer-events: none; }
   .tile { transition: filter .18s; }
   .deco { position: absolute; pointer-events: none; }
 
@@ -65,7 +64,7 @@
   #status { margin-top: 12px; font-size: 11px; color: #8b90ad; min-height: 16px; text-align:center; }
 
   #dialog {
-    width: min(880px, 96vw); margin-top: 12px;
+    width: min(760px, 96vw); margin-top: 12px;
     background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 4px;
     padding: 14px 16px; min-height: 66px;
   }
@@ -78,7 +77,7 @@
   #dialog.crisis .speaker { color: var(--crisis); }
   #dialog .crisis-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.8; }
 
-  #input-row { width: min(880px, 96vw); display: flex; gap: 8px; margin-top: 10px; }
+  #input-row { width: min(760px, 96vw); display: flex; gap: 8px; margin-top: 10px; }
   #user-input {
     flex: 1; background: var(--tile); border: 2px solid var(--panel-edge); border-radius: 3px;
     color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 12px;
@@ -127,7 +126,8 @@
   const TILE_W = 48, TILE_H = 24;      // 2:1 iso tile
   const GRID_X = 15, GRID_Y = 10;      // wide open-plan floor
   const WALL_H = 88;
-  const ORIGIN_X = 320, ORIGIN_Y = 132;
+  const ORIGIN_X = 256, ORIGIN_Y = 104;  // tuned so the room fills a tight 632x420 board
+  const BOARD_W = 632, BOARD_H = 420;
   const SCALE = 3;                     // px per sprite cell (smaller = zoomed-out look)
   const SPR_W = 13 * SCALE, SPR_H = 19 * SCALE, SPR_HALF = SPR_W / 2;
 
@@ -462,13 +462,13 @@
     moveSpot(gx, gy); walk(boss, gx, gy);
   });
 
-  // --- responsive scaling ---
+  // --- responsive scaling: office fills the width (a touch of upscale allowed) ---
   function fit() {
     const stage = document.getElementById('stage');
-    const avail = Math.min(880, window.innerWidth - 24);
-    const s = avail / 880; currentScale = s;
+    const avail = Math.min(760, window.innerWidth - 16);
+    const s = avail / BOARD_W; currentScale = s;
     office.style.transform = 'scale(' + s + ')';
-    stage.style.width = (880 * s) + 'px'; stage.style.height = (520 * s) + 'px';
+    stage.style.width = (BOARD_W * s) + 'px'; stage.style.height = (BOARD_H * s) + 'px';
   }
   window.addEventListener('resize', fit); fit();
 </script>
