@@ -177,15 +177,30 @@
   wallItem('L', 6.8, 54, 40, 34, { background: '#caa84e', border: '3px solid #a4863c' },
     '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center"><span style="color:#b83f8f;font-size:15px;line-height:1">&#10084;</span></div>');
 
-  // --- isometric cuboid ---
-  function box(gx, gy, w, d, h, col) {
+  // --- isometric cuboid --- (solid=true records a footprint characters can't stand on)
+  const solids = [];
+  function box(gx, gy, w, d, h, col, solid) {
     const b0 = project(gx, gy), b1 = project(gx + w, gy), b2 = project(gx + w, gy + d), b3 = project(gx, gy + d);
     const T0 = up(b0, h), T1 = up(b1, h), T2 = up(b2, h), T3 = up(b3, h);
     const z = Math.round((gx + w + gy + d) * 10) + 100;
     face([T1, T2, b2, b1], col.right, z);
     face([T3, T2, b2, b3], col.left, z);
     face([T0, T1, T2, T3], col.top, z + 1);
+    if (solid !== false) solids.push([gx, gy, gx + w, gy + d]);
     return z;
+  }
+  function isBlocked(gx, gy, m) {
+    m = m == null ? 0.12 : m;
+    return solids.some(r => gx > r[0] - m && gx < r[2] + m && gy > r[1] - m && gy < r[3] + m);
+  }
+  function nearestOpen(gx, gy) {
+    if (!isBlocked(gx, gy)) return { gx, gy };
+    for (let r = 0.4; r <= 3.2; r += 0.4)
+      for (let a = 0; a < 8; a++) {
+        const ang = a / 8 * 2 * Math.PI, nx = gx + Math.cos(ang) * r, ny = gy + Math.sin(ang) * r;
+        if (nx > 0.4 && ny > 0.4 && nx < GRID_X - 0.4 && ny < GRID_Y - 0.4 && !isBlocked(nx, ny)) return { gx: nx, gy: ny };
+      }
+    return { gx, gy };
   }
   const wood   = { top:'#c99a5e', left:'#9c6f3c', right:'#b3854a' };
   const woodDk = { top:'#6f4a2c', left:'#553824', right:'#63432a' };
@@ -197,14 +212,14 @@
   const orange = { top:'#e0894e', left:'#b5673a', right:'#c97644' };
   const green  = { top:'#3f9d5a', left:'#2c7040', right:'#35864b' };
 
-  function chair(gx, gy) { box(gx, gy, 0.4, 0.4, 11, chairC); }
-  function desk(gx, gy) {                                   // desk + monitor + chair
+  function chair(gx, gy) { box(gx, gy, 0.4, 0.4, 11, chairC, false); }
+  function desk(gx, gy) {                                   // desk (solid) + monitor + chair (both walkable)
     box(gx, gy, 1.15, 0.62, 18, wood);
-    box(gx + 0.3, gy + 0.12, 0.42, 0.09, 15, chairC);
+    box(gx + 0.3, gy + 0.12, 0.42, 0.09, 15, chairC, false);
     chair(gx + 0.38, gy + 0.78);
   }
   function plant(gx, gy) {
-    box(gx, gy, 0.32, 0.32, 15, { top:'#b9713f', left:'#8f5730', right:'#a4653a' });
+    box(gx, gy, 0.32, 0.32, 15, { top:'#b9713f', left:'#8f5730', right:'#a4653a' }, false);
     const c = project(gx + 0.16, gy + 0.16);
     const f = document.createElement('div'); f.className = 'deco';
     Object.assign(f.style, { width:'18px', height:'24px', borderRadius:'50% 50% 45% 45%',
@@ -222,6 +237,7 @@
     office.appendChild(leg);
     mk(legCol, w, hh, 4, z + 1);                                  // thickness
     mk(topCol, w, hh, 0, z + 2);                                  // top
+    solids.push([gx - rt * 0.7, gy - rt * 0.55, gx + rt * 0.7, gy + rt * 0.55]);
   }
 
   // ---- BUILD THE OFFICE (open-plan HQ) ----
@@ -354,11 +370,11 @@
     wei:     { name:'WEI',    skin:'staffC', role:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
   };
 
-  // shared roam points (open aisles / activity spots)
+  // shared roam points — open aisles only (isBlocked is the safety net)
   const waypoints = [
-    {gx:3.4,gy:2.3}, {gx:9.5,gy:1.2}, {gx:6.5,gy:5.5}, {gx:10.5,gy:4.2},
-    {gx:4.5,gy:3.6}, {gx:8.5,gy:6.2}, {gx:11.5,gy:6.0}, {gx:5.5,gy:1.5},
-    {gx:12.0,gy:8.2}, {gx:2.4,gy:5.5}, {gx:7.5,gy:3.0}, {gx:10.0,gy:2.4}
+    {gx:3.0,gy:3.6}, {gx:6.5,gy:3.6}, {gx:9.0,gy:3.6}, {gx:10.8,gy:4.5},
+    {gx:6.0,gy:6.6}, {gx:8.5,gy:6.8}, {gx:10.8,gy:7.3}, {gx:3.0,gy:6.2},
+    {gx:6.5,gy:7.6}, {gx:2.0,gy:4.2}, {gx:7.0,gy:1.3}, {gx:10.2,gy:1.3}
   ];
 
   const sprites = {};
@@ -407,11 +423,19 @@
     const s = sprites[k]; if (s.busy) return;
     s.wanderT = setTimeout(() => doWander(k), 900 + Math.random() * 3200);
   }
+  function openTarget(k) {
+    for (let i = 0; i < 12; i++) {
+      const wp = Math.random() < 0.35 ? staff[k].home : waypoints[(Math.random() * waypoints.length) | 0];
+      const gx = wp.gx + (Math.random() * 0.5 - 0.25), gy = wp.gy + (Math.random() * 0.5 - 0.25);
+      if (!isBlocked(gx, gy)) return { gx, gy };
+    }
+    return staff[k].home;
+  }
   function doWander(k) {
     const s = sprites[k]; if (s.busy) return;
-    const wp = Math.random() < 0.35 ? staff[k].home : waypoints[(Math.random() * waypoints.length) | 0];
+    const t = openTarget(k);
     setStat(k, 'berjalan');
-    const dur = walk(s, wp.gx + (Math.random() * 0.5 - 0.25), wp.gy + (Math.random() * 0.5 - 0.25));
+    const dur = walk(s, t.gx, t.gy);
     s.arriveT = setTimeout(() => { setStat(k, 'bekerja'); scheduleWander(k); }, dur * 1000 + 700 + Math.random() * 2800);
   }
   for (const k in staff) setTimeout(() => scheduleWander(k), Math.random() * 1500);
@@ -484,9 +508,10 @@
     const rect = office.getBoundingClientRect();
     const mx = (e.clientX - rect.left) / currentScale, my = (e.clientY - rect.top) / currentScale;
     const aa = (mx - ORIGIN_X) * 2 / TILE_W, bb = (my - ORIGIN_Y) * 2 / TILE_H;
-    const gx = (aa + bb) / 2, gy = (bb - aa) / 2;
+    let gx = (aa + bb) / 2, gy = (bb - aa) / 2;
     if (gx < -0.5 || gy < -0.5 || gx > GRID_X + 0.5 || gy > GRID_Y + 0.5) return;
-    moveSpot(gx, gy); walk(boss, gx, gy);
+    const t = nearestOpen(gx, gy);           // don't let the boss stand on furniture either
+    moveSpot(t.gx, t.gy); walk(boss, t.gx, t.gy);
   });
 
   // --- responsive scaling: office fills the width (a touch of upscale allowed) ---
