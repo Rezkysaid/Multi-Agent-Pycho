@@ -546,7 +546,7 @@
                keywords:['islam','tuhan','allah','doa','iman','self-worth','makna','tawakkul','sabar'],
                reply:'Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?' },
     aiman:   { name:'AIMAN', role:'Staf', outfit:'chic', kind:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
-    farah:   { name:'FARAH', role:'Staf', outfit:'knit', kind:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
+    farah:   { name:'MEERA', role:'Staf', outfit:'knit', kind:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
     wei:     { name:'WEI', role:'Staf', outfit:'tailored', kind:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
   };
   const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
@@ -559,7 +559,7 @@
 
   const sprites = {};
   for (const k in staff) { sprites[k] = makeSprite('s-' + k, staff[k].outfit, k, staff[k].name, false); place(sprites[k], staff[k].home.gx, staff[k].home.gy); }
-  const boss = makeSprite('boss', 'tailored', 'user', 'KAU (BOSS)', true);
+  const boss = makeSprite('boss', 'tailored', 'user', 'ALI (BOSS)', true);
   const BOSS_POS = { gx: 4.3, gy: 8.6 }, BOSS_MEET = { gx: 5.6, gy: 7.7 };
   place(boss, BOSS_POS.gx, BOSS_POS.gy);
 
@@ -691,8 +691,8 @@
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
     setStat(k, 'menuju kau →');
-    showBubble(boss, 'Kau', text, 'boss');
-    logDialog('Kau', text);
+    showBubble(boss, 'Ali', text, 'boss');
+    logDialog('Ali', text);
     moveSpot(BOSS_MEET.gx, BOSS_MEET.gy);
     const dur = walk(s, BOSS_MEET.gx, BOSS_MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
@@ -709,7 +709,7 @@
   function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     i.value = '';
-    if (checkCrisis(t)) { logDialog('Kau', t); showCrisisResources(); return; }
+    if (checkCrisis(t)) { logDialog('Ali', t); showCrisisResources(); return; }
     summon(routeAgent(t), t);
   }
   document.getElementById('send-btn').addEventListener('click', handleSend);
