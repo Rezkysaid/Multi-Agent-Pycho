@@ -30,9 +30,9 @@
     font-family: 'Nunito', system-ui, sans-serif;
     min-height: 100vh; padding: 0 0 40px;
   }
-  /* faint paper grain — a tactile, hand-made touch */
+  /* faint paper grain — cheap static overlay (no blend-mode: crashes mobile Safari) */
   body::after {
-    content:''; position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: .04; mix-blend-mode: overlay;
+    content:''; position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: .03;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
@@ -71,9 +71,9 @@
     position: absolute; left: 0; top: 0; width: 632px; height: 420px;
     transform-origin: top left; image-rendering: pixelated; cursor: pointer;
     background: none; overflow: visible;
-    filter: drop-shadow(0 24px 34px #0008);
   }
-  .layer { position: absolute; left: 0; top: 0; width: 632px; height: 420px; pointer-events: none; }
+  .layer { position: absolute; pointer-events: none; }
+  #spot { left: 0; top: 0; width: 632px; height: 420px; }
   .tile { transition: filter .2s ease; }
   .deco { position: absolute; pointer-events: none; }
 
@@ -238,9 +238,17 @@
   }
   const up = (p, h) => ({ x: p.x, y: p.y - h });
   const poly = pts => 'polygon(' + pts.map(p => `${p.x.toFixed(1)}px ${p.y.toFixed(1)}px`).join(', ') + ')';
+  // one polygon face, sized to its own bounding box (NOT the whole board) so
+  // mobile Safari doesn't have to back hundreds of full-board layers
   function face(pts, bg, z) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of pts) { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; }
     const d = document.createElement('div');
-    d.className = 'layer'; d.style.background = bg; d.style.clipPath = poly(pts); d.style.zIndex = z;
+    d.className = 'layer';
+    d.style.left = minX + 'px'; d.style.top = minY + 'px';
+    d.style.width = (maxX - minX) + 'px'; d.style.height = (maxY - minY) + 'px';
+    d.style.background = bg; d.style.zIndex = z;
+    d.style.clipPath = 'polygon(' + pts.map(p => `${(p.x - minX).toFixed(1)}px ${(p.y - minY).toFixed(1)}px`).join(', ') + ')';
     office.appendChild(d); return d;
   }
 
@@ -294,7 +302,7 @@
     const ww = (w + 0.55) * TILE_W * 0.62, hh = (d + 0.55) * TILE_H * 1.0;
     const e = document.createElement('div'); e.className = 'deco';
     Object.assign(e.style, { width: ww + 'px', height: hh + 'px', left: (c.x - ww / 2) + 'px', top: (c.y - hh / 2) + 'px',
-      borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(20,12,6,.30), transparent)', filter: 'blur(2px)', zIndex: 5 });
+      borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(20,12,6,.28), rgba(20,12,6,.12) 62%, transparent)', zIndex: 5 });
     office.appendChild(e);
   }
 
@@ -434,8 +442,8 @@
   chair(4.15, 7.55);                                                                        // boss chair
 
   // --- floor target marker ---
-  const spot = document.createElement('div'); spot.className = 'layer'; spot.style.zIndex = 4; spot.style.opacity = 0;
-  spot.style.transition = 'opacity .25s ease'; spot.style.filter = 'drop-shadow(0 0 4px #e0894e)';
+  const spot = document.createElement('div'); spot.className = 'layer'; spot.id = 'spot'; spot.style.zIndex = 4; spot.style.opacity = 0;
+  spot.style.transition = 'opacity .25s ease';
   office.appendChild(spot);
   function moveSpot(gx, gy) {
     const x = Math.floor(gx), y = Math.floor(gy);
