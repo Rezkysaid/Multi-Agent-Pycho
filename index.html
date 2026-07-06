@@ -80,7 +80,8 @@
   .facing { position: absolute; inset: 0; transform-origin: bottom center; }
   .sprite-canvas { position: relative; image-rendering: pixelated; }
   .sprite .sprite-canvas { animation: breathe 3.6s ease-in-out infinite; }
-  .walking .sprite-canvas { animation: bob 0.30s steps(2) infinite; }
+  .walking .sprite-canvas { animation: bob 0.5s steps(2) infinite; }
+  .sprite .shadow { position: absolute; left: 50%; bottom: 1px; transform: translateX(-50%); width: 20px; height: 6px; border-radius: 50%; background: radial-gradient(closest-side, rgba(10,6,2,.42), transparent); z-index: -1; }
   @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
   @keyframes bob { 0% { transform: translateY(0); } 100% { transform: translateY(-2px); } }
   .name {
@@ -277,15 +278,39 @@
   wallItem('L', 6.8, 54, 40, 34, { background: '#caa84e', border: '3px solid #a4863c' },
     '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center"><span style="color:#b83f8f;font-size:15px;line-height:1">&#10084;</span></div>');
 
-  // --- isometric cuboid (solid=true records a footprint) ---
+  // lighten (+) / darken (-) a hex colour for material shading
+  function shade(hex, pct) {
+    if (typeof hex !== 'string' || hex[0] !== '#') return hex;
+    const f = pct / 100, ch = i => {
+      const c = parseInt(hex.substr(i, 2), 16);
+      return Math.max(0, Math.min(255, Math.round(c + (f < 0 ? c * f : (255 - c) * f))));
+    };
+    return '#' + [ch(1), ch(3), ch(5)].map(c => c.toString(16).padStart(2, '0')).join('');
+  }
+  // soft contact shadow on the floor under a footprint (grounds the object)
+  function contactShadow(gx, gy, w, d) {
+    const c = project(gx + w / 2, gy + d / 2);
+    const ww = (w + 0.55) * TILE_W * 0.62, hh = (d + 0.55) * TILE_H * 1.0;
+    const e = document.createElement('div'); e.className = 'deco';
+    Object.assign(e.style, { width: ww + 'px', height: hh + 'px', left: (c.x - ww / 2) + 'px', top: (c.y - hh / 2) + 'px',
+      borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(20,12,6,.30), transparent)', filter: 'blur(2px)', zIndex: 5 });
+    office.appendChild(e);
+  }
+
+  // --- isometric cuboid: shaded faces + optional base elevation + footprint ---
   const solids = [];
-  function box(gx, gy, w, d, h, col, solid) {
-    const b0 = project(gx, gy), b1 = project(gx + w, gy), b2 = project(gx + w, gy + d), b3 = project(gx, gy + d);
+  function box(gx, gy, w, d, h, col, solid, base) {
+    base = base || 0;
+    const b0 = up(project(gx, gy), base), b1 = up(project(gx + w, gy), base),
+          b2 = up(project(gx + w, gy + d), base), b3 = up(project(gx, gy + d), base);
     const T0 = up(b0, h), T1 = up(b1, h), T2 = up(b2, h), T3 = up(b3, h);
-    const z = Math.round((gx + w + gy + d) * 10) + 100;
-    face([T1, T2, b2, b1], col.right, z);
-    face([T3, T2, b2, b3], col.left, z);
-    face([T0, T1, T2, T3], col.top, z + 1);
+    const z = Math.round((gx + w + gy + d) * 10) + 100 + Math.round(base / 2);
+    const rBg = col.right[0] === '#' ? `linear-gradient(180deg,${shade(col.right,8)},${shade(col.right,-12)})` : col.right;
+    const lBg = col.left[0]  === '#' ? `linear-gradient(180deg,${shade(col.left,2)},${shade(col.left,-18)})` : col.left;
+    const tBg = col.top[0]   === '#' ? `linear-gradient(145deg,${shade(col.top,16)},${col.top} 58%,${shade(col.top,-6)})` : col.top;
+    face([T1, T2, b2, b1], rBg, z);
+    face([T3, T2, b2, b3], lBg, z);
+    face([T0, T1, T2, T3], tBg, z + 1);
     if (solid !== false) solids.push([gx, gy, gx + w, gy + d]);
     return z;
   }
@@ -312,11 +337,42 @@
   const orange = { top:'#e0894e', left:'#b5673a', right:'#c97644' };
   const green  = { top:'#3f9d5a', left:'#2c7040', right:'#35864b' };
 
-  function chair(gx, gy) { box(gx, gy, 0.4, 0.4, 11, chairC, false); }
+  const seatC = { top:'#454b5c', left:'#2b3040', right:'#363c4b' };
+  const legC  = { top:'#4a4f57', left:'#282b31', right:'#33373e' };
+  const screenC = { top:'#14161b', left:'#3f78b0', right:'#181b21' };   // lit screen on the front (left) face
+  const kbC   = { top:'#cbccd0', left:'#9a9ca1', right:'#b3b5ba' };
+
+  // realistic office swivel chair: base + post + seat + backrest
+  function chair(gx, gy) {
+    box(gx + 0.15, gy + 0.15, 0.12, 0.12, 3, legC, false);           // star base hub
+    box(gx + 0.19, gy + 0.19, 0.05, 0.05, 8, legC, false);           // gas post
+    box(gx + 0.05, gy + 0.07, 0.32, 0.32, 5, seatC, false, 8);       // seat cushion (floating)
+    box(gx + 0.06, gy + 0.04, 0.3, 0.07, 14, seatC, false, 13);      // backrest
+  }
+  // desk: 4 legs + floating top + monitor (with screen) + keyboard, then a chair in front
   function desk(gx, gy) {
-    box(gx, gy, 1.15, 0.62, 18, wood);
-    box(gx + 0.3, gy + 0.12, 0.42, 0.09, 15, chairC, false);
-    chair(gx + 0.38, gy + 0.78);
+    const TOP = 17, TH = 3.5, deskLeg = { top:'#7a5636', left:'#4f3823', right:'#5f4329' };
+    contactShadow(gx, gy, 1.15, 0.62);
+    box(gx + 0.05, gy + 0.05, 0.1, 0.1, TOP, deskLeg, false);
+    box(gx + 1.0,  gy + 0.05, 0.1, 0.1, TOP, deskLeg, false);
+    box(gx + 0.05, gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
+    box(gx + 1.0,  gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
+    box(gx, gy, 1.15, 0.62, TH, wood, true, TOP);                     // tabletop slab (footprint)
+    box(gx + 0.52, gy + 0.34, 0.06, 0.06, 9, legC, false, TOP + TH);  // monitor stand
+    box(gx + 0.32, gy + 0.28, 0.5, 0.05, 15, screenC, false, TOP + TH); // monitor (screen faces front)
+    box(gx + 0.3,  gy + 0.44, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard
+    chair(gx + 0.4, gy + 0.82);
+  }
+  // sofa: seat base + backrest + two armrests + seam
+  function sofa(gx, gy, w, d, col) {
+    const S = 12;
+    box(gx, gy, w, d, S, col);                                        // seat base (footprint)
+    box(gx, gy, w, 0.16, S + 22, col, false);                        // backrest (back edge)
+    box(gx, gy, 0.18, d, S + 12, col, false);                        // left armrest
+    box(gx + w - 0.18, gy, 0.18, d, S + 12, col, false);             // right armrest
+    box(gx + 0.18, gy + 0.16, (w - 0.36) / 2 - 0.02, d - 0.2, S + 3, { top: shade(col.top, 10), left: col.left, right: col.right }, false); // cushion L
+    box(gx + 0.18 + (w - 0.36) / 2 + 0.02, gy + 0.16, (w - 0.36) / 2 - 0.02, d - 0.2, S + 3, { top: shade(col.top, 10), left: col.left, right: col.right }, false); // cushion R
+    contactShadow(gx, gy, w, d);
   }
   function plant(gx, gy) {
     box(gx, gy, 0.32, 0.32, 15, { top:'#b9713f', left:'#8f5730', right:'#a4653a' }, false);
@@ -335,33 +391,46 @@
     const leg = document.createElement('div'); leg.className='deco';
     Object.assign(leg.style,{ width:(w*0.14)+'px', height:h+'px', left:(c.x - w*0.07)+'px', top:(c.y - h)+'px', background:legCol, zIndex:z });
     office.appendChild(leg);
+    mk('rgba(20,12,6,.28)', w * 1.02, hh * 1.02, hh / 2 + h + 3, 5);   // contact shadow
     mk(legCol, w, hh, 4, z + 1);
     mk(topCol, w, hh, 0, z + 2);
     solids.push([gx - rt * 0.7, gy - rt * 0.55, gx + rt * 0.7, gy + rt * 0.55]);
   }
 
   // ---- BUILD THE OFFICE ----
-  box(8.6, 0.15, 3.4, 0.7, 30, white);
+  contactShadow(8.6, 0.15, 3.4, 0.7);
+  box(8.6, 0.15, 3.4, 0.7, 30, white);                                   // pantry counter
   box(8.7, 0.2, 0.7, 0.55, 24, navy); box(9.9, 0.2, 0.7, 0.55, 24, { top:'#3a3f4c', left:'#22262f', right:'#2c3038' });
-  box(11.9, 0.12, 0.85, 0.75, 62, white);
+  box(9.0, 0.28, 0.5, 0.02, 32, { top:'#c9ccd2', left:'#a3a7ad', right:'#b6b9bf' }, false); // faucet hint
+  contactShadow(11.9, 0.12, 0.85, 0.75);
+  box(11.9, 0.12, 0.85, 0.75, 62, white);                                // fridge
+  box(12.68, 0.3, 0.04, 0.28, 40, legC, false);                          // fridge handle
   plant(12.9, 0.3);
-  box(0.15, 2.4, 0.7, 3.2, 44, navy);
-  box(0.15, 6.0, 0.7, 1.6, 30, woodDk);
+  contactShadow(0.15, 2.4, 0.7, 3.2);
+  box(0.15, 2.4, 0.7, 3.2, 44, navy);                                    // tall cabinet
+  contactShadow(0.15, 6.0, 0.7, 1.6);
+  box(0.15, 6.0, 0.7, 1.6, 30, woodDk);                                  // low cabinet
   plant(0.5, 8.6);
   roundTable(2.9, 2.2, 1.8, 24, '#c99a5e', '#8a6236');
   [[1.7,2.2],[2.9,1.1],[4.1,2.2],[2.9,3.3],[2.0,1.3],[3.8,1.3]].forEach(p => chair(p[0], p[1]));
   desk(5.0, 1.9); desk(7.0, 1.9); desk(9.0, 1.9);
   desk(5.0, 4.4); desk(7.0, 4.4); desk(9.0, 4.4);
   plant(10.6, 1.9); plant(4.0, 4.6);
-  box(11.6, 5.2, 1.7, 0.85, 20, blue); box(11.6, 5.95, 1.7, 0.22, 40, blue);
-  box(13.3, 4.5, 0.8, 1.5, 20, orange);
-  box(12.4, 6.3, 0.95, 0.7, 13, glass);
+  sofa(11.6, 5.2, 1.7, 0.85, blue);          // lounge sofa (with arms + back)
+  sofa(13.3, 4.5, 0.8, 1.5, orange);         // armchair
+  contactShadow(12.4, 6.3, 0.95, 0.7);
+  box(12.5, 6.4, 0.75, 0.5, 10, { top:'#8a7250', left:'#5f4f37', right:'#6e5c42' }, true, 0);   // coffee table frame (footprint)
+  box(12.4, 6.3, 0.95, 0.7, 2.5, glass, false, 11);                                              // glass top (floating)
   plant(13.8, 6.6);
-  box(11.4, 7.8, 1.9, 1.0, 17, green);
+  contactShadow(11.4, 7.8, 1.9, 1.0);
+  box(11.55, 8.0, 0.25, 0.25, 14, legC, false); box(12.9, 8.0, 0.25, 0.25, 14, legC, false); // table legs
+  box(11.4, 7.8, 1.9, 1.0, 3, green, true, 14);                                               // ping-pong top (footprint)
   const pcn = project(12.35, 8.3); const net = document.createElement('div'); net.className='deco';
   Object.assign(net.style,{ width:(1.9*TILE_W*0.5)+'px', height:'3px', left:(pcn.x - 1.9*TILE_W*0.25)+'px', top:(pcn.y - 17)+'px', background:'#eef0f3', zIndex: Math.round((12.35+8.3)*10)+103, transform:'skewY(26.57deg)' });
   office.appendChild(net);
-  box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, chairC);
+  contactShadow(3.4, 7.3, 1.9, 1.05);
+  box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, screenC, false, 30); // boss desk + monitor
+  chair(4.15, 7.55);                                                                        // boss chair
 
   // --- floor target marker ---
   const spot = document.createElement('div'); spot.className = 'layer'; spot.style.zIndex = 4; spot.style.opacity = 0;
@@ -452,7 +521,8 @@
     canvas.style.width = SPR_W + 'px'; canvas.style.height = SPR_H + 'px';
     canvas.style.animationDelay = (Math.random() * -3.6) + 's';
     const name = document.createElement('span'); name.className = 'name'; name.textContent = label;
-    facing.appendChild(canvas); wrap.appendChild(facing); wrap.appendChild(name);
+    const shadow = document.createElement('div'); shadow.className = 'shadow';
+    wrap.appendChild(shadow); facing.appendChild(canvas); wrap.appendChild(facing); wrap.appendChild(name);
     office.appendChild(wrap);
     const px = buildSprite(canvas, outfit, skinKey);
     return { wrap, facing, canvas, px, frames: framesFor(outfit, skinKey), isWalking: false, gx: 0, gy: 0 };
@@ -498,7 +568,7 @@
   setInterval(() => {
     walkPhase ^= 1;
     for (const s of everyone) if (s.isWalking) s.px.style.boxShadow = walkPhase ? s.frames.walk2 : s.frames.walk1;
-  }, 120);
+  }, 200);
 
   // team rail
   const roster = document.getElementById('roster');
@@ -516,7 +586,7 @@
   function walk(s, gx, gy) {
     gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
     const p = project(gx, gy);
-    const dur = Math.min(1.7, Math.max(0.45, Math.hypot(gx - s.gx, gy - s.gy) * 0.26));
+    const dur = Math.min(3.6, Math.max(0.9, Math.hypot(gx - s.gx, gy - s.gy) * 0.46));   // slower, natural gait
     const curX = parseFloat(s.wrap.style.left) + SPR_HALF;
     s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
     s.wrap.style.transition = `left ${dur}s ${EASE}, top ${dur}s ${EASE}`;
