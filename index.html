@@ -227,7 +227,8 @@
   const ORIGIN_X = 256, ORIGIN_Y = 104;
   const BOARD_W = 632, BOARD_H = 420;
   const SCALE = 3;
-  const SPR_W = 13 * SCALE, SPR_H = 19 * SCALE, SPR_HALF = SPR_W / 2;
+  const SPR_ROWS = 23;                       // slim silhouette: 12 wide x 23 tall
+  const SPR_W = 12 * SCALE, SPR_H = SPR_ROWS * SCALE, SPR_HALF = SPR_W / 2;
   const EASE = 'cubic-bezier(.45,.05,.35,1)';   // crafted glide instead of linear
 
   function project(gx, gy) {
@@ -375,32 +376,52 @@
   // =====================================================================
   //  PIXEL SPRITE BUILDER — stays upright, 3 leg frames for walk-cycle
   // =====================================================================
+  // symbols: K/H hair · S/s skin · E eyes · J/j garment · W inner/collar · A accent · T/t trousers · o shoes
   const basePalette = {
-    '.': null, K:'#3a2a1e', H:'#5a3d28', S:'#d9a066', s:'#c68a52', E:'#2a2a2a',
-    R:'#c9463a', r:'#9e3128', B:'#4a90c2', b:'#3a6f99', W:'#e8e6e3', J:'#40454f', j:'#2c3038'
+    '.': null, S:'#e2b184', s:'#c9926a', E:'#2a2320', K:'#3a2a22', H:'#5a4234',
+    J:'#40454f', j:'#2c3038', W:'#efe7d9', A:'#d9694a', T:'#33302c', t:'#242220', o:'#1c1a18'
   };
-  const TOP = [
-    ".....KKK.....","....KKKKK....","...KHHHHHK...","...HSSSSSH...","...SSEsEsS...",
-    "...SSSSSSS...","...sSSSSSs...","....sSSSs....","..JJJRRRJJJ..",".JJJRrrrRJJJ.",
-    ".JJSRRRRRSJJ.",".JJSRrrrRSJJ.",".JJSRRRRRSJJ.",".JJjRRRRRjJJ."
+  // ---- slim modular body: shared head, per-outfit torso, per-family legs ----
+  const HEAD = [
+    "....KKKK....","...KKKKKK...","..KHHHHHHK..","..HSSSSSSH..","..SSEssEsS..","..SSSSSSSS..","...sSSSSs..."
   ];
-  const LEGS_STAND = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB.BBb...","..WWW...WWW.."];
-  const LEGS_WALK1 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","..BbB..BBb...",".WWW....WW..."];
-  const LEGS_WALK2 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB..BbB..","...WW....WWW."];
-  const MAP_STAND = TOP.concat(LEGS_STAND), MAP_WALK1 = TOP.concat(LEGS_WALK1), MAP_WALK2 = TOP.concat(LEGS_WALK2);
+  const LEGS_T = { // trousers (tailored / knit / chic)
+    stand: ["...TT..TT...","...TT..TT...","...TT..TT...","...TT..TT...","...tt..tt...","...oo..oo..."],
+    w1:    ["...TT..TT...","...TT..TT...","...TT..TT...","...TT..Tt...","...tt..t....","...oo...o..."],
+    w2:    ["...TT..TT...","...TT..TT...","...TT..TT...","...tT..TT...","....t..tt...","...o...oo..."]
+  };
+  const LEGS_R = { // robe hem (subtle sway) + peeking shoe tips
+    stand: [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jj....jj..","...oo..oo..."],
+    w1:    [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jj....jj..","..oo...oo..."],
+    w2:    [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jj....jj..","...oo...oo.."]
+  };
+  const TORSO = {
+    tailored: ["....WWWW....","...JJWWJJ...","..JJJWWJJJ..","..JJSWWSJJ..","..JJJWWJJJ..","..JJJWWJJJ..","...JJWWJJ...","...JJJJJJ...","...TTTTTT...","...TTTTTT..."],
+    knit:     ["....AAAA....","...JAAAAJ...","..JJJJJJJJ..","..JJjWWjJJ..","..JJjWWjJJ..","..JJjJJjJJ..","..JJJJJJJJ..","..JJjJJjJJ..","...JJJJJJ...","...TTTTTT..."],
+    robe:     ["....JJJJ....","...JJJJJJ...","..JJJAAJJJ..","..JJJAAJJJ..","..JJJAAJJJ..","..JJJAAJJJ..","..JJJAAJJJ..","..JJJJJJJJ..","..JJJJJJJJ..","..JJJJJJJJ.."],
+    chic:     ["....JJJJ....","...JJJJJJ...","...JJJAJJ...","...JJAJJJ...","...JAJJJJ...","...AJJJJJ...","...JJJJJJ...","...JJJJJJ...","...jJJJJj...","...TTTTTT..."]
+  };
+  const LEGSET = { tailored:LEGS_T, knit:LEGS_T, chic:LEGS_T, robe:LEGS_R };
+  function outfitMap(outfit, frame) { return HEAD.concat(TORSO[outfit], LEGSET[outfit][frame]); }
+
+  // sanity: every row 12 wide, every map 23 tall (surfaces as a pageerror if broken)
+  for (const o in TORSO) for (const f of ['stand','w1','w2']) {
+    const m = outfitMap(o, f);
+    if (m.length !== SPR_ROWS) throw new Error(`sprite ${o}/${f} has ${m.length} rows`);
+    m.forEach((r, i) => { if (r.length !== 12) throw new Error(`sprite ${o}/${f} row ${i} width ${r.length}`); });
+  }
+
   const skins = {
-    user:    { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#e6a84e', jacketSh:'#c08432', shirt:'#2a2418', shirtSh:'#1e1a10' },
-    general: { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#3f7d5a', jacketSh:'#2c5940' },
-    cbt:     { hairA:'#2a2a35', hairB:'#40404f', jacket:'#3a6ea5', jacketSh:'#294f78' },
-    islamic: { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#6a4a8f', jacketSh:'#4a3266' },
-    staffA:  { hairA:'#3a2a20', hairB:'#5a4030', jacket:'#d0743a', jacketSh:'#a4562a', shirt:'#3a7d6e', shirtSh:'#2a5a4f' },
-    staffB:  { hairA:'#2a2a35', hairB:'#40404f', jacket:'#3a8f8a', jacketSh:'#296763', shirt:'#d06b6b', shirtSh:'#9e4f4f' },
-    staffC:  { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#8f4a4a', jacketSh:'#663333', shirt:'#c9c7c4', shirtSh:'#9a9895' }
+    user:    { K:'#3a2a22',H:'#5a4234', J:'#e6a84e',j:'#c08432', W:'#f2ead9', T:'#33302c',t:'#242220', o:'#1c1a18', A:'#e6a84e' },
+    amal:    { K:'#2e2320',H:'#4a3a30', J:'#7d9464',j:'#5f7449', W:'#f0e7d6', T:'#3a352e',t:'#28241f', o:'#211d18', A:'#d9694a' },
+    hakim:   { K:'#2a2a25',H:'#40403a', J:'#2f5d5a',j:'#234644', W:'#eef0f2', T:'#33302c',t:'#242220', o:'#1c1a18' },
+    ridhwan: { K:'#3a2a22',H:'#5a4234', J:'#6a5aa0',j:'#4d417a', A:'#e0b45a', o:'#241f2e' },
+    aiman:   { K:'#3a2a20',H:'#5a4030', J:'#33302f',j:'#222020', A:'#d0743a', T:'#33302f',t:'#222020', o:'#191716' },
+    farah:   { K:'#2a2a25',H:'#40403a', J:'#3a8f8a',j:'#296763', W:'#f0e7d6', A:'#e6b45a', T:'#3a352e',t:'#28241f', o:'#211d18' },
+    wei:     { K:'#2e2320',H:'#4a3a30', J:'#8f4a4a',j:'#663333', W:'#eae6df', T:'#33302c',t:'#242220', o:'#1c1a18' }
   };
   function shadowStr(map, skinKey) {
-    const s = skins[skinKey] || skins.user;
-    const pal = Object.assign({}, basePalette, { K:s.hairA, H:s.hairB, J:s.jacket, j:s.jacketSh });
-    if (s.shirt) { pal.R = s.shirt; pal.r = s.shirtSh || s.shirt; }
+    const pal = Object.assign({}, basePalette, skins[skinKey] || skins.user);
     const sh = [];
     for (let y = 0; y < map.length; y++) for (let x = 0; x < map[y].length; x++) {
       const c = pal[map[y][x]]; if (c) sh.push(`${x*SCALE}px ${y*SCALE}px 0 0 ${c}`);
@@ -408,30 +429,33 @@
     return sh.join(', ');
   }
   const frameCache = {};
-  function framesFor(skinKey) {
-    if (!frameCache[skinKey]) frameCache[skinKey] = {
-      stand: shadowStr(MAP_STAND, skinKey), walk1: shadowStr(MAP_WALK1, skinKey), walk2: shadowStr(MAP_WALK2, skinKey)
+  function framesFor(outfit, skinKey) {
+    const key = outfit + '|' + skinKey;
+    if (!frameCache[key]) frameCache[key] = {
+      stand: shadowStr(outfitMap(outfit, 'stand'), skinKey),
+      walk1: shadowStr(outfitMap(outfit, 'w1'), skinKey),
+      walk2: shadowStr(outfitMap(outfit, 'w2'), skinKey)
     };
-    return frameCache[skinKey];
+    return frameCache[key];
   }
-  function buildSprite(el, skinKey) {
+  function buildSprite(el, outfit, skinKey) {
     el.innerHTML = '<div class="px"></div>';
     const px = el.querySelector('.px');
-    Object.assign(px.style, { position:'absolute', width:SCALE+'px', height:SCALE+'px', left:'0', top:'0', boxShadow: framesFor(skinKey).stand });
+    Object.assign(px.style, { position:'absolute', width:SCALE+'px', height:SCALE+'px', left:'0', top:'0', boxShadow: framesFor(outfit, skinKey).stand });
     return px;
   }
-  function makeSprite(id, skinKey, label, isBoss) {
+  function makeSprite(id, outfit, skinKey, label, isBoss) {
     const wrap = document.createElement('div'); wrap.className = 'sprite' + (isBoss ? ' boss' : ''); wrap.id = id;
     wrap.style.width = SPR_W + 'px'; wrap.style.height = SPR_H + 'px';
     const facing = document.createElement('div'); facing.className = 'facing';
     const canvas = document.createElement('div'); canvas.className = 'sprite-canvas';
     canvas.style.width = SPR_W + 'px'; canvas.style.height = SPR_H + 'px';
-    canvas.style.animationDelay = (Math.random() * -3.6) + 's';   // desync idle breathing
+    canvas.style.animationDelay = (Math.random() * -3.6) + 's';
     const name = document.createElement('span'); name.className = 'name'; name.textContent = label;
     facing.appendChild(canvas); wrap.appendChild(facing); wrap.appendChild(name);
     office.appendChild(wrap);
-    const px = buildSprite(canvas, skinKey);
-    return { wrap, facing, canvas, px, frames: framesFor(skinKey), isWalking: false, gx: 0, gy: 0 };
+    const px = buildSprite(canvas, outfit, skinKey);
+    return { wrap, facing, canvas, px, frames: framesFor(outfit, skinKey), isWalking: false, gx: 0, gy: 0 };
   }
   function place(s, gx, gy) {
     const p = project(gx, gy);
@@ -443,17 +467,17 @@
   //  WORKERS
   // =====================================================================
   const staff = {
-    amal:    { name:'DR. AMAL', role:'Pendengar', skin:'general', kind:'specialist', dot:'#3f7d5a', home:{gx:5.6,gy:2.9}, keywords:[],
+    amal:    { name:'DR. AMAL', role:'Pendengar', outfit:'knit', kind:'specialist', dot:'#7d9464', home:{gx:5.6,gy:2.9}, keywords:[],
                reply:'Aku dengar, boss. Cerita lagi — apa yang buat kau rasa macam tu hari ni?' },
-    hakim:   { name:'DR. HAKIM', role:'CBT / Mekanisme', skin:'cbt', kind:'specialist', dot:'#3a6ea5', home:{gx:7.6,gy:2.9},
+    hakim:   { name:'DR. HAKIM', role:'CBT / Mekanisme', outfit:'tailored', kind:'specialist', dot:'#3a8f8a', home:{gx:7.6,gy:2.9},
                keywords:['takut','bodoh','malu','cemas','anxiety','colleague','kerja','office','panic','stress'],
                reply:'Bunyi macam ada automatic thought yang trigger threat response. Sebelum kau sempat fikir, badan dah react dulu. Kita boleh breakdown pattern ni step by step.' },
-    ridhwan: { name:'USTAZ RIDHWAN', role:'Perspektif Islam', skin:'islamic', kind:'specialist', dot:'#6a4a8f', home:{gx:9.6,gy:2.9},
+    ridhwan: { name:'USTAZ RIDHWAN', role:'Perspektif Islam', outfit:'robe', kind:'specialist', dot:'#6a5aa0', home:{gx:9.6,gy:2.9},
                keywords:['islam','tuhan','allah','doa','iman','self-worth','makna','tawakkul','sabar'],
                reply:'Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?' },
-    aiman:   { name:'AIMAN', role:'Staf', skin:'staffA', kind:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
-    farah:   { name:'FARAH', role:'Staf', skin:'staffB', kind:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
-    wei:     { name:'WEI', role:'Staf', skin:'staffC', kind:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
+    aiman:   { name:'AIMAN', role:'Staf', outfit:'chic', kind:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
+    farah:   { name:'FARAH', role:'Staf', outfit:'knit', kind:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
+    wei:     { name:'WEI', role:'Staf', outfit:'tailored', kind:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
   };
   const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
 
@@ -464,8 +488,8 @@
   ];
 
   const sprites = {};
-  for (const k in staff) { sprites[k] = makeSprite('s-' + k, staff[k].skin, staff[k].name, false); place(sprites[k], staff[k].home.gx, staff[k].home.gy); }
-  const boss = makeSprite('boss', 'user', 'KAU (BOSS)', true);
+  for (const k in staff) { sprites[k] = makeSprite('s-' + k, staff[k].outfit, k, staff[k].name, false); place(sprites[k], staff[k].home.gx, staff[k].home.gy); }
+  const boss = makeSprite('boss', 'tailored', 'user', 'KAU (BOSS)', true);
   const BOSS_POS = { gx: 4.3, gy: 8.6 }, BOSS_MEET = { gx: 5.6, gy: 7.7 };
   place(boss, BOSS_POS.gx, BOSS_POS.gy);
 
