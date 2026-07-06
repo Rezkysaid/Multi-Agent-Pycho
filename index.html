@@ -275,12 +275,18 @@
     '.': null, K:'#3a2a1e', H:'#5a3d28', S:'#d9a066', s:'#c68a52', E:'#2a2a2a',
     R:'#c9463a', r:'#9e3128', B:'#4a90c2', b:'#3a6f99', W:'#e8e6e3', J:'#40454f', j:'#2c3038'
   };
-  const bodyMap = [
+  // body is shared; only the leg rows (14-18) differ per walk frame
+  const TOP = [
     ".....KKK.....","....KKKKK....","...KHHHHHK...","...HSSSSSH...","...SSEsEsS...",
     "...SSSSSSS...","...sSSSSSs...","....sSSSs....","..JJJRRRJJJ..",".JJJRrrrRJJJ.",
-    ".JJSRRRRRSJJ.",".JJSRrrrRSJJ.",".JJSRRRRRSJJ.",".JJjRRRRRjJJ.","..jjBBBBBjj..",
-    "...BBB.BBB...","...bBB.BBb...","...bBB.BBb...","..WWW...WWW.."
+    ".JJSRRRRRSJJ.",".JJSRrrrRSJJ.",".JJSRRRRRSJJ.",".JJjRRRRRjJJ."
   ];
+  const LEGS_STAND = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB.BBb...","..WWW...WWW.."];
+  const LEGS_WALK1 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","..BbB..BBb...",".WWW....WW..."]; // left leg fwd, right lifted
+  const LEGS_WALK2 = ["..jjBBBBBjj..","...BBB.BBB...","...bBB.BBb...","...bBB..BbB..","...WW....WWW."]; // right leg fwd, left lifted
+  const MAP_STAND = TOP.concat(LEGS_STAND);
+  const MAP_WALK1 = TOP.concat(LEGS_WALK1);
+  const MAP_WALK2 = TOP.concat(LEGS_WALK2);
   const skins = {
     user:    { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#f4c95d', jacketSh:'#c9a542', shirt:'#2a2f45', shirtSh:'#1e2233' },
     general: { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#3f7d5a', jacketSh:'#2c5940' },
@@ -290,17 +296,28 @@
     staffB:  { hairA:'#2a2a35', hairB:'#40404f', jacket:'#3a8f8a', jacketSh:'#296763', shirt:'#d06b6b', shirtSh:'#9e4f4f' },
     staffC:  { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#8f4a4a', jacketSh:'#663333', shirt:'#c9c7c4', shirtSh:'#9a9895' }
   };
-  function buildSprite(el, skinKey) {
+  function shadowStr(map, skinKey) {
     const s = skins[skinKey] || skins.user;
     const pal = Object.assign({}, basePalette, { K:s.hairA, H:s.hairB, J:s.jacket, j:s.jacketSh });
     if (s.shirt) { pal.R = s.shirt; pal.r = s.shirtSh || s.shirt; }
     const sh = [];
-    for (let y = 0; y < bodyMap.length; y++) for (let x = 0; x < bodyMap[y].length; x++) {
-      const c = pal[bodyMap[y][x]]; if (c) sh.push(`${x*SCALE}px ${y*SCALE}px 0 0 ${c}`);
+    for (let y = 0; y < map.length; y++) for (let x = 0; x < map[y].length; x++) {
+      const c = pal[map[y][x]]; if (c) sh.push(`${x*SCALE}px ${y*SCALE}px 0 0 ${c}`);
     }
+    return sh.join(', ');
+  }
+  const frameCache = {};
+  function framesFor(skinKey) {
+    if (!frameCache[skinKey]) frameCache[skinKey] = {
+      stand: shadowStr(MAP_STAND, skinKey), walk1: shadowStr(MAP_WALK1, skinKey), walk2: shadowStr(MAP_WALK2, skinKey)
+    };
+    return frameCache[skinKey];
+  }
+  function buildSprite(el, skinKey) {
     el.innerHTML = '<div class="px"></div>';
     const px = el.querySelector('.px');
-    Object.assign(px.style, { position:'absolute', width:SCALE+'px', height:SCALE+'px', left:'0', top:'0', boxShadow: sh.join(', ') });
+    Object.assign(px.style, { position:'absolute', width:SCALE+'px', height:SCALE+'px', left:'0', top:'0', boxShadow: framesFor(skinKey).stand });
+    return px;
   }
   function makeSprite(id, skinKey, label, isBoss) {
     const wrap = document.createElement('div'); wrap.className = 'sprite' + (isBoss ? ' boss' : ''); wrap.id = id;
@@ -310,8 +327,9 @@
     canvas.style.width = SPR_W + 'px'; canvas.style.height = SPR_H + 'px';
     const name = document.createElement('span'); name.className = 'name'; name.textContent = label;
     facing.appendChild(canvas); wrap.appendChild(facing); wrap.appendChild(name);
-    office.appendChild(wrap); buildSprite(canvas, skinKey);
-    return { wrap, facing, canvas, gx: 0, gy: 0 };
+    office.appendChild(wrap);
+    const px = buildSprite(canvas, skinKey);
+    return { wrap, facing, canvas, px, frames: framesFor(skinKey), isWalking: false, gx: 0, gy: 0 };
   }
   function place(s, gx, gy) {
     const p = project(gx, gy);
@@ -349,6 +367,14 @@
   const BOSS_POS = { gx: 4.3, gy: 8.6 }, BOSS_MEET = { gx: 5.6, gy: 7.7 };
   place(boss, BOSS_POS.gx, BOSS_POS.gy);
 
+  // walk-cycle ticker — swap alternating leg frames on every moving character
+  const everyone = [...Object.values(sprites), boss];
+  let walkPhase = 0;
+  setInterval(() => {
+    walkPhase ^= 1;
+    for (const s of everyone) if (s.isWalking) s.px.style.boxShadow = walkPhase ? s.frames.walk2 : s.frames.walk1;
+  }, 120);
+
   // roster bar
   const roster = document.getElementById('roster');
   for (const k in staff) {
@@ -368,10 +394,11 @@
     const curX = parseFloat(s.wrap.style.left) + SPR_HALF;
     s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
     s.wrap.style.transition = `left ${dur}s linear, top ${dur}s linear`;
-    s.wrap.classList.add('walking');
+    s.wrap.classList.add('walking'); s.isWalking = true;
     s.wrap.style.left = (p.x - SPR_HALF) + 'px'; s.wrap.style.top = (p.y - SPR_H) + 'px';
     s.wrap.style.zIndex = Math.round((gx + gy) * 10) + 120; s.gx = gx; s.gy = gy;
-    clearTimeout(s.stopT); s.stopT = setTimeout(() => s.wrap.classList.remove('walking'), dur * 1000);
+    clearTimeout(s.stopT);
+    s.stopT = setTimeout(() => { s.wrap.classList.remove('walking'); s.isWalking = false; s.px.style.boxShadow = s.frames.stand; }, dur * 1000);
     return dur;
   }
 
