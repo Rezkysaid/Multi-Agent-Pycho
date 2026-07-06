@@ -3,81 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mind Office — Isometric Room</title>
+<title>Mind Office — HQ</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;600&display=swap');
 
   :root {
-    --bg: #0d0f18;
-    --panel: #2a2f45;
-    --panel-edge: #454b6b;
-    --glow: #8fd3ff;
-    --accent: #f4c95d;
-    --text: #e8e6e3;
-    --tile: #1a1d2b;
-    --crisis: #e05a5a;
+    --bg: #0d0f18; --panel: #2a2f45; --panel-edge: #454b6b;
+    --glow: #8fd3ff; --accent: #f4c95d; --text: #e8e6e3; --tile: #1a1d2b; --crisis: #e05a5a;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
     font-family: 'JetBrains Mono', monospace;
     display: flex; flex-direction: column; align-items: center;
-    min-height: 100vh; padding: 24px 12px;
+    min-height: 100vh; padding: 20px 12px;
   }
   h1 {
-    font-family: 'Press Start 2P', monospace; font-size: 14px;
+    font-family: 'Press Start 2P', monospace; font-size: 13px;
     color: var(--accent); letter-spacing: 1px; margin-bottom: 4px; text-align: center;
   }
-  .subtitle { font-size: 12px; color: #8b90ad; margin-bottom: 20px; text-align: center; }
+  .subtitle { font-size: 11px; color: #8b90ad; margin-bottom: 12px; text-align: center; }
 
-  /* stage scales the fixed-size isometric board down on narrow screens.
-     JS sets #stage to the scaled size so the flex-centered body keeps it centred,
-     while #office is taken out of flow and scaled from its top-left corner. */
+  /* roster bar of workers (like the reference HQ header) */
+  #roster {
+    width: min(880px, 96vw); display: flex; gap: 6px; overflow-x: auto;
+    padding: 6px 2px; margin-bottom: 10px; scrollbar-width: thin;
+  }
+  .chip {
+    display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
+    background: #171a28; border: 1px solid var(--panel-edge); border-radius: 20px;
+    padding: 4px 10px 4px 8px; font-size: 10px; white-space: nowrap;
+  }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 5px currentColor; }
+  .chip .cname { color: var(--text); }
+  .chip .cstat { color: #7b80a0; font-size: 9px; }
+
   #stage { position: relative; margin: 0 auto; max-width: 100%; }
   #office {
-    position: absolute; left: 0; top: 0; width: 720px; height: 470px;
-    transform-origin: top left;
-    image-rendering: pixelated;
-    background: radial-gradient(120% 90% at 50% 18%, #191d2e 0%, #0f1120 70%);
+    position: absolute; left: 0; top: 0; width: 880px; height: 520px;
+    transform-origin: top left; image-rendering: pixelated; cursor: pointer;
+    background: radial-gradient(130% 100% at 50% 20%, #1c2033 0%, #0e1120 72%);
     border: 3px solid var(--panel-edge); border-radius: 6px; overflow: hidden;
   }
-
-  /* absolutely-positioned clip-path faces (floor, walls, furniture) */
-  .layer { position: absolute; left: 0; top: 0; width: 720px; height: 470px; pointer-events: none; }
+  .layer { position: absolute; left: 0; top: 0; width: 880px; height: 520px; pointer-events: none; }
   .tile { transition: filter .18s; }
-  .wallitem { position: absolute; z-index: 2; border-radius: 2px; }
+  .deco { position: absolute; pointer-events: none; }
 
-  /* floor spot marker showing where the avatar is heading */
-  #spot { z-index: 3; opacity: 0; transition: opacity .25s; filter: drop-shadow(0 0 4px var(--accent)); }
-
-  /* upright pixel sprites (agents + user), positioned by JS */
-  .sprite {
-    position: absolute; width: 52px; height: 76px;
-  }
-  #avatar { transition: left 1.05s ease-in-out, top 1.05s ease-in-out; }
+  .sprite { position: absolute; pointer-events: none; }
   .facing { position: absolute; inset: 0; transform-origin: bottom center; }
-  .sprite-canvas { width: 52px; height: 76px; position: relative; image-rendering: pixelated; }
-  .walking .sprite-canvas { animation: bob 0.34s steps(2) infinite; }
+  .sprite-canvas { position: relative; image-rendering: pixelated; }
+  .walking .sprite-canvas { animation: bob 0.32s steps(2) infinite; }
   @keyframes bob { 0% { transform: translateY(0); } 100% { transform: translateY(-2px); } }
-
   .name {
-    position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%);
-    font-size: 6px; font-family: 'Press Start 2P', monospace;
-    color: #b8bcd6; white-space: nowrap; text-shadow: 0 1px 2px #000;
-    background: rgba(13,15,24,.55); padding: 2px 4px; border-radius: 2px;
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    font-size: 5px; font-family: 'Press Start 2P', monospace;
+    color: #cdd0e4; white-space: nowrap; text-shadow: 0 1px 2px #000;
+    background: rgba(13,15,24,.6); padding: 2px 3px; border-radius: 2px; margin-bottom: 1px;
   }
-  #avatar .name { color: var(--accent); }
+  .boss .name { color: var(--accent); }
 
-  /* clickable hotspots over each desk (pointer target, invisible) */
-  .hotspot { position: absolute; cursor: pointer; z-index: 400; }
-  .hotspot:hover ~ #hint { opacity: 1; }
-
-  #status { margin-top: 14px; font-size: 11px; color: #8b90ad; min-height: 16px; text-align:center; }
+  #status { margin-top: 12px; font-size: 11px; color: #8b90ad; min-height: 16px; text-align:center; }
 
   #dialog {
-    width: min(720px, 96vw); margin-top: 14px;
+    width: min(880px, 96vw); margin-top: 12px;
     background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 4px;
-    padding: 14px 16px; min-height: 70px;
+    padding: 14px 16px; min-height: 66px;
   }
   #dialog .speaker {
     font-family: 'Press Start 2P', monospace; font-size: 10px;
@@ -88,7 +78,7 @@
   #dialog.crisis .speaker { color: var(--crisis); }
   #dialog .crisis-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.8; }
 
-  #input-row { width: min(720px, 96vw); display: flex; gap: 8px; margin-top: 10px; }
+  #input-row { width: min(880px, 96vw); display: flex; gap: 8px; margin-top: 10px; }
   #user-input {
     flex: 1; background: var(--tile); border: 2px solid var(--panel-edge); border-radius: 3px;
     color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 12px;
@@ -100,188 +90,187 @@
     padding: 0 16px; cursor: pointer;
   }
   #send-btn:hover { filter: brightness(1.08); }
-  .note { max-width: 660px; font-size: 11px; color: #6b7093; margin-top: 16px; line-height: 1.6; text-align: center; }
+  .note { max-width: 700px; font-size: 11px; color: #6b7093; margin-top: 14px; line-height: 1.6; text-align: center; }
 </style>
 </head>
 <body>
 
-  <h1>MIND OFFICE</h1>
-  <div class="subtitle">bilik isometrik 3D — avatar berjalan ke meja pakar</div>
+  <h1>MIND OFFICE — HQ</h1>
+  <div class="subtitle">kau boss. staff bergerak buat kerja sendiri — tanya, dia datang lapor.</div>
+
+  <div id="roster"></div>
 
   <div id="stage">
-    <div id="office"><!-- floor, walls, furniture, sprites injected by JS --></div>
+    <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
   </div>
 
-  <div id="status">taip sesuatu — atau klik mana-mana meja — avatar kau akan jalan ke situ</div>
+  <div id="status">taip soalan — staff relevan akan datang jumpa kau · klik lantai untuk kau berjalan</div>
 
   <div id="dialog">
     <span class="speaker">SYSTEM</span>
-    <div class="line">Bilik ni dibina secara isometrik (projeksi 2.5D) — lantai, dinding, perabot semua kira dari grid. Sprite kekal pixel box-shadow, berdiri tegak dan berjalan atas lantai. Cuba taip: "aku takut nampak bodoh depan colleague" atau "macam mana Islam pandang self-worth".</div>
+    <div class="line">Selamat datang ke HQ, boss. Staff kau tengah sibuk — ada yang kat pantry, ada kat meja masing-masing. Cuba taip: "aku takut nampak bodoh depan colleague" atau "macam mana Islam pandang self-worth" dan staff yang berkenaan akan datang.</div>
   </div>
 
   <div id="input-row">
-    <input id="user-input" type="text" placeholder="taip apa yang kau rasa/nak tanya...">
+    <input id="user-input" type="text" placeholder="taip apa yang kau nak tanya staff...">
     <button id="send-btn">HANTAR</button>
   </div>
 
-  <div class="note">Layer AI (routing + crisis safety) kekal — cuma layer visual bertukar jadi isometrik. Next: walk-cycle 4-arah + sambung LLM API.</div>
+  <div class="note">Layer AI (routing + crisis safety) kekal. Pergerakan staff autonomous (wander + idle). Next: walk-cycle 4-arah + sambung LLM API.</div>
 
 <script>
   // =====================================================================
-  //  LAYER VISUAL / GAME  — isometric room renderer + avatar movement
-  //  (tak tahu apa-apa pasal psikologi; cuma render + gerak ikut signal)
+  //  LAYER VISUAL / GAME — isometric HQ + autonomous worker movement
   // =====================================================================
-
   const office = document.getElementById('office');
 
-  // --- isometric projection (2:1) ---
-  const TILE_W = 52, TILE_H = 26;      // one floor tile, screen px
-  const GRID   = 8;                    // 8 x 8 floor
-  const WALL_H = 132;                  // wall height, px
-  const ORIGIN_X = 360, ORIGIN_Y = 150;
+  const TILE_W = 48, TILE_H = 24;      // 2:1 iso tile
+  const GRID_X = 15, GRID_Y = 10;      // wide open-plan floor
+  const WALL_H = 88;
+  const ORIGIN_X = 320, ORIGIN_Y = 132;
+  const SCALE = 3;                     // px per sprite cell (smaller = zoomed-out look)
+  const SPR_W = 13 * SCALE, SPR_H = 19 * SCALE, SPR_HALF = SPR_W / 2;
 
   function project(gx, gy) {
-    return { x: ORIGIN_X + (gx - gy) * TILE_W / 2,
-             y: ORIGIN_Y + (gx + gy) * TILE_H / 2 };
+    return { x: ORIGIN_X + (gx - gy) * TILE_W / 2, y: ORIGIN_Y + (gx + gy) * TILE_H / 2 };
   }
   const up = (p, h) => ({ x: p.x, y: p.y - h });
-  function poly(pts) {
-    return 'polygon(' + pts.map(p => `${p.x.toFixed(1)}px ${p.y.toFixed(1)}px`).join(', ') + ')';
-  }
+  const poly = pts => 'polygon(' + pts.map(p => `${p.x.toFixed(1)}px ${p.y.toFixed(1)}px`).join(', ') + ')';
   function face(pts, bg, z) {
     const d = document.createElement('div');
-    d.className = 'layer';
-    d.style.background = bg;
-    d.style.clipPath = poly(pts);
-    d.style.zIndex = z;
-    office.appendChild(d);
-    return d;
+    d.className = 'layer'; d.style.background = bg; d.style.clipPath = poly(pts); d.style.zIndex = z;
+    office.appendChild(d); return d;
   }
 
-  // --- floor ---
-  const WOOD_A = '#d9b382', WOOD_B = '#cfa673', PLANK = '#b8905f';
-  for (let gy = 0; gy < GRID; gy++) {
-    for (let gx = 0; gx < GRID; gx++) {
-      const a = project(gx, gy), b = project(gx + 1, gy),
-            c = project(gx + 1, gy + 1), d = project(gx, gy + 1);
-      const t = face([a, b, c, d], ((gx + gy) % 2 ? WOOD_A : WOOD_B), 2);
-      t.classList.add('tile');
-      t.dataset.tile = gx + ',' + gy;
+  // --- floor (light office tiles) ---
+  const F_A = '#e4dfd1', F_B = '#dbd5c4', SEAM = '#c7c0ac';
+  for (let gy = 0; gy < GRID_Y; gy++)
+    for (let gx = 0; gx < GRID_X; gx++) {
+      const a = project(gx, gy), b = project(gx + 1, gy), c = project(gx + 1, gy + 1), d = project(gx, gy + 1);
+      const t = face([a, b, c, d], ((gx + gy) % 2 ? F_A : F_B), 2);
+      t.classList.add('tile'); t.dataset.tile = gx + ',' + gy;
     }
-  }
-  // subtle plank seam lines (every column)
-  for (let gx = 1; gx < GRID; gx++) {
-    const p0 = project(gx, 0), p1 = project(gx, GRID);
-    const ln = face([p0, {x:p1.x+0.7,y:p1.y}, {x:p0.x+0.7,y:p0.y}], PLANK, 2);
-    ln.style.opacity = .35;
-  }
 
-  // --- walls ---
-  const A = project(0, 0), B = project(GRID, 0), D = project(0, GRID);
-  // left wall (edge A-D), teal
-  face([up(A, WALL_H), A, D, up(D, WALL_H)],
-       'linear-gradient(180deg, #3f7d78 0%, #4f938c 55%, #2f5f5b 100%)', 1);
-  // right wall (edge A-B), blue-grey
-  face([up(A, WALL_H), up(B, WALL_H), B, A],
-       'linear-gradient(180deg, #8a97ab 0%, #97a4b8 55%, #6b7789 100%)', 1);
-  // top rim highlight along the two wall crowns
-  face([up(A, WALL_H), A, {x:A.x+3,y:A.y}, up({x:A.x+3,y:A.y}, WALL_H)], '#5aa39b', 1);
-  // skirting (dark strip where wall meets floor)
-  face([A, D, {x:D.x,y:D.y-6}, {x:A.x,y:A.y-6}], '#24413f', 2).style.zIndex = 2;
-  face([A, B, {x:B.x,y:B.y-6}, {x:A.x,y:A.y-6}], '#4a5568', 2).style.zIndex = 2;
+  // --- walls (light grey) ---
+  const A = project(0, 0), B = project(GRID_X, 0), D = project(0, GRID_Y);
+  face([up(A, WALL_H), A, D, up(D, WALL_H)], 'linear-gradient(180deg,#aab0bd 0%,#b7bcc8 60%,#8f95a4 100%)', 1); // left
+  face([up(A, WALL_H), up(B, WALL_H), B, A], 'linear-gradient(180deg,#c4c9d3 0%,#ced2db 60%,#a7adb9 100%)', 1); // right
+  face([A, D, { x: D.x, y: D.y - 5 }, { x: A.x, y: A.y - 5 }], '#7d8493', 2).style.zIndex = 3; // left skirting
+  face([A, B, { x: B.x, y: B.y - 5 }, { x: A.x, y: A.y - 5 }], '#9299a6', 2).style.zIndex = 3; // right skirting
 
-  // --- wall decorations (skewed to lie on each wall plane) ---
-  function wallItem(side, t, hpx, w, h, html, css) {
+  // wall windows (right wall) + a whiteboard (left wall)
+  function wallItem(side, t, hpx, w, h, css, html) {
     const base = side === 'R' ? project(t, 0) : project(0, t);
-    const el = document.createElement('div');
-    el.className = 'wallitem';
+    const el = document.createElement('div'); el.className = 'deco';
     el.style.width = w + 'px'; el.style.height = h + 'px';
-    el.style.left = (base.x - w / 2) + 'px';
-    el.style.top = (base.y - hpx - h / 2) + 'px';
+    el.style.left = (base.x - w / 2) + 'px'; el.style.top = (base.y - hpx - h / 2) + 'px';
     el.style.transform = side === 'R' ? 'skewY(26.57deg)' : 'skewY(-26.57deg)';
-    if (html) el.innerHTML = html;
-    Object.assign(el.style, css || {});
-    office.appendChild(el);
-    return el;
+    el.style.zIndex = 2; if (html) el.innerHTML = html; Object.assign(el.style, css);
+    office.appendChild(el); return el;
   }
-  const winCss = {
-    background: 'linear-gradient(150deg,#cde4f5 0%,#a9d2ec 60%,#8fbfe0 100%)',
-    border: '3px solid #e8e6e3', boxShadow: 'inset 0 0 0 1px #6b7789'
-  };
-  // two windows on right wall
-  wallItem('R', 2.1, 66, 58, 44, '<div style="position:absolute;inset:0;background:linear-gradient(#e8e6e3,#e8e6e3) 50% 0/2px 100% no-repeat,linear-gradient(#e8e6e3,#e8e6e3) 0 50%/100% 2px no-repeat"></div>', winCss);
-  wallItem('R', 4.0, 66, 58, 44, '<div style="position:absolute;inset:0;background:linear-gradient(#e8e6e3,#e8e6e3) 50% 0/2px 100% no-repeat,linear-gradient(#e8e6e3,#e8e6e3) 0 50%/100% 2px no-repeat"></div>', winCss);
-  // heart picture on right wall
-  wallItem('R', 6.0, 58, 40, 34,
-    '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center"><span style="color:#b83f8f;font-size:16px;line-height:1">&#10084;</span></div>',
-    { background: '#e8c96b', border: '3px solid #caa84e' });
-  // corkboard on left wall
-  wallItem('L', 2.6, 70, 62, 46,
-    '<div style="position:absolute;inset:4px;background:#c79a5c;box-shadow:inset 0 0 0 1px #9c7238">'
-    + '<i style="position:absolute;left:6px;top:6px;width:10px;height:8px;background:#f2ede0"></i>'
-    + '<i style="position:absolute;left:22px;top:10px;width:9px;height:11px;background:#bfe3b0"></i>'
-    + '<i style="position:absolute;left:38px;top:5px;width:11px;height:9px;background:#f7c8c8"></i>'
-    + '<i style="position:absolute;left:12px;top:24px;width:10px;height:9px;background:#cfe0f6"></i>'
-    + '<i style="position:absolute;left:34px;top:26px;width:12px;height:8px;background:#f2ede0"></i></div>',
-    { background: '#7a5a34', border: '2px solid #5f4526' });
+  const win = { background: 'linear-gradient(150deg,#dcecf7 0%,#b7d7ee 60%,#9cc6e4 100%)', border: '3px solid #eef0f3', boxShadow: 'inset 0 0 0 1px #99a' };
+  wallItem('R', 3.2, 58, 66, 40, win, '<div style="position:absolute;inset:0;background:linear-gradient(#eef0f3,#eef0f3) 50% 0/2px 100% no-repeat,linear-gradient(#eef0f3,#eef0f3) 0 50%/100% 2px no-repeat"></div>');
+  wallItem('R', 6.4, 58, 66, 40, win, '<div style="position:absolute;inset:0;background:linear-gradient(#eef0f3,#eef0f3) 50% 0/2px 100% no-repeat,linear-gradient(#eef0f3,#eef0f3) 0 50%/100% 2px no-repeat"></div>');
+  wallItem('R', 10.5, 58, 66, 40, win, '<div style="position:absolute;inset:0;background:linear-gradient(#eef0f3,#eef0f3) 50% 0/2px 100% no-repeat,linear-gradient(#eef0f3,#eef0f3) 0 50%/100% 2px no-repeat"></div>');
+  wallItem('L', 3.5, 56, 72, 40, { background: '#f3f1ea', border: '3px solid #b9c0cc' },
+    '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(90deg,#5b8bd0 0 14px,transparent 14px 30px),repeating-linear-gradient(90deg,#d06b6b 6px 16px,transparent 16px 34px);opacity:.5"></div>');
+  wallItem('L', 6.8, 54, 40, 34, { background: '#caa84e', border: '3px solid #a4863c' },
+    '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center"><span style="color:#b83f8f;font-size:15px;line-height:1">&#10084;</span></div>');
 
-  // --- furniture: isometric cuboid ---
+  // --- isometric cuboid ---
   function box(gx, gy, w, d, h, col) {
-    const b0 = project(gx, gy), b1 = project(gx + w, gy),
-          b2 = project(gx + w, gy + d), b3 = project(gx, gy + d);
+    const b0 = project(gx, gy), b1 = project(gx + w, gy), b2 = project(gx + w, gy + d), b3 = project(gx, gy + d);
     const T0 = up(b0, h), T1 = up(b1, h), T2 = up(b2, h), T3 = up(b3, h);
     const z = Math.round((gx + w + gy + d) * 10) + 100;
-    face([T1, T2, b2, b1], col.right, z);       // right side
-    face([T3, T2, b2, b3], col.left, z);         // left side (front-left)
-    face([T0, T1, T2, T3], col.top, z + 1);      // top
+    face([T1, T2, b2, b1], col.right, z);
+    face([T3, T2, b2, b3], col.left, z);
+    face([T0, T1, T2, T3], col.top, z + 1);
     return z;
   }
-  const wood   = { top:'#c68a52', left:'#9c6a3c', right:'#b57a46' };
+  const wood   = { top:'#c99a5e', left:'#9c6f3c', right:'#b3854a' };
   const woodDk = { top:'#6f4a2c', left:'#553824', right:'#63432a' };
-  const glass  = { top:'rgba(180,220,235,.55)', left:'rgba(120,170,190,.6)', right:'rgba(150,195,215,.55)' };
-  const dark   = { top:'#3a4050', left:'#22262f', right:'#2c313c' };
-  const sofaC  = { top:'#6b4b3a', left:'#4e3527', right:'#5c4032' };
-  const shelfC = { top:'#b07a44', left:'#7f5730', right:'#946538' };
+  const glass  = { top:'rgba(200,225,235,.6)', left:'rgba(140,180,200,.6)', right:'rgba(170,205,220,.6)' };
+  const chairC = { top:'#3b4152', left:'#232735', right:'#2d3242' };
+  const navy   = { top:'#39415c', left:'#242a3e', right:'#2f3550' };
+  const white  = { top:'#eceef2', left:'#c4c8d2', right:'#d7dae1' };
+  const blue   = { top:'#5b8bd0', left:'#3d6aa8', right:'#4b79bd' };
+  const orange = { top:'#e0894e', left:'#b5673a', right:'#c97644' };
+  const green  = { top:'#3f9d5a', left:'#2c7040', right:'#35864b' };
 
-  // agent desks
-  box(0.7, 1.5, 1.5, 0.95, 30, wood);   // general
-  box(3.3, 1.5, 1.5, 0.95, 30, wood);   // cbt
-  box(5.9, 1.5, 1.5, 0.95, 30, wood);   // islamic
-  // monitors on each desk
-  box(1.05, 1.7, 0.55, 0.12, 26, dark);
-  box(3.65, 1.7, 0.55, 0.12, 26, dark);
-  box(6.25, 1.7, 0.55, 0.12, 26, dark);
-  // bookshelf (tall) between general & cbt, against back wall
-  box(2.55, 0.35, 0.55, 1.15, 104, shelfC);
-  // coffee table (glass) centre-front
-  box(3.15, 4.05, 1.7, 1.05, 16, glass);
-  // sofa: seat + backrest
-  box(3.3, 5.5, 1.5, 0.85, 22, sofaC);
-  box(3.3, 6.15, 1.5, 0.22, 46, sofaC);
-  // tv stand + tv, front-right corner (keeps the approach to Ustaz clear)
-  box(6.25, 5.05, 1.35, 0.85, 16, woodDk);
-  box(6.5, 5.25, 0.85, 0.14, 46, dark);
-  // small side table + trash bin near general desk
-  box(0.35, 3.1, 0.5, 0.5, 30, wood);
-  box(2.5, 2.5, 0.35, 0.35, 20, { top:'#8f97a8', left:'#6d7484', right:'#7d8494' });
+  function chair(gx, gy) { box(gx, gy, 0.4, 0.4, 11, chairC); }
+  function desk(gx, gy) {                                   // desk + monitor + chair
+    box(gx, gy, 1.15, 0.62, 18, wood);
+    box(gx + 0.3, gy + 0.12, 0.42, 0.09, 15, chairC);
+    chair(gx + 0.38, gy + 0.78);
+  }
+  function plant(gx, gy) {
+    box(gx, gy, 0.32, 0.32, 15, { top:'#b9713f', left:'#8f5730', right:'#a4653a' });
+    const c = project(gx + 0.16, gy + 0.16);
+    const f = document.createElement('div'); f.className = 'deco';
+    Object.assign(f.style, { width:'18px', height:'24px', borderRadius:'50% 50% 45% 45%',
+      left:(c.x - 9)+'px', top:(c.y - 15 - 22)+'px',
+      background:'radial-gradient(circle at 40% 30%,#5aab66,#2f6f40)', zIndex: Math.round((gx + gy) * 10) + 104 });
+    office.appendChild(f);
+  }
+  function roundTable(gx, gy, rt, h, topCol, legCol) {
+    const c = project(gx, gy), w = rt * TILE_W, hh = rt * TILE_H, z = Math.round((gx + gy) * 10) + 100;
+    const mk = (bg, w2, h2, dy, zz) => { const e = document.createElement('div'); e.className='deco';
+      Object.assign(e.style,{ width:w2+'px', height:h2+'px', borderRadius:'50%',
+        left:(c.x - w2/2)+'px', top:(c.y - h - h2/2 + dy)+'px', background:bg, zIndex:zz }); office.appendChild(e); };
+    const leg = document.createElement('div'); leg.className='deco';
+    Object.assign(leg.style,{ width:(w*0.14)+'px', height:h+'px', left:(c.x - w*0.07)+'px', top:(c.y - h)+'px', background:legCol, zIndex:z });
+    office.appendChild(leg);
+    mk(legCol, w, hh, 4, z + 1);                                  // thickness
+    mk(topCol, w, hh, 0, z + 2);                                  // top
+  }
 
-  // --- floor spot marker (where avatar heads) ---
-  const spot = document.createElement('div');
-  spot.className = 'layer'; spot.id = 'spot';
+  // ---- BUILD THE OFFICE (open-plan HQ) ----
+  // pantry / kitchen along back-right wall
+  box(8.6, 0.15, 3.4, 0.7, 30, white);                 // counter
+  box(8.7, 0.2, 0.7, 0.55, 24, navy); box(9.9, 0.2, 0.7, 0.55, 24, { top:'#3a3f4c', left:'#22262f', right:'#2c3038' }); // sink/stove
+  box(11.9, 0.12, 0.85, 0.75, 62, white);              // fridge
+  plant(12.9, 0.3);
+  // lockers / cabinets along back-left wall
+  box(0.15, 2.4, 0.7, 3.2, 44, navy);
+  box(0.15, 6.0, 0.7, 1.6, 30, woodDk);
+  plant(0.5, 8.6);
+
+  // gathering / meeting round table (top-left corner)
+  roundTable(2.9, 2.2, 1.8, 24, '#c99a5e', '#8a6236');
+  [[1.7,2.2],[2.9,1.1],[4.1,2.2],[2.9,3.3],[2.0,1.3],[3.8,1.3]].forEach(p => chair(p[0], p[1]));
+
+  // workstation desks — two tidy rows with an aisle (specialists back, staff front)
+  desk(5.0, 1.9); desk(7.0, 1.9); desk(9.0, 1.9);   // row 1 (amal, hakim, ridhwan)
+  desk(5.0, 4.4); desk(7.0, 4.4); desk(9.0, 4.4);   // row 2 (aiman, farah, wei)
+  plant(10.6, 1.9); plant(4.0, 4.6);
+
+  // lounge (front-right)
+  box(11.6, 5.2, 1.7, 0.85, 20, blue); box(11.6, 5.95, 1.7, 0.22, 40, blue);   // sofa + back
+  box(13.3, 4.5, 0.8, 1.5, 20, orange);                                        // armchair
+  box(12.4, 6.3, 0.95, 0.7, 13, glass);                                        // coffee table
+  plant(13.8, 6.6);
+  // ping-pong (front, bottom)
+  box(11.4, 7.8, 1.9, 1.0, 17, green);
+  const pc = project(12.35, 8.3); const net = document.createElement('div'); net.className='deco';
+  Object.assign(net.style,{ width:(1.9*TILE_W*0.5)+'px', height:'3px', left:(pc.x - 1.9*TILE_W*0.25)+'px', top:(pc.y - 17)+'px', background:'#eef0f3', zIndex: Math.round((12.35+8.3)*10)+103, transform:'skewY(26.57deg)' });
+  office.appendChild(net);
+
+  // boss desk (front-left) — where you preside
+  box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, chairC);
+
+  // --- floor target marker ---
+  const spot = document.createElement('div'); spot.className = 'layer'; spot.style.zIndex = 4; spot.style.opacity = 0;
+  spot.style.transition = 'opacity .25s'; spot.style.filter = 'drop-shadow(0 0 4px #f4c95d)';
   office.appendChild(spot);
   function moveSpot(gx, gy) {
-    const gxi = Math.floor(gx), gyi = Math.floor(gy);
-    const a = project(gxi, gyi), b = project(gxi + 1, gyi),
-          c = project(gxi + 1, gyi + 1), d = project(gxi, gyi + 1);
-    spot.style.clipPath = poly([a, b, c, d]);
-    spot.style.background = 'rgba(244,201,93,.28)';
-    spot.style.opacity = 1;
+    const x = Math.floor(gx), y = Math.floor(gy);
+    spot.style.clipPath = poly([project(x, y), project(x + 1, y), project(x + 1, y + 1), project(x, y + 1)]);
+    spot.style.background = 'rgba(244,201,93,.30)'; spot.style.opacity = 1;
   }
 
   // =====================================================================
-  //  PIXEL SPRITE BUILDER (box-shadow grid) — unchanged, stays upright
+  //  PIXEL SPRITE BUILDER (box-shadow grid) — stays upright
   // =====================================================================
-  const SCALE = 4;
   const basePalette = {
     '.': null, K:'#3a2a1e', H:'#5a3d28', S:'#d9a066', s:'#c68a52', E:'#2a2a2a',
     R:'#c9463a', r:'#9e3128', B:'#4a90c2', b:'#3a6f99', W:'#e8e6e3', J:'#40454f', j:'#2c3038'
@@ -293,190 +282,195 @@
     "...BBB.BBB...","...bBB.BBb...","...bBB.BBb...","..WWW...WWW.."
   ];
   const skins = {
-    user:    { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#40454f', jacketSh:'#2c3038' },
+    user:    { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#f4c95d', jacketSh:'#c9a542', shirt:'#2a2f45', shirtSh:'#1e2233' },
     general: { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#3f7d5a', jacketSh:'#2c5940' },
     cbt:     { hairA:'#2a2a35', hairB:'#40404f', jacket:'#3a6ea5', jacketSh:'#294f78' },
-    islamic: { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#6a4a8f', jacketSh:'#4a3266' }
+    islamic: { hairA:'#3a2a1e', hairB:'#5a3d28', jacket:'#6a4a8f', jacketSh:'#4a3266' },
+    staffA:  { hairA:'#3a2a20', hairB:'#5a4030', jacket:'#d0743a', jacketSh:'#a4562a', shirt:'#3a7d6e', shirtSh:'#2a5a4f' },
+    staffB:  { hairA:'#2a2a35', hairB:'#40404f', jacket:'#3a8f8a', jacketSh:'#296763', shirt:'#d06b6b', shirtSh:'#9e4f4f' },
+    staffC:  { hairA:'#2e2320', hairB:'#4a3a30', jacket:'#8f4a4a', jacketSh:'#663333', shirt:'#c9c7c4', shirtSh:'#9a9895' }
   };
   function buildSprite(el, skinKey) {
-    const skin = skins[skinKey] || skins.user;
-    const pal = Object.assign({}, basePalette, { K:skin.hairA, H:skin.hairB, J:skin.jacket, j:skin.jacketSh });
-    const shadows = [];
-    for (let y = 0; y < bodyMap.length; y++) {
-      const row = bodyMap[y];
-      for (let x = 0; x < row.length; x++) {
-        const c = pal[row[x]];
-        if (c) shadows.push(`${x*SCALE}px ${y*SCALE}px 0 0 ${c}`);
-      }
+    const s = skins[skinKey] || skins.user;
+    const pal = Object.assign({}, basePalette, { K:s.hairA, H:s.hairB, J:s.jacket, j:s.jacketSh });
+    if (s.shirt) { pal.R = s.shirt; pal.r = s.shirtSh || s.shirt; }
+    const sh = [];
+    for (let y = 0; y < bodyMap.length; y++) for (let x = 0; x < bodyMap[y].length; x++) {
+      const c = pal[bodyMap[y][x]]; if (c) sh.push(`${x*SCALE}px ${y*SCALE}px 0 0 ${c}`);
     }
     el.innerHTML = '<div class="px"></div>';
     const px = el.querySelector('.px');
-    Object.assign(px.style, { position:'absolute', width:SCALE+'px', height:SCALE+'px', left:'0', top:'0' });
-    px.style.boxShadow = shadows.join(', ');
+    Object.assign(px.style, { position:'absolute', width:SCALE+'px', height:SCALE+'px', left:'0', top:'0', boxShadow: sh.join(', ') });
   }
-
-  // build a sprite element (wrapper + facing + canvas + name)
-  function makeSprite(id, skinKey, label, isUser) {
-    const wrap = document.createElement('div');
-    wrap.className = 'sprite'; wrap.id = id;
+  function makeSprite(id, skinKey, label, isBoss) {
+    const wrap = document.createElement('div'); wrap.className = 'sprite' + (isBoss ? ' boss' : ''); wrap.id = id;
+    wrap.style.width = SPR_W + 'px'; wrap.style.height = SPR_H + 'px';
     const facing = document.createElement('div'); facing.className = 'facing';
     const canvas = document.createElement('div'); canvas.className = 'sprite-canvas';
+    canvas.style.width = SPR_W + 'px'; canvas.style.height = SPR_H + 'px';
     const name = document.createElement('span'); name.className = 'name'; name.textContent = label;
     facing.appendChild(canvas); wrap.appendChild(facing); wrap.appendChild(name);
-    office.appendChild(wrap);
-    buildSprite(canvas, skinKey);
-    return { wrap, facing, canvas };
+    office.appendChild(wrap); buildSprite(canvas, skinKey);
+    return { wrap, facing, canvas, gx: 0, gy: 0 };
   }
-  function placeSprite(s, gx, gy) {
+  function place(s, gx, gy) {
     const p = project(gx, gy);
-    s.wrap.style.left = (p.x - 26) + 'px';
-    s.wrap.style.top  = (p.y - 76) + 'px';
-    s.wrap.style.zIndex = Math.round((gx + gy) * 10) + 105;
-    s.gx = gx; s.gy = gy;
+    s.wrap.style.left = (p.x - SPR_HALF) + 'px'; s.wrap.style.top = (p.y - SPR_H) + 'px';
+    s.wrap.style.zIndex = Math.round((gx + gy) * 10) + 120; s.gx = gx; s.gy = gy;
   }
 
   // =====================================================================
-  //  LAYER AI / LOGIC  — routing (mock) + crisis safety (priority)
+  //  WORKERS — data + autonomous movement
   // =====================================================================
-  const agents = {
-    general: { name:"DR. AMAL", skin:"general", stand:{gx:1.45,gy:1.2}, user:{gx:1.45,gy:3.1}, keywords:[],
-      reply:"Aku dengar. Cerita lagi — apa yang buat kau rasa macam tu hari ni?" },
-    cbt: { name:"DR. HAKIM", skin:"cbt", stand:{gx:4.05,gy:1.2}, user:{gx:4.05,gy:3.1},
-      keywords:["takut","bodoh","malu","cemas","anxiety","colleague","kerja","office","panic"],
-      reply:"Bunyi macam ada automatic thought yang trigger threat response. Sebelum kau sempat fikir, badan dah react dulu kan? Kita boleh breakdown pattern ni step by step." },
-    islamic: { name:"USTAZ RIDHWAN", skin:"islamic", stand:{gx:6.65,gy:1.2}, user:{gx:6.3,gy:3.0},
-      keywords:["islam","tuhan","allah","doa","iman","self-worth","makna","tawakkul"],
-      reply:"Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?" }
+  const staff = {
+    amal:    { name:'DR. AMAL',      skin:'general', role:'specialist', dot:'#3f7d5a', home:{gx:5.6,gy:2.9}, keywords:[],
+               reply:'Aku dengar, boss. Cerita lagi — apa yang buat kau rasa macam tu hari ni?' },
+    hakim:   { name:'DR. HAKIM',     skin:'cbt', role:'specialist', dot:'#3a6ea5', home:{gx:7.6,gy:2.9},
+               keywords:['takut','bodoh','malu','cemas','anxiety','colleague','kerja','office','panic','stress'],
+               reply:'Bunyi macam ada automatic thought yang trigger threat response. Sebelum kau sempat fikir, badan dah react dulu. Kita boleh breakdown pattern ni step by step.' },
+    ridhwan: { name:'USTAZ RIDHWAN', skin:'islamic', role:'specialist', dot:'#6a4a8f', home:{gx:9.6,gy:2.9},
+               keywords:['islam','tuhan','allah','doa','iman','self-worth','makna','tawakkul','sabar'],
+               reply:'Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?' },
+    aiman:   { name:'AIMAN',  skin:'staffA', role:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
+    farah:   { name:'FARAH',  skin:'staffB', role:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
+    wei:     { name:'WEI',    skin:'staffC', role:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
   };
 
-  // place agents behind their desks
-  const agentSprites = {};
-  for (const [k, a] of Object.entries(agents)) {
-    const s = makeSprite('sprite-' + k, a.skin, a.name, false);
-    placeSprite(s, a.stand.gx, a.stand.gy);
-    agentSprites[k] = s;
-  }
-  // user avatar (walks)
-  const avatar = makeSprite('avatar', 'user', 'KAU', true);
-  placeSprite(avatar, 4.0, 6.6);
-
-  // clickable hotspots over each desk
-  for (const [k, a] of Object.entries(agents)) {
-    const p = project(a.stand.gx, a.stand.gy + 1);
-    const hs = document.createElement('div');
-    hs.className = 'hotspot';
-    hs.style.left = (p.x - 46) + 'px'; hs.style.top = (p.y - 70) + 'px';
-    hs.style.width = '92px'; hs.style.height = '96px';
-    hs.title = a.name;
-    hs.addEventListener('click', () => goToAgent(k, null));
-    office.appendChild(hs);
-  }
-
-  // --- crisis safety layer (runs every turn, overrides routing) ---
-  const crisisKeywords = [
-    "bunuh diri","nak mati","tak nak hidup","tamatkan hidup","akhiri hidup",
-    "cederakan diri","lukakan diri","sakiti diri","self harm","self-harm",
-    "suicide","suicidal","kill myself","end my life","hurt myself",
-    "tiada harapan","lebih baik aku mati","takde guna hidup"
+  // shared roam points (open aisles / activity spots)
+  const waypoints = [
+    {gx:3.4,gy:2.3}, {gx:9.5,gy:1.2}, {gx:6.5,gy:5.5}, {gx:10.5,gy:4.2},
+    {gx:4.5,gy:3.6}, {gx:8.5,gy:6.2}, {gx:11.5,gy:6.0}, {gx:5.5,gy:1.5},
+    {gx:12.0,gy:8.2}, {gx:2.4,gy:5.5}, {gx:7.5,gy:3.0}, {gx:10.0,gy:2.4}
   ];
-  function checkCrisis(text) {
-    const l = text.toLowerCase();
-    return crisisKeywords.some(w => l.includes(w));
+
+  const sprites = {};
+  for (const k in staff) { sprites[k] = makeSprite('s-' + k, staff[k].skin, staff[k].name, false); place(sprites[k], staff[k].home.gx, staff[k].home.gy); }
+  const boss = makeSprite('boss', 'user', 'KAU (BOSS)', true);
+  const BOSS_POS = { gx: 4.3, gy: 8.6 }, BOSS_MEET = { gx: 5.6, gy: 7.7 };
+  place(boss, BOSS_POS.gx, BOSS_POS.gy);
+
+  // roster bar
+  const roster = document.getElementById('roster');
+  for (const k in staff) {
+    const c = document.createElement('div'); c.className = 'chip';
+    c.innerHTML = `<span class="dot" style="color:${staff[k].dot};background:${staff[k].dot}"></span>`
+      + `<span class="cname">${staff[k].name}</span><span class="cstat" id="stat-${k}">bekerja</span>`;
+    roster.appendChild(c); sprites[k].statEl = document.getElementById('stat-' + k);
   }
-  function showCrisisResources() {
-    const d = document.getElementById('dialog');
-    d.classList.add('crisis');
-    d.innerHTML =
-      `<span class="speaker">SOKONGAN SEGERA</span>
-       <div class="line">Terima kasih sebab beritahu. Apa yang kau rasa sekarang penting, dan kau tak perlu hadap benda ni sorang-sorang. App ni bukan pengganti bantuan profesional — tolong hubungi salah satu talian ni sekarang:</div>
-       <ul class="crisis-list">
-         <li><strong>Talian HEAL (KKM):</strong> 15555 — 24 jam, percuma</li>
-         <li><strong>Befrienders KL:</strong> 03-7627 2929 — 24 jam</li>
-         <li><strong>Talian Kasih:</strong> 15999 (atau WhatsApp 019-261 5999)</li>
-         <li>Kalau bahaya segera: <strong>999</strong></li>
-       </ul>`;
-    document.getElementById('status').textContent = "safety layer aktif — routing di-override, hubungi talian di atas";
-    spot.style.opacity = 0;
+  function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
+
+  // generic walk (variable speed by distance)
+  let currentScale = 1;
+  function walk(s, gx, gy) {
+    gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
+    const p = project(gx, gy);
+    const dur = Math.min(1.7, Math.max(0.45, Math.hypot(gx - s.gx, gy - s.gy) * 0.26));
+    const curX = parseFloat(s.wrap.style.left) + SPR_HALF;
+    s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
+    s.wrap.style.transition = `left ${dur}s linear, top ${dur}s linear`;
+    s.wrap.classList.add('walking');
+    s.wrap.style.left = (p.x - SPR_HALF) + 'px'; s.wrap.style.top = (p.y - SPR_H) + 'px';
+    s.wrap.style.zIndex = Math.round((gx + gy) * 10) + 120; s.gx = gx; s.gy = gy;
+    clearTimeout(s.stopT); s.stopT = setTimeout(() => s.wrap.classList.remove('walking'), dur * 1000);
+    return dur;
   }
 
+  // --- autonomous wandering ---
+  function scheduleWander(k) {
+    const s = sprites[k]; if (s.busy) return;
+    s.wanderT = setTimeout(() => doWander(k), 900 + Math.random() * 3200);
+  }
+  function doWander(k) {
+    const s = sprites[k]; if (s.busy) return;
+    const wp = Math.random() < 0.35 ? staff[k].home : waypoints[(Math.random() * waypoints.length) | 0];
+    setStat(k, 'berjalan');
+    const dur = walk(s, wp.gx + (Math.random() * 0.5 - 0.25), wp.gy + (Math.random() * 0.5 - 0.25));
+    s.arriveT = setTimeout(() => { setStat(k, 'bekerja'); scheduleWander(k); }, dur * 1000 + 700 + Math.random() * 2800);
+  }
+  for (const k in staff) setTimeout(() => scheduleWander(k), Math.random() * 1500);
+
+  // =====================================================================
+  //  LAYER AI / LOGIC — routing (mock) + crisis safety (priority)
+  // =====================================================================
   function routeAgent(text) {
-    const l = text.toLowerCase(); let best = "general", bs = 0;
-    for (const [k, a] of Object.entries(agents)) {
-      const s = a.keywords.filter(w => l.includes(w)).length;
+    const l = text.toLowerCase(); let best = 'amal', bs = 0;
+    for (const k in staff) {
+      if (staff[k].role !== 'specialist') continue;
+      const s = staff[k].keywords.filter(w => l.includes(w)).length;
       if (s > bs) { bs = s; best = k; }
     }
     return best;
   }
-
-  // =====================================================================
-  //  MOVEMENT  — avatar walks across the isometric floor to a target
-  // =====================================================================
-  let walkT = null;
-  function walkTo(gx, gy) {
-    const p = project(gx, gy);
-    const curX = parseFloat(avatar.wrap.style.left) + 26;
-    avatar.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
-    avatar.wrap.classList.add('walking');
-    avatar.wrap.style.left = (p.x - 26) + 'px';
-    avatar.wrap.style.top  = (p.y - 76) + 'px';
-    avatar.wrap.style.zIndex = Math.round((gx + gy) * 10) + 106;
-    avatar.gx = gx; avatar.gy = gy;
-    moveSpot(gx, gy);
-    clearTimeout(walkT);
-    walkT = setTimeout(() => avatar.wrap.classList.remove('walking'), 1100);
-  }
-
-  function highlightDesk(k) {
-    document.querySelectorAll('.tile').forEach(t => t.style.filter = '');
-    const a = agents[k];
-    const gxi = Math.floor(a.stand.gx), gyi = Math.floor(a.stand.gy);
-    const tile = document.querySelector(`.tile[data-tile="${gxi},${gyi}"]`);
-    if (tile) tile.style.filter = 'brightness(1.35) saturate(1.3)';
-  }
+  const crisisKeywords = [
+    'bunuh diri','nak mati','tak nak hidup','tamatkan hidup','akhiri hidup','cederakan diri','lukakan diri',
+    'sakiti diri','self harm','self-harm','suicide','suicidal','kill myself','end my life','hurt myself',
+    'tiada harapan','lebih baik aku mati','takde guna hidup'
+  ];
+  const checkCrisis = t => crisisKeywords.some(w => t.toLowerCase().includes(w));
 
   function showDialog(sp, ln) {
-    const d = document.getElementById('dialog');
-    d.classList.remove('crisis');
+    const d = document.getElementById('dialog'); d.classList.remove('crisis');
     d.innerHTML = `<span class="speaker">${sp}</span><div class="line">${ln}</div>`;
   }
+  function showCrisisResources() {
+    const d = document.getElementById('dialog'); d.classList.add('crisis');
+    d.innerHTML = `<span class="speaker">SOKONGAN SEGERA</span>
+      <div class="line">Terima kasih sebab beritahu. Apa yang kau rasa sekarang penting, dan kau tak perlu hadap benda ni sorang-sorang. App ni bukan pengganti bantuan profesional — tolong hubungi salah satu talian ni sekarang:</div>
+      <ul class="crisis-list">
+        <li><strong>Talian HEAL (KKM):</strong> 15555 — 24 jam, percuma</li>
+        <li><strong>Befrienders KL:</strong> 03-7627 2929 — 24 jam</li>
+        <li><strong>Talian Kasih:</strong> 15999 (atau WhatsApp 019-261 5999)</li>
+        <li>Kalau bahaya segera: <strong>999</strong></li>
+      </ul>`;
+    document.getElementById('status').textContent = 'safety layer aktif — routing di-override, hubungi talian di atas';
+  }
 
-  function goToAgent(k, userText) {
-    const a = agents[k];
-    document.getElementById('status').textContent = `routing ke ${a.name}...`;
-    highlightDesk(k);
-    walkTo(a.user.gx, a.user.gy);
-    if (userText) showDialog("KAU", userText);
-    setTimeout(() => {
-      showDialog(a.name, a.reply);
-      document.getElementById('status').textContent = `sedang bercakap dengan ${a.name}`;
-    }, 1150);
+  // summon a specialist over to the boss
+  function summon(k, text) {
+    const s = sprites[k], a = staff[k];
+    s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
+    setStat(k, 'ke boss →');
+    moveSpot(BOSS_MEET.gx, BOSS_MEET.gy);
+    const dur = walk(s, BOSS_MEET.gx, BOSS_MEET.gy);
+    if (text) showDialog('KAU (BOSS)', text);
+    document.getElementById('status').textContent = `memanggil ${a.name}...`;
+    s.talkT = setTimeout(() => {
+      // face the boss
+      s.facing.style.transform = (project(boss.gx, boss.gy).x < project(s.gx, s.gy).x) ? 'scaleX(-1)' : 'scaleX(1)';
+      showDialog(a.name, a.reply); setStat(k, 'bercakap');
+      document.getElementById('status').textContent = `${a.name} tengah lapor kat kau`;
+    }, dur * 1000 + 150);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'bekerja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 8000);
   }
 
   function handleSend() {
-    const i = document.getElementById('user-input');
-    const t = i.value.trim();
-    if (!t) return;
-    i.value = "";
-    // safety check WAJIB dulu — kalau positif, override semua routing
-    if (checkCrisis(t)) { showCrisisResources(); return; }
-    goToAgent(routeAgent(t), t);
+    const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
+    i.value = '';
+    if (checkCrisis(t)) { showCrisisResources(); return; }   // safety WAJIB dulu
+    summon(routeAgent(t), t);
   }
-
   document.getElementById('send-btn').addEventListener('click', handleSend);
   document.getElementById('user-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
 
-  // --- responsive scaling: fit the fixed 720px board into the viewport ---
+  // click floor → boss walks there
+  office.addEventListener('click', e => {
+    const rect = office.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / currentScale, my = (e.clientY - rect.top) / currentScale;
+    const aa = (mx - ORIGIN_X) * 2 / TILE_W, bb = (my - ORIGIN_Y) * 2 / TILE_H;
+    const gx = (aa + bb) / 2, gy = (bb - aa) / 2;
+    if (gx < -0.5 || gy < -0.5 || gx > GRID_X + 0.5 || gy > GRID_Y + 0.5) return;
+    moveSpot(gx, gy); walk(boss, gx, gy);
+  });
+
+  // --- responsive scaling ---
   function fit() {
     const stage = document.getElementById('stage');
-    const avail = Math.min(720, window.innerWidth - 24);   // body has 12px side padding
-    const s = avail / 720;
+    const avail = Math.min(880, window.innerWidth - 24);
+    const s = avail / 880; currentScale = s;
     office.style.transform = 'scale(' + s + ')';
-    // size the stage to the scaled board so body's flex-centering keeps it centred
-    stage.style.width  = (720 * s) + 'px';
-    stage.style.height = (470 * s) + 'px';
+    stage.style.width = (880 * s) + 'px'; stage.style.height = (520 * s) + 'px';
   }
-  window.addEventListener('resize', fit);
-  fit();
+  window.addEventListener('resize', fit); fit();
 </script>
 </body>
 </html>
