@@ -30,11 +30,13 @@
   }
   .subtitle { font-size: 12px; color: #8b90ad; margin-bottom: 20px; text-align: center; }
 
-  /* stage scales the fixed-size isometric board down on narrow screens */
-  #stage { width: min(720px, 96vw); position: relative; }
+  /* stage scales the fixed-size isometric board down on narrow screens.
+     JS sets #stage to the scaled size so the flex-centered body keeps it centred,
+     while #office is taken out of flow and scaled from its top-left corner. */
+  #stage { position: relative; margin: 0 auto; max-width: 100%; }
   #office {
-    position: relative; width: 720px; height: 470px;
-    transform-origin: top center;
+    position: absolute; left: 0; top: 0; width: 720px; height: 470px;
+    transform-origin: top left;
     image-rendering: pixelated;
     background: radial-gradient(120% 90% at 50% 18%, #191d2e 0%, #0f1120 70%);
     border: 3px solid var(--panel-edge); border-radius: 6px; overflow: hidden;
@@ -463,12 +465,15 @@
   document.getElementById('send-btn').addEventListener('click', handleSend);
   document.getElementById('user-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
 
-  // --- responsive scaling: fit the fixed 720px board into the stage ---
+  // --- responsive scaling: fit the fixed 720px board into the viewport ---
   function fit() {
     const stage = document.getElementById('stage');
-    const s = Math.min(1, stage.clientWidth / 720);
+    const avail = Math.min(720, window.innerWidth - 24);   // body has 12px side padding
+    const s = avail / 720;
     office.style.transform = 'scale(' + s + ')';
-    stage.style.height = (470 * s + 6) + 'px';
+    // size the stage to the scaled board so body's flex-centering keeps it centred
+    stage.style.width  = (720 * s) + 'px';
+    stage.style.height = (470 * s) + 'px';
   }
   window.addEventListener('resize', fit);
   fit();
