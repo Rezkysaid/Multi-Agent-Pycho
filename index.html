@@ -26,7 +26,6 @@
     --accent:#e0894e;      /* terracotta — ties to the room's armchair */
     --accent-ink:#241305;
     --sage:#93ad86;        /* calm secondary */
-    --crisis:#e07a5f;
   }
   * { box-sizing: border-box; }
   html, body { overflow-x: hidden; touch-action: pan-x pan-y; }   /* app feels locked — no pinch/double-tap zoom */
@@ -174,13 +173,6 @@
   .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border-left: 3px solid var(--dotc, var(--accent)); }
   .msg.sys { align-self: center; max-width: 92%; text-align: center; }
   .msg.sys .bub { background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 13px; padding: 4px 8px; }
-  .msg.crisis { align-self: stretch; max-width: 100%; }
-  .msg.crisis .bub {
-    background: #2c1c17; color: var(--text); border: 1px solid var(--crisis); border-left: 3px solid var(--crisis);
-    box-shadow: 0 0 0 1px #e07a5f33; font-family: 'Nunito', sans-serif; font-size: 14px;
-  }
-  .msg.crisis .who { color: var(--crisis); }
-  .msg .crisis-list { margin: 8px 0 0; padding-left: 18px; line-height: 1.85; }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
 
   #input-row { display: flex; gap: 8px; margin-top: 12px; }
@@ -248,10 +240,10 @@
 
       <section class="convo">
         <div id="chat">
-          <div class="msg sys"><div class="bub">Semua staff dah masuk. Taip sesuatu — contohnya <em>"aku takut nampak bodoh depan colleague"</em> atau <em>"macam mana Islam pandang self-worth"</em> — dan orang yang paling sesuai akan datang lapor kat kau.</div></div>
+          <div class="msg sys"><div class="bub">Semua staff dah masuk kerja. Suruh apa-apa — contohnya <em>"research pasal kereta EV kat Malaysia"</em> atau <em>"tolong tulis caption IG untuk produk baru"</em> — dan orang paling sesuai akan datang lapor kat kau.</div></div>
         </div>
         <div id="input-row">
-          <input id="user-input" type="text" placeholder="Cakap apa yang kau nak tanya…" autocomplete="off">
+          <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
           <button id="send-btn">Panggil</button>
         </div>
       </section>
@@ -264,8 +256,8 @@
   </main>
 
   <footer class="foot">
-    Dibina tangan sebagai <b>proof-of-concept</b> — layer AI (routing + safety) berasingan daripada layer game (ruang, gerak, dialog).
-    Staff bergerak sendiri; kau memandu dengan bertanya. <b>Bukan pengganti bantuan profesional.</b>
+    Dibina tangan sebagai <b>proof-of-concept</b> — layer AI (routing + pakar) berasingan daripada layer game (ruang, gerak, dialog).
+    Staff bergerak sendiri; kau memandu dengan bertanya dan mengagih kerja.
   </footer>
 
 <script>
@@ -543,12 +535,12 @@
 
   const skins = {
     user:    { K:'#3a2a22',H:'#5a4234', J:'#e6a84e',j:'#c08432', W:'#f2ead9', T:'#33302c',t:'#242220', o:'#1c1a18', A:'#e6a84e' },
-    amal:    { K:'#2e2320',H:'#4a3a30', J:'#7d9464',j:'#5f7449', W:'#f0e7d6', T:'#3a352e',t:'#28241f', o:'#211d18', A:'#d9694a' },
-    hakim:   { K:'#2a2a25',H:'#40403a', J:'#2f5d5a',j:'#234644', W:'#eef0f2', T:'#33302c',t:'#242220', o:'#1c1a18' },
-    ridhwan: { K:'#3a2a22',H:'#5a4234', J:'#6a5aa0',j:'#4d417a', A:'#e0b45a', o:'#241f2e' },
-    aiman:   { K:'#3a2a20',H:'#5a4030', J:'#33302f',j:'#222020', A:'#d0743a', T:'#33302f',t:'#222020', o:'#191716' },
-    farah:   { K:'#2a2a25',H:'#40403a', J:'#3a8f8a',j:'#296763', W:'#f0e7d6', A:'#e6b45a', T:'#3a352e',t:'#28241f', o:'#211d18' },
-    wei:     { K:'#2e2320',H:'#4a3a30', J:'#8f4a4a',j:'#663333', W:'#eae6df', T:'#33302c',t:'#242220', o:'#1c1a18' }
+    aiman:   { K:'#3a2a20',H:'#5a4030', J:'#33302f',j:'#222020', A:'#d0743a', T:'#33302f',t:'#222020', o:'#191716' }, // chic charcoal + terracotta
+    meera:   { K:'#2a2a25',H:'#40403a', J:'#3a8f8a',j:'#296763', W:'#f0e7d6', A:'#e6b45a', T:'#3a352e',t:'#28241f', o:'#211d18' }, // knit teal
+    wei:     { K:'#2e2320',H:'#4a3a30', J:'#9c5a86',j:'#6f3f60', W:'#eae6df', T:'#33302c',t:'#242220', o:'#1c1a18' }, // tailored plum
+    danish:  { K:'#2a2a25',H:'#40403a', J:'#3a5a9c',j:'#28406f', W:'#eef0f2', T:'#33302c',t:'#242220', o:'#1c1a18' }, // tailored navy
+    hana:    { K:'#2e2320',H:'#4a3a30', J:'#7a5aa0',j:'#573f78', W:'#f0e7d6', A:'#e0b45a', T:'#3a352e',t:'#28241f', o:'#211d18' }, // knit purple
+    hafiz:   { K:'#3a2a20',H:'#5a4030', J:'#3f5a5c',j:'#2b3f41', A:'#5fb0a8', T:'#33302f',t:'#222020', o:'#191716' }  // chic steel-teal
   };
   function shadowStr(map, skinKey) {
     const pal = Object.assign({}, basePalette, skins[skinKey] || skins.user);
@@ -598,17 +590,24 @@
   //  WORKERS
   // =====================================================================
   const staff = {
-    amal:    { name:'DR. AMAL', role:'Pendengar', outfit:'knit', kind:'specialist', dot:'#7d9464', home:{gx:6.35,gy:3.1}, keywords:[],
-               reply:'Aku dengar, boss. Cerita lagi — apa yang buat kau rasa macam tu hari ni?' },
-    hakim:   { name:'DR. HAKIM', role:'CBT / Mekanisme', outfit:'tailored', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
-               keywords:['takut','bodoh','malu','cemas','anxiety','colleague','kerja','office','panic','stress'],
-               reply:'Bunyi macam ada automatic thought yang trigger threat response. Sebelum kau sempat fikir, badan dah react dulu. Kita boleh breakdown pattern ni step by step.' },
-    ridhwan: { name:'USTAZ RIDHWAN', role:'Perspektif Islam', outfit:'robe', kind:'specialist', dot:'#6a5aa0', home:{gx:10.35,gy:3.1},
-               keywords:['islam','tuhan','allah','doa','iman','self-worth','makna','tawakkul','sabar'],
-               reply:'Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?' },
-    aiman:   { name:'AIMAN', role:'Staf', outfit:'chic', kind:'staff', dot:'#d0743a', home:{gx:6.35,gy:5.6} },
-    farah:   { name:'MEERA', role:'Staf', outfit:'knit', kind:'staff', dot:'#3a8f8a', home:{gx:8.35,gy:5.6} },
-    wei:     { name:'WEI', role:'Staf', outfit:'tailored', kind:'staff', dot:'#8f4a4a', home:{gx:10.35,gy:5.6} }
+    aiman:   { name:'AIMAN', role:'Pembantu Am', outfit:'chic', kind:'specialist', dot:'#d0743a', home:{gx:6.35,gy:3.1},
+               keywords:['hi','hai','helo','apa khabar','korang','tolong','uruskan','agih','susun','emel','jadual','set up','book'],
+               reply:'Siap bos. Bagi aku detail sikit — kau nak aku uruskan terus, atau susun dulu jadi senarai kerja?' },
+    meera:   { name:'MEERA', role:'Penyelidik', outfit:'knit', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
+               keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info'],
+               reply:'Ok bos, aku gali dulu. Aku carikan fakta utama, sumber dan ringkasan point penting — kau nak aku fokus bahagian mana?' },
+    wei:     { name:'WEI', role:'Penulis', outfit:'tailored', kind:'specialist', dot:'#9c5a86', home:{gx:10.35,gy:3.1},
+               keywords:['tulis','draf','caption','artikel','emel','copy','ayat','skrip','post','headline','tagline','email'],
+               reply:'Boleh bos. Nak nada macam mana — formal, santai, atau punchy? Aku draf dua tiga versi untuk kau pilih.' },
+    danish:  { name:'DANISH', role:'Penganalisis', outfit:'tailored', kind:'specialist', dot:'#3a5a9c', home:{gx:6.35,gy:5.6},
+               keywords:['analisa','analisis','pro','kontra','banding','pilihan','keputusan','angka','kos','untung','risiko','roi','nombor'],
+               reply:'Aku tengok datanya dulu bos. Aku boleh bagi pro/kontra dengan cadangan berasaskan angka — hantar je nombornya.' },
+    hana:    { name:'HANA', role:'Perancang', outfit:'knit', kind:'specialist', dot:'#7a5aa0', home:{gx:8.35,gy:5.6},
+               keywords:['plan','rancang','strategi','langkah','matlamat','jadual','timeline','projek','fasa','roadmap','sasaran'],
+               reply:'Jom pecahkan bos. Kita set matlamat, pecah jadi langkah kecil, letak timeline — kau target siap bila?' },
+    hafiz:   { name:'HAFIZ', role:'Jurutera / Tekno', outfit:'chic', kind:'specialist', dot:'#4a8f88', home:{gx:10.35,gy:5.6},
+               keywords:['kod','code','bug','debug','teknikal','app','web','api','error','sistem','automate','automasi','skrip'],
+               reply:'Aku pegang bahagian teknikal ni bos. Bagitau apa yang error atau apa kau nak buat — aku terangkan atau terus kodkan.' }
   };
   const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
 
@@ -769,10 +768,10 @@
   for (const k in staff) setTimeout(() => scheduleWander(k), Math.random() * 1500);
 
   // =====================================================================
-  //  LAYER AI / LOGIC — routing (mock) + crisis safety (priority)
+  //  LAYER AI / LOGIC — routing (mock keyword fallback + Gemini orchestrator)
   // =====================================================================
   function routeAgent(text) {
-    const l = text.toLowerCase(); let best = 'amal', bs = 0;
+    const l = text.toLowerCase(); let best = 'aiman', bs = 0;
     for (const k in staff) {
       if (staff[k].kind !== 'specialist') continue;
       const s = staff[k].keywords.filter(w => l.includes(w)).length;
@@ -780,12 +779,6 @@
     }
     return best;
   }
-  const crisisKeywords = [
-    'bunuh diri','nak mati','tak nak hidup','tamatkan hidup','akhiri hidup','cederakan diri','lukakan diri',
-    'sakiti diri','self harm','self-harm','suicide','suicidal','kill myself','end my life','hurt myself',
-    'tiada harapan','lebih baik aku mati','takde guna hidup'
-  ];
-  const checkCrisis = t => crisisKeywords.some(w => t.toLowerCase().includes(w));
 
   // ---- head cue (small, over the character) — NOT the reading surface ----
   const bubble = document.getElementById('bubble');
@@ -817,21 +810,6 @@
     chat.scrollTop = chat.scrollHeight;
     return bub;
   }
-  function showCrisisResources() {
-    hideBubble();
-    const m = document.createElement('div'); m.className = 'msg crisis';
-    m.innerHTML = `<div class="who">Sokongan segera</div>
-      <div class="bub">Terima kasih sebab beritahu. Apa yang kau rasa sekarang penting, dan kau tak perlu hadap benda ni sorang-sorang. App ni bukan pengganti bantuan profesional — tolong hubungi salah satu talian ni sekarang:
-        <ul class="crisis-list">
-          <li><strong>Talian HEAL (KKM):</strong> 15555 — 24 jam, percuma</li>
-          <li><strong>Befrienders KL:</strong> 03-7627 2929 — 24 jam</li>
-          <li><strong>Talian Kasih:</strong> 15999 (atau WhatsApp 019-261 5999)</li>
-          <li>Kalau bahaya segera: <strong>999</strong></li>
-        </ul></div>`;
-    chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
-    setStatus('Kami dengar kau. Talian di atas ada orang sebenar, sekarang juga.');
-  }
-
   const setStatus = t => document.getElementById('status').textContent = t;
 
   // =====================================================================
@@ -884,8 +862,8 @@
         const j = await res.json();
         let out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
         out = out.trim()
-          .replace(/^\([^)]{1,40}\)\s*/, '')                                 // "(DR. AMAL) " — with or without punctuation after
-          .replace(/^(dr\.?|ustaz)\.?\s+[\wÀ-ÿ.]{1,20}\s*[:\-]\s*/i, '')     // "Dr. Amal: " without parens
+          .replace(/^\([^)]{1,40}\)\s*/, '')                                 // "(MEERA) " — with or without punctuation after
+          .replace(/^(aiman|meera|wei|danish|hana|hafiz)\s*[:\-]\s*/i, '')   // "Meera: " without parens
           .trim();
         if (!out) throw new Error('empty');
         return out;
@@ -915,28 +893,33 @@
   // pattern and prepending its own name to new replies
   const historyContents = () => history.map(h => ({ role: h.role, parts: [{ text: h.text }] }));
 
-  const COMMON_RULES = `User yang bercakap dengan kau ni ialah BOS kau di Mind Office ni — panggil dia "bos" atau "bos siak" sekali-sekala dalam ayat (contoh: "Bos, aku dengar..." atau "...tak apa bos siak"), tapi jangan letak panggilan tu di setiap ayat, biar natural.
-Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, mesra dan tidak menghakimi.
-PENTING — baca dulu sebelum jawab: kepakaran kau (CBT/agama/dsb) HANYA dipakai bila bos memang luahkan masalah, risau, atau tanya sesuatu yang berkaitan emosi/isu peribadi.
-Kalau mesej bos tu cuma soalan biasa, basa-basi, sapaan ("hi", "apa khabar", "korang buat apa"), atau tanya fakta ringkas — JAWAB TERUS SECARA NATURAL macam staff biasa bercakap dengan bos, jangan kaitkan dengan konsep psikologi, jangan terus "analyse" perasaan bos, dan jangan anggap ada masalah tersembunyi kalau tak disebut.
-Jangan beri diagnosis. Kau bukan pengganti bantuan profesional dan boleh sebut itu bila sesuai.
-Jika ada tanda bahaya kepada diri (self-harm/bunuh diri), utamakan: minta mereka hubungi Talian HEAL 15555 atau Befrienders KL 03-7627 2929 sekarang.`;
+  const COMMON_RULES = `User yang bercakap dengan kau ni ialah BOS kau di office ni — panggil dia "bos" sekali-sekala dalam ayat, tapi jangan letak di setiap ayat, biar natural.
+Kau seorang pekerja office yang buat kerja betul (research, tulisan, analisa, perancangan, teknikal). Layan bos macam rakan sekerja yang cekap dan boleh diharap — BUKAN macam pesakit, dan ini BUKAN sesi terapi atau kaunseling.
+Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, terus ke point dan berguna.
+PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan, atau "masalah tersembunyi" melainkan bos sendiri yang minta. Kalau bos tanya soalan biasa atau basa-basi, jawab terus macam colleague biasa. Fokus pada menyiapkan kerja, bukan menganalisis bos.
+Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.`;
   const PERSONA = {
-    amal: `Kau Dr. Amal, pendengar (general listener) di Mind Office. Bila bos memang luahkan perasaan: dengar aktif, cerminkan perasaan, tanya satu soalan terbuka yang lembut — jangan terus beri penyelesaian. Bila bos cuma berbual biasa: balas ringkas & mesra macam kawan sekerja.\n${COMMON_RULES}`,
-    hakim: `Kau Dr. Hakim, pakar CBT di Mind Office. Bila bos memang cerita rasa cemas/takut/stress/overthinking: baru kenal pasti pattern pemikiran (automatic thoughts, katastrofi, dll) dan beri SATU langkah praktikal kecil. Bila bos cuma tanya soalan biasa atau berbual — jawab terus macam biasa, JANGAN paksa masuk analisis CBT.\n${COMMON_RULES}`,
-    ridhwan: `Kau Ustaz Ridhwan, pakar perspektif psikologi Islam di Mind Office. Bila bos memang tanya soal agama/makna hidup/spiritual atau luahkan kerisauan: guna konsep seperti tawakkul, sabar, karamah insaniyyah — bukan ceramah, bukan fatwa. Bila bos cuma berbual biasa — jawab natural, tak perlu selitkan rujukan agama.\n${COMMON_RULES}`
+    aiman: `Kau Aiman, Pembantu Am (general assistant) di office ni — orang pertama yang bos jumpa. Kau uruskan soalan am, basa-basi, koordinasi, dan agihkan kerja kepada orang yang betul. Kalau permintaan bos lebih sesuai untuk specialist lain, cadangkan mereka, tapi tetap bantu apa yang boleh.\n${COMMON_RULES}`,
+    meera: `Kau Meera, Penyelidik (research) di office ni. Kerja kau cari maklumat, fakta, data, dan ringkaskan jadi point yang jelas. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
+    wei: `Kau Wei, Penulis (copywriter) di office ni. Kerja kau draf emel, caption, artikel, skrip, headline. Tanya nada atau audience kalau perlu, dan bagi draf yang kemas yang terus boleh pakai.\n${COMMON_RULES}`,
+    danish: `Kau Danish, Penganalisis (analyst) di office ni. Kerja kau timbang pro/kontra, banding pilihan, dan bagi cadangan berasaskan logik dan angka. Kalau ada data guna data; kalau tak ada, nyatakan andaian kau dengan jelas.\n${COMMON_RULES}`,
+    hana: `Kau Hana, Perancang (strategy/planner) di office ni. Kerja kau pecahkan matlamat besar jadi langkah-langkah kecil dengan timeline dan keutamaan. Bagi pelan yang praktikal dan boleh terus diikut.\n${COMMON_RULES}`,
+    hafiz: `Kau Hafiz, Jurutera/Tekno (tech) di office ni. Kerja kau hal teknikal — kod, debug, sistem, tools, automasi. Terangkan dengan mudah, dan bila sesuai bagi contoh kod atau langkah teknikal yang tepat.\n${COMMON_RULES}`
   };
 
   // orchestrator: one small Gemini call to classify; keyword routing as fallback
   async function routeLLM(text) {
-    const sys = `Kau router untuk Mind Office. Pilih SEORANG staff untuk balas mesej user (bos):
-- amal: luahan perasaan umum, sedih, sunyi, nak didengari — ATAU soalan/basa-basi biasa yang tak berkaitan agama/anxiety (default)
-- hakim: cemas, takut, stress kerja, overthinking, pattern pemikiran yang DISEBUT SECARA JELAS oleh user
-- ridhwan: soalan agama/Islam, makna hidup, spiritual, tawakkul yang DISEBUT SECARA JELAS oleh user
-Kalau mesej tu basa-basi/soalan umum tanpa tanda emosi/agama yang jelas, pilih amal.
-Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
+    const sys = `Kau router untuk sebuah office. Pilih SEORANG pekerja untuk balas mesej bos:
+- aiman: soalan am, basa-basi, sapaan, urus/agih kerja, apa-apa yang tak jelas masuk bidang lain (DEFAULT)
+- meera: cari maklumat, research, fakta, data, kaji sesuatu
+- wei: tulis atau draf apa-apa — emel, caption, artikel, copy, skrip
+- danish: analisa, banding pilihan, pro/kontra, angka, keputusan berasaskan data
+- hana: rancang, strategi, pecah matlamat jadi langkah, jadual, timeline
+- hafiz: teknikal — kod, debug, app, web, sistem, automasi
+Kalau ragu-ragu atau mesej tu am/basa-basi, pilih aiman.
+Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 24, 6000);   // route must be snappy
-    const m = out.match(/amal|hakim|ridhwan/i);
+    const m = out.match(/aiman|meera|wei|danish|hana|hafiz/i);
     if (!m) throw new Error('route-parse');
     return m[0].toLowerCase();
   }
@@ -987,7 +970,6 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     i.value = '';
     addMsg('Kau', t, 'you');
-    if (checkCrisis(t)) { showCrisisResources(); return; }   // safety layer overrides everything
     remember('user', 'Kau', t);
     const usingAI = !!AI.key;
     let k;
