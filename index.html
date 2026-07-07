@@ -846,19 +846,28 @@
       const ctl = new AbortController();
       const killT = setTimeout(() => ctl.abort(), timeoutMs || 14000);
       try {
+        // thinkingBudget:0 stops 2.5-flash spending the token budget on internal
+        // reasoning before the visible reply (that ate maxOutputTokens and cut answers off).
+        // ONLY the 2.5 series accepts thinkingConfig — sending it to 2.0-flash is a hard
+        // 400 INVALID_ARGUMENT, so it must be omitted for older models.
+        const genCfg = { temperature: 0.8, maxOutputTokens: maxTokens || 500 };
+        if (model.includes('2.5')) genCfg.thinkingConfig = { thinkingBudget: 0 };
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(AI.key)}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
           body: JSON.stringify({
             system_instruction: { parts: [{ text: systemText }] },
             contents,
-            // thinkingBudget:0 stops 2.5-flash spending the token budget on internal
-            // reasoning before it ever writes the visible reply (that was eating the
-            // whole maxOutputTokens and cutting answers off mid-sentence)
-            generationConfig: { temperature: 0.8, maxOutputTokens: maxTokens || 500, thinkingConfig: { thinkingBudget: 0 } }
+            generationConfig: genCfg
           })
         });
-        if (res.status === 404) { lastErr = new Error('model-404'); continue; }
-        if (!res.ok) throw new Error('http-' + res.status);
+        if (!res.ok) {
+          // capture the API's own reason (e.g. API_KEY_INVALID, RESOURCE_EXHAUSTED,
+          // "model ... not found") so the UI can tell the boss exactly what to fix
+          let detail = '';
+          try { const ej = await res.json(); detail = (ej && ej.error && (ej.error.status || ej.error.message)) || ''; } catch {}
+          if (res.status === 404) { lastErr = new Error('model-404'); lastErr.detail = detail; continue; }
+          const he = new Error('http-' + res.status); he.status = res.status; he.detail = detail; throw he;
+        }
         const j = await res.json();
         let out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
         out = out.trim()
@@ -878,7 +887,28 @@
       await new Promise(r => setTimeout(r, 700));
       return gemini(systemText, contents, maxTokens, timeoutMs, true);
     }
+    // leave a breadcrumb in the console so the real cause is inspectable on-device
+    console.warn('[Mind Office] Gemini gagal:', lastErr && lastErr.message, lastErr && lastErr.detail ? ('· ' + lastErr.detail) : '');
     throw lastErr || new Error('gemini-failed');
+  }
+
+  // turn a Gemini failure into a specific, actionable line for the boss (not a
+  // vague "line lag") — plus a short status hint pointing at the fix
+  function aiTrouble(err) {
+    const m = String((err && err.message) || err), d = String((err && err.detail) || '').toLowerCase();
+    if (m === 'http-400' && (d.includes('api key') || d.includes('api_key') || d.includes('invalid')) || m === 'http-401' || m === 'http-403')
+      return { msg: 'Bos, API key Gemini ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari aistudio.google.com.', hint: 'API key tak sah — kemas kini di butang gear (⚙️).' };
+    if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota'))
+      return { msg: 'Bos, kuota Gemini kau dah penuh buat masa ni. Tunggu sekejap dan cuba balik, atau guna key lain / upgrade plan.', hint: 'Kuota Gemini habis (429) — cuba lagi sekejap nanti.' };
+    if (m === 'model-404')
+      return { msg: 'Bos, model Gemini tak dapat diakses dengan key ni (mungkin key lama atau region tak sokong). Cuba jana key baru dari aistudio.google.com.', hint: 'Model Gemini tak dijumpai — semak key/region.' };
+    if (m === 'AbortError')
+      return { msg: 'Bos, line ke Gemini lambat sangat tadi sampai time-out. Cuba hantar sekali lagi.', hint: 'Sambungan Gemini time-out — cuba lagi.' };
+    if (m === 'empty')
+      return { msg: 'Bos, Gemini pulangkan jawapan kosong (mungkin kena tapis keselamatan). Cuba ubah ayat sikit dan tanya balik.', hint: 'Jawapan kosong dari Gemini — cuba ubah ayat.' };
+    if (m.startsWith('http-'))
+      return { msg: 'Bos, Gemini bagi ralat pelayan sekejap tadi (' + m.replace('http-', '') + '). Cuba tanya sekali lagi tak lama ni.', hint: 'Ralat pelayan Gemini — cuba lagi.' };
+    return { msg: 'Sori bos, sambungan aku ke Gemini tersekat sekejap. Cuba tanya sekali lagi tak lama ni.', hint: 'Sambungan Gemini terganggu — cuba lagi.' };
   }
 
   // shared conversation memory — every specialist sees the same history
@@ -928,15 +958,6 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     return gemini(PERSONA[k], contents, 500, 16000);
   }
 
-  // honest fallback when AI mode is ON but the call still failed after retry —
-  // never pretend to have understood what the user just said
-  const AI_TROUBLE_REPLIES = [
-    'Eh bos, talian aku putus-putus sekejap tadi — boleh cuba hantar balik?',
-    'Bos, aku tak dapat dengar jelas tadi (line kejap terganggu). Cuba lagi?',
-    'Sori bos, sambungan aku lag sekejap. Cuba tanya sekali lagi tak lama ni.'
-  ];
-  const pickTrouble = () => AI_TROUBLE_REPLIES[(Math.random() * AI_TROUBLE_REPLIES.length) | 0];
-
   // summon a specialist to the front of the room — reply lands in the chat panel
   function summon(k, text, replyPromise, usingAI) {
     const s = sprites[k], a = staff[k];
@@ -961,7 +982,10 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       headCue(s, a.name, 'think');
       typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot);
       typingBub.classList.add('typing');
-      replyPromise.then(deliver).catch(() => deliver(usingAI ? pickTrouble() : a.reply));
+      replyPromise.then(deliver).catch(err => {
+        if (usingAI) { const info = aiTrouble(err); deliver(info.msg); setStatus(info.hint); }
+        else deliver(a.reply);
+      });
     }, dur * 1000 + 180);
     s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
   }
