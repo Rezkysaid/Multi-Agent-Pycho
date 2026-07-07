@@ -591,7 +591,7 @@
   // =====================================================================
   const staff = {
     aiman:   { name:'AIMAN', role:'Pembantu Am', outfit:'chic', kind:'specialist', dot:'#d0743a', home:{gx:6.35,gy:3.1},
-               keywords:['hi','hai','helo','apa khabar','korang','tolong','uruskan','agih','susun','emel','jadual','set up','book'],
+               keywords:['hi','hai','helo','apa khabar','korang','uruskan','agih','susun','set up','book'],
                reply:'Siap bos. Bagi aku detail sikit — kau nak aku uruskan terus, atau susun dulu jadi senarai kerja?' },
     meera:   { name:'MEERA', role:'Penyelidik', outfit:'knit', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
                keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info'],
@@ -770,15 +770,16 @@
   // =====================================================================
   //  LAYER AI / LOGIC — routing (mock keyword fallback + Gemini orchestrator)
   // =====================================================================
-  function routeAgent(text) {
+  function routeKeyword(text) {
     const l = text.toLowerCase(); let best = 'aiman', bs = 0;
     for (const k in staff) {
       if (staff[k].kind !== 'specialist') continue;
       const s = staff[k].keywords.filter(w => l.includes(w)).length;
       if (s > bs) { bs = s; best = k; }
     }
-    return best;
+    return { key: best, score: bs };
   }
+  const routeAgent = text => routeKeyword(text).key;
 
   // ---- head cue (small, over the character) — NOT the reading surface ----
   const bubble = document.getElementById('bubble');
@@ -838,7 +839,9 @@
   });
   refreshAiBadge();
 
-  const TRANSIENT = new Set(['http-429', 'http-500', 'http-502', 'http-503', 'AbortError']);
+  // NOTE: 429 (rate/quota) is deliberately NOT in this set — retrying a quota error
+  // instantly just spends another request against the same limit for no benefit.
+  const TRANSIENT = new Set(['http-500', 'http-502', 'http-503', 'AbortError']);
   async function gemini(systemText, contents, maxTokens, timeoutMs, _retried) {
     if (!AI.key) throw new Error('no-key');
     let lastErr;
@@ -899,7 +902,7 @@
     if (m === 'http-400' && (d.includes('api key') || d.includes('api_key') || d.includes('invalid')) || m === 'http-401' || m === 'http-403')
       return { msg: 'Bos, API key Gemini ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari aistudio.google.com.', hint: 'API key tak sah — kemas kini di butang gear (⚙️).' };
     if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota'))
-      return { msg: 'Bos, kuota Gemini kau dah penuh buat masa ni. Tunggu sekejap dan cuba balik, atau guna key lain / upgrade plan.', hint: 'Kuota Gemini habis (429) — cuba lagi sekejap nanti.' };
+      return { msg: 'Bos, kuota Gemini kau dah penuh buat masa ni. Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project, bukan ikut key. Semak status di aistudio.google.com/usage, atau tunggu ia reset.', hint: 'Kuota Gemini habis (429) — key baru mungkin still share quota dengan yang lama.' };
     if (m === 'model-404')
       return { msg: 'Bos, model Gemini tak dapat diakses dengan key ni (mungkin key lama atau region tak sokong). Cuba jana key baru dari aistudio.google.com.', hint: 'Model Gemini tak dijumpai — semak key/region.' };
     if (m === 'AbortError')
@@ -997,8 +1000,12 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     remember('user', 'Kau', t);
     const usingAI = !!AI.key;
     let k;
-    try { k = usingAI ? await routeLLM(t) : routeAgent(t); }
-    catch { k = routeAgent(t); }
+    // a clear keyword hit is routed for free — only spend a Gemini call on the
+    // router when the message is ambiguous (keeps free-tier quota for replies)
+    const kw = routeKeyword(t);
+    if (kw.score > 0) k = kw.key;
+    else if (usingAI) { try { k = await routeLLM(t); } catch { k = kw.key; } }
+    else k = kw.key;
     const replyPromise = usingAI
       ? specialistLLM(k, t)
       : new Promise(r => setTimeout(() => r(staff[k].reply), 400));
