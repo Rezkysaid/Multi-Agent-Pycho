@@ -860,7 +860,8 @@
   });
   refreshAiBadge();
 
-  async function gemini(systemText, contents, maxTokens, timeoutMs) {
+  const TRANSIENT = new Set(['http-429', 'http-500', 'http-502', 'http-503', 'AbortError']);
+  async function gemini(systemText, contents, maxTokens, timeoutMs, _retried) {
     if (!AI.key) throw new Error('no-key');
     let lastErr;
     for (const model of AI.models) {
@@ -888,8 +889,16 @@
           .trim();
         if (!out) throw new Error('empty');
         return out;
-      } catch (e) { lastErr = e; if (String(e.message) !== 'model-404') break; }
-      finally { clearTimeout(killT); }
+      } catch (e) {
+        lastErr = e.name === 'AbortError' ? new Error('AbortError') : e;
+        if (String(lastErr.message) !== 'model-404') break;
+      } finally { clearTimeout(killT); }
+    }
+    // one retry for transient blips (rate limit / server hiccup / timeout) — most
+    // Gemini failures clear up a second later, so this alone avoids most fallbacks
+    if (!_retried && TRANSIENT.has(String(lastErr && lastErr.message))) {
+      await new Promise(r => setTimeout(r, 700));
+      return gemini(systemText, contents, maxTokens, timeoutMs, true);
     }
     throw lastErr || new Error('gemini-failed');
   }
@@ -936,8 +945,17 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
     return gemini(PERSONA[k], contents, 500, 16000);
   }
 
+  // honest fallback when AI mode is ON but the call still failed after retry —
+  // never pretend to have understood what the user just said
+  const AI_TROUBLE_REPLIES = [
+    'Eh bos, talian aku putus-putus sekejap tadi — boleh cuba hantar balik?',
+    'Bos, aku tak dapat dengar jelas tadi (line kejap terganggu). Cuba lagi?',
+    'Sori bos, sambungan aku lag sekejap. Cuba tanya sekali lagi tak lama ni.'
+  ];
+  const pickTrouble = () => AI_TROUBLE_REPLIES[(Math.random() * AI_TROUBLE_REPLIES.length) | 0];
+
   // summon a specialist to the front of the room — reply lands in the chat panel
-  function summon(k, text, replyPromise) {
+  function summon(k, text, replyPromise, usingAI) {
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
     setStat(k, 'menuju kau →');
@@ -960,7 +978,7 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
       headCue(s, a.name, 'think');
       typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot);
       typingBub.classList.add('typing');
-      replyPromise.then(deliver).catch(() => deliver(a.reply));
+      replyPromise.then(deliver).catch(() => deliver(usingAI ? pickTrouble() : a.reply));
     }, dur * 1000 + 180);
     s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
   }
@@ -971,13 +989,15 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
     addMsg('Kau', t, 'you');
     if (checkCrisis(t)) { showCrisisResources(); return; }   // safety layer overrides everything
     remember('user', 'Kau', t);
+    const usingAI = !!AI.key;
     let k;
-    try { k = AI.key ? await routeLLM(t) : routeAgent(t); }
+    try { k = usingAI ? await routeLLM(t) : routeAgent(t); }
     catch { k = routeAgent(t); }
-    const replyPromise = AI.key
+    const replyPromise = usingAI
       ? specialistLLM(k, t)
       : new Promise(r => setTimeout(() => r(staff[k].reply), 400));
-    summon(k, t, replyPromise);
+    replyPromise.catch(() => {});   // mark handled now — summon() attaches the real .then/.catch later, after the walk finishes
+    summon(k, t, replyPromise, usingAI);
   }
   document.getElementById('send-btn').addEventListener('click', handleSend);
   document.getElementById('user-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
