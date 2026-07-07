@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Mind Office — HQ</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#17120d">
@@ -29,7 +29,7 @@
     --crisis:#e07a5f;
   }
   * { box-sizing: border-box; }
-  html, body { overflow-x: hidden; }
+  html, body { overflow-x: hidden; touch-action: pan-x pan-y; }   /* app feels locked — no pinch/double-tap zoom */
   body {
     margin: 0; background:
       radial-gradient(140% 120% at 22% -10%, #221a12 0%, var(--ink) 60%) fixed;
@@ -60,10 +60,12 @@
   }
   .topbar-right { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 12px; }
   #ai-btn {
+    display: inline-flex; align-items: center; gap: 6px;
     background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
     color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 700; padding: 4px 9px;
     transition: border-color .15s ease, color .15s ease;
   }
+  #ai-btn .gear { flex: 0 0 auto; }
   #ai-btn:hover { border-color: var(--accent); color: var(--text); }
   #ai-btn.on { color: var(--sage); border-color: #4d5c44; }
   .live { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: 1px; color: var(--sage); }
@@ -216,7 +218,13 @@
       <span class="brand-sub">HQ</span>
     </div>
     <div class="topbar-right">
-      <button id="ai-btn" title="Sambungan AI (Gemini)">&#9881; <span id="ai-state">AI: off</span></button>
+      <button id="ai-btn" title="Sambungan AI (Gemini)">
+        <svg class="gear" width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M19.4 13.5c.06-.49.1-.99.1-1.5s-.04-1.01-.1-1.5l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.6-.22l-2.49 1a7.3 7.3 0 0 0-1.3-.75l-.38-2.65A.5.5 0 0 0 14.36 2H9.64a.5.5 0 0 0-.5.42l-.38 2.65c-.47.2-.91.45-1.3.75l-2.49-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64L4.6 10.5c-.06.49-.1.99-.1 1.5s.04 1.01.1 1.5l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.13.22.4.31.6.22l2.49-1c.39.3.83.55 1.3.75l.38 2.65a.5.5 0 0 0 .5.42h4.72a.5.5 0 0 0 .5-.42l.38-2.65c.47-.2.91-.45 1.3-.75l2.49 1a.5.5 0 0 0 .6-.22l2-3.46a.5.5 0 0 0-.12-.64L19.4 13.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+        <span id="ai-state">AI: off</span>
+      </button>
       <span class="live"><i class="live-dot"></i> LIVE</span>
       <span class="clock" id="clock">--:--</span>
     </div>
@@ -985,6 +993,17 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
       String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
   tickClock(); setInterval(tickClock, 15000);
+
+  // belt-and-suspenders: iOS Safari sometimes still fires pinch (gesturestart)
+  // and double-tap zoom even with user-scalable=no; kill both explicitly.
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
 
   // tiny debug handle for automated checks
   window.__mo = { isBlocked, sprites, los };
