@@ -854,15 +854,19 @@
           body: JSON.stringify({
             system_instruction: { parts: [{ text: systemText }] },
             contents,
-            generationConfig: { temperature: 0.8, maxOutputTokens: maxTokens || 260 }
+            // thinkingBudget:0 stops 2.5-flash spending the token budget on internal
+            // reasoning before it ever writes the visible reply (that was eating the
+            // whole maxOutputTokens and cutting answers off mid-sentence)
+            generationConfig: { temperature: 0.8, maxOutputTokens: maxTokens || 500, thinkingConfig: { thinkingBudget: 0 } }
           })
         });
         if (res.status === 404) { lastErr = new Error('model-404'); continue; }
         if (!res.ok) throw new Error('http-' + res.status);
         const j = await res.json();
-        const out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-        if (!out.trim()) throw new Error('empty');
-        return out.trim();
+        let out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+        out = out.trim().replace(/^\(?\s*(dr\.?|ustaz)\s[\wÀ-ÿ.]+\)?\s*[:\-]\s*/i, '');   // strip any self-name prefix
+        if (!out) throw new Error('empty');
+        return out;
       } catch (e) { lastErr = e; if (String(e.message) !== 'model-404') break; }
       finally { clearTimeout(killT); }
     }
@@ -877,9 +881,9 @@
     if (history.length > 20) history = history.slice(-20);
     try { localStorage.setItem('mo_history', JSON.stringify(history)); } catch {}
   }
-  const historyContents = () => history.map(h => ({
-    role: h.role, parts: [{ text: h.role === 'model' ? `(${h.name}) ${h.text}` : h.text }]
-  }));
+  // plain text only — no "(Name) ..." prefix, or the model starts imitating that
+  // pattern and prepending its own name to new replies
+  const historyContents = () => history.map(h => ({ role: h.role, parts: [{ text: h.text }] }));
 
   const COMMON_RULES = `Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, mesra dan tidak menghakimi.
 Jangan beri diagnosis. Kau bukan pengganti bantuan profesional dan boleh sebut itu bila sesuai.
@@ -904,7 +908,7 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
   }
   async function specialistLLM(k, text) {
     const contents = [...historyContents(), { role: 'user', parts: [{ text }] }];
-    return gemini(PERSONA[k], contents, 300, 16000);
+    return gemini(PERSONA[k], contents, 500, 16000);
   }
 
   // summon a specialist to the front of the room — reply lands in the chat panel
