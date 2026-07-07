@@ -358,12 +358,13 @@
   const screenC = { top:'#14161b', left:'#3f78b0', right:'#181b21' };   // lit screen on the front (left) face
   const kbC   = { top:'#cbccd0', left:'#9a9ca1', right:'#b3b5ba' };
 
-  // realistic office swivel chair: base + post + seat + backrest
+  // realistic office swivel chair: base + post + seat + backrest — SOLID (one footprint)
   function chair(gx, gy) {
     box(gx + 0.15, gy + 0.15, 0.12, 0.12, 3, legC, false);           // star base hub
     box(gx + 0.19, gy + 0.19, 0.05, 0.05, 8, legC, false);           // gas post
     box(gx + 0.05, gy + 0.07, 0.32, 0.32, 5, seatC, false, 8);       // seat cushion (floating)
     box(gx + 0.06, gy + 0.04, 0.3, 0.07, 14, seatC, false, 13);      // backrest
+    solids.push([gx + 0.02, gy + 0.02, gx + 0.4, gy + 0.42]);        // chairs are not walkable
   }
   // desk: 4 legs + floating top + monitor (with screen) + keyboard, then a chair in front
   function desk(gx, gy) {
@@ -391,7 +392,7 @@
     contactShadow(gx, gy, w, d);
   }
   function plant(gx, gy) {
-    box(gx, gy, 0.32, 0.32, 15, { top:'#b9713f', left:'#8f5730', right:'#a4653a' }, false);
+    box(gx, gy, 0.32, 0.32, 15, { top:'#b9713f', left:'#8f5730', right:'#a4653a' });   // pot is solid
     const c = project(gx + 0.16, gy + 0.16);
     const f = document.createElement('div'); f.className = 'deco';
     Object.assign(f.style, { width:'18px', height:'24px', borderRadius:'50% 50% 45% 45%',
@@ -553,22 +554,22 @@
   //  WORKERS
   // =====================================================================
   const staff = {
-    amal:    { name:'DR. AMAL', role:'Pendengar', outfit:'knit', kind:'specialist', dot:'#7d9464', home:{gx:5.6,gy:2.9}, keywords:[],
+    amal:    { name:'DR. AMAL', role:'Pendengar', outfit:'knit', kind:'specialist', dot:'#7d9464', home:{gx:6.35,gy:3.1}, keywords:[],
                reply:'Aku dengar, boss. Cerita lagi — apa yang buat kau rasa macam tu hari ni?' },
-    hakim:   { name:'DR. HAKIM', role:'CBT / Mekanisme', outfit:'tailored', kind:'specialist', dot:'#3a8f8a', home:{gx:7.6,gy:2.9},
+    hakim:   { name:'DR. HAKIM', role:'CBT / Mekanisme', outfit:'tailored', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
                keywords:['takut','bodoh','malu','cemas','anxiety','colleague','kerja','office','panic','stress'],
                reply:'Bunyi macam ada automatic thought yang trigger threat response. Sebelum kau sempat fikir, badan dah react dulu. Kita boleh breakdown pattern ni step by step.' },
-    ridhwan: { name:'USTAZ RIDHWAN', role:'Perspektif Islam', outfit:'robe', kind:'specialist', dot:'#6a5aa0', home:{gx:9.6,gy:2.9},
+    ridhwan: { name:'USTAZ RIDHWAN', role:'Perspektif Islam', outfit:'robe', kind:'specialist', dot:'#6a5aa0', home:{gx:10.35,gy:3.1},
                keywords:['islam','tuhan','allah','doa','iman','self-worth','makna','tawakkul','sabar'],
                reply:'Konsep karamah insaniyyah cakap martabat manusia tu given, bukan earned oleh pencapaian atau pandangan orang. Nak kita explore lebih dalam?' },
-    aiman:   { name:'AIMAN', role:'Staf', outfit:'chic', kind:'staff', dot:'#d0743a', home:{gx:5.6,gy:5.4} },
-    farah:   { name:'MEERA', role:'Staf', outfit:'knit', kind:'staff', dot:'#3a8f8a', home:{gx:7.6,gy:5.4} },
-    wei:     { name:'WEI', role:'Staf', outfit:'tailored', kind:'staff', dot:'#8f4a4a', home:{gx:9.6,gy:5.4} }
+    aiman:   { name:'AIMAN', role:'Staf', outfit:'chic', kind:'staff', dot:'#d0743a', home:{gx:6.35,gy:5.6} },
+    farah:   { name:'MEERA', role:'Staf', outfit:'knit', kind:'staff', dot:'#3a8f8a', home:{gx:8.35,gy:5.6} },
+    wei:     { name:'WEI', role:'Staf', outfit:'tailored', kind:'staff', dot:'#8f4a4a', home:{gx:10.35,gy:5.6} }
   };
   const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
 
   const waypoints = [
-    {gx:3.0,gy:3.6}, {gx:6.5,gy:3.6}, {gx:9.0,gy:3.6}, {gx:10.8,gy:4.5},
+    {gx:3.2,gy:4.1}, {gx:6.5,gy:3.6}, {gx:9.0,gy:3.6}, {gx:10.8,gy:4.5},
     {gx:6.0,gy:6.6}, {gx:8.5,gy:6.8}, {gx:10.8,gy:7.3}, {gx:3.0,gy:6.2},
     {gx:6.5,gy:7.6}, {gx:2.0,gy:4.2}, {gx:7.0,gy:1.3}, {gx:10.2,gy:1.3}
   ];
@@ -597,21 +598,105 @@
   }
   function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
 
-  // generic walk (variable speed, crafted easing)
+  // ---- movement: A* pathfinding so characters walk AROUND furniture, never over it ----
   let currentScale = 1;
-  function walk(s, gx, gy) {
-    gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
+  const BODY_M = 0.16;                     // body clearance against furniture
+  const STEP = 0.5;                        // nav-grid resolution
+
+  // one straight leg of a journey (no obstacle checks — path guarantees clearance)
+  function stepTo(s, gx, gy, ease) {
     const p = project(gx, gy);
-    const dur = Math.min(5.2, Math.max(1.3, Math.hypot(gx - s.gx, gy - s.gy) * 0.68));   // unhurried human pace
+    const dur = Math.min(5.2, Math.max(0.3, Math.hypot(gx - s.gx, gy - s.gy) * 0.68));   // constant human pace
     const curX = parseFloat(s.wrap.style.left) + SPR_HALF;
-    s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
-    s.wrap.style.transition = `left ${dur}s ${EASE}, top ${dur}s ${EASE}`;
+    if (Math.abs(p.x - curX) > 2) s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
+    s.wrap.style.transition = `left ${dur}s ${ease}, top ${dur}s ${ease}`;
     s.wrap.classList.add('walking'); s.isWalking = true;
     s.wrap.style.left = (p.x - SPR_HALF) + 'px'; s.wrap.style.top = (p.y - SPR_H) + 'px';
     s.wrap.style.zIndex = Math.round((gx + gy) * 10) + 120; s.gx = gx; s.gy = gy;
-    clearTimeout(s.stopT);
-    s.stopT = setTimeout(() => { s.wrap.classList.remove('walking'); s.isWalking = false; s.px.style.boxShadow = s.frames.stand; }, dur * 1000);
     return dur;
+  }
+  // clear line of sight (with body clearance) between two floor points?
+  function los(x0, y0, x1, y1) {
+    const d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(d / 0.15));
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      if (isBlocked(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, BODY_M)) return false;
+    }
+    return true;
+  }
+  function nearestNode(x, y) {
+    let best = null, bd = Infinity;
+    for (let nx = STEP; nx < GRID_X; nx += STEP)
+      for (let ny = STEP; ny < GRID_Y; ny += STEP) {
+        if (isBlocked(nx, ny, BODY_M)) continue;
+        const d = (nx - x) * (nx - x) + (ny - y) * (ny - y);
+        if (d < bd) { bd = d; best = { x: nx, y: ny }; }
+      }
+    return best;
+  }
+  function findPath(sx, sy, tx, ty) {
+    const start = nearestNode(sx, sy), goal = nearestNode(tx, ty);
+    if (!start || !goal) return null;
+    const key = (x, y) => (Math.round(x * 2)) + '_' + (Math.round(y * 2));
+    const open = [{ x: start.x, y: start.y, g: 0, f: 0 }], came = {}, gs = { [key(start.x, start.y)]: 0 };
+    const D = [[STEP,0],[-STEP,0],[0,STEP],[0,-STEP],[STEP,STEP],[STEP,-STEP],[-STEP,STEP],[-STEP,-STEP]];
+    let guard = 0;
+    while (open.length && guard++ < 3000) {
+      let bi = 0; for (let i = 1; i < open.length; i++) if (open[i].f < open[bi].f) bi = i;
+      const cur = open.splice(bi, 1)[0];
+      if (Math.abs(cur.x - goal.x) < 0.01 && Math.abs(cur.y - goal.y) < 0.01) {
+        const path = []; let k = key(cur.x, cur.y), node = [cur.x, cur.y];
+        while (node) { path.push(node); node = came[k]; if (node) k = key(node[0], node[1]); }
+        return path.reverse();
+      }
+      for (const [dx, dy] of D) {
+        const nx = cur.x + dx, ny = cur.y + dy;
+        if (nx < STEP - 0.01 || ny < STEP - 0.01 || nx > GRID_X - STEP + 0.01 || ny > GRID_Y - STEP + 0.01) continue;
+        if (isBlocked(nx, ny, BODY_M)) continue;
+        if (dx && dy && (isBlocked(cur.x + dx, cur.y, BODY_M) || isBlocked(cur.x, cur.y + dy, BODY_M))) continue; // no corner cutting
+        const ng = gs[key(cur.x, cur.y)] + Math.hypot(dx, dy);
+        const nk = key(nx, ny);
+        if (ng < (gs[nk] ?? Infinity)) {
+          gs[nk] = ng; came[nk] = [cur.x, cur.y];
+          open.push({ x: nx, y: ny, g: ng, f: ng + Math.hypot(goal.x - nx, goal.y - ny) });
+        }
+      }
+    }
+    return null;
+  }
+  // string-pulling: drop intermediate nodes that are mutually visible
+  function smooth(pts) {
+    const out = [pts[0]]; let i = 0;
+    while (i < pts.length - 1) {
+      let j = pts.length - 1;
+      for (; j > i + 1; j--) if (los(pts[i][0], pts[i][1], pts[j][0], pts[j][1])) break;
+      out.push(pts[j]); i = j;
+    }
+    return out;
+  }
+  // public walk: plans an obstacle-free route, chains the legs, returns total duration
+  function walk(s, gx, gy) {
+    gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
+    const t = isBlocked(gx, gy, BODY_M) ? (n => n ? { gx: n.x, gy: n.y } : { gx, gy })(nearestNode(gx, gy)) : { gx, gy };
+    let pts;
+    if (los(s.gx, s.gy, t.gx, t.gy)) pts = [[t.gx, t.gy]];
+    else {
+      const raw = findPath(s.gx, s.gy, t.gx, t.gy);
+      if (raw) { raw.push([t.gx, t.gy]); pts = smooth([[s.gx, s.gy], ...raw]).slice(1); }
+      else pts = [[t.gx, t.gy]];
+    }
+    clearTimeout(s.segT); clearTimeout(s.stopT);
+    let total = 0, prev = [s.gx, s.gy];
+    for (const q of pts) { total += Math.min(5.2, Math.max(0.3, Math.hypot(q[0] - prev[0], q[1] - prev[1]) * 0.68)); prev = q; }
+    const run = (i) => {
+      if (i >= pts.length) return;
+      const ease = pts.length === 1 ? EASE : (i === 0 ? 'cubic-bezier(.4,.15,.8,.8)' : i === pts.length - 1 ? 'cubic-bezier(.2,.2,.63,.88)' : 'linear');
+      const d = stepTo(s, pts[i][0], pts[i][1], ease);
+      s.segT = setTimeout(() => run(i + 1), d * 1000);
+    };
+    run(0);
+    s.stopT = setTimeout(() => { s.wrap.classList.remove('walking'); s.isWalking = false; s.px.style.boxShadow = s.frames.stand; }, total * 1000 + 30);
+    return total;
   }
 
   // --- autonomous wandering ---
@@ -760,6 +845,9 @@
       String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
   tickClock(); setInterval(tickClock, 15000);
+
+  // tiny debug handle for automated checks
+  window.__mo = { isBlocked, sprites, boss, los };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
