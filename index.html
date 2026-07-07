@@ -77,6 +77,9 @@
     width: min(1000px, 94vw); margin: 0 auto; display: grid;
     grid-template-columns: minmax(0,1fr) 214px; gap: 20px; align-items: start;
   }
+  /* office + chat live together in one column, so the chat is always right
+     under the room — no roster panel wedged between them */
+  .main-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
   .stage-caption { font-size: 12px; color: var(--muted); margin: 0 2px 8px; }
   .stage-caption b { color: var(--text); font-weight: 700; }
 
@@ -146,7 +149,7 @@
   .m-stat { font-size: 10px; color: var(--sage); font-style: italic; }
 
   /* conversation — a real scrollable chat that holds long AI replies + history */
-  .convo { width: min(1000px, 94vw); margin: 20px auto 0; }
+  .convo { width: 100%; }
   #chat {
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
     padding: 14px 14px; max-height: 46vh; min-height: 96px; overflow-y: auto;
@@ -193,13 +196,14 @@
   .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
   .foot b { color: var(--muted); font-weight: 700; }
 
-  /* stack on narrow screens */
+  /* stack on narrow screens: office + chat first (order 0, default), roster after */
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
     .rail { order: 2; }
     #roster { flex-direction: row; flex-wrap: wrap; gap: 6px; }
     .member { flex: 0 0 auto; background: var(--surface2); }
     .topbar-right .clock { display: none; }
+    #chat { max-height: 34vh; }   /* keep office + chat + input within one glance */
   }
 </style>
 </head>
@@ -220,30 +224,32 @@
   <div class="rule"></div>
 
   <main class="app">
-    <section class="stage-wrap">
-      <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b></div>
-      <div id="stage">
-        <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
-        <div id="bubble" hidden></div>
-      </div>
-      <p class="hint" id="status">Taip mesej di bawah — staff yang berkenaan akan berjalan ke depan dan lapor kat kau</p>
-    </section>
+    <div class="main-col">
+      <section class="stage-wrap">
+        <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b></div>
+        <div id="stage">
+          <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
+          <div id="bubble" hidden></div>
+        </div>
+        <p class="hint" id="status">Taip mesej di bawah — staff yang berkenaan akan berjalan ke depan dan lapor kat kau</p>
+      </section>
+
+      <section class="convo">
+        <div id="chat">
+          <div class="msg sys"><div class="bub">Semua staff dah masuk. Taip sesuatu — contohnya <em>"aku takut nampak bodoh depan colleague"</em> atau <em>"macam mana Islam pandang self-worth"</em> — dan orang yang paling sesuai akan datang lapor kat kau.</div></div>
+        </div>
+        <div id="input-row">
+          <input id="user-input" type="text" placeholder="Cakap apa yang kau nak tanya…" autocomplete="off">
+          <button id="send-btn">Panggil</button>
+        </div>
+      </section>
+    </div>
 
     <aside class="rail">
       <h2 class="rail-title">Pasukan kau</h2>
       <div id="roster"></div>
     </aside>
   </main>
-
-  <section class="convo">
-    <div id="chat">
-      <div class="msg sys"><div class="bub">Semua staff dah masuk. Taip sesuatu — contohnya <em>"aku takut nampak bodoh depan colleague"</em> atau <em>"macam mana Islam pandang self-worth"</em> — dan orang yang paling sesuai akan datang lapor kat kau.</div></div>
-    </div>
-    <div id="input-row">
-      <input id="user-input" type="text" placeholder="Cakap apa yang kau nak tanya…" autocomplete="off">
-      <button id="send-btn">Panggil</button>
-    </div>
-  </section>
 
   <footer class="foot">
     Dibina tangan sebagai <b>proof-of-concept</b> — layer AI (routing + safety) berasingan daripada layer game (ruang, gerak, dialog).
