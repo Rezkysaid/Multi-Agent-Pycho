@@ -820,7 +820,9 @@
   const AI = {
     get key() { try { return localStorage.getItem('mo_gemini_key') || ''; } catch { return ''; } },
     set key(v) { try { v ? localStorage.setItem('mo_gemini_key', v) : localStorage.removeItem('mo_gemini_key'); } catch {} },
-    models: ['gemini-2.5-flash', 'gemini-2.0-flash']    // first that works wins
+    // 2.0-flash first: its free-tier daily quota is far more generous than 2.5-flash's,
+    // and each model has its own separate quota bucket, so trying 2.5 second costs nothing
+    models: ['gemini-2.0-flash', 'gemini-2.5-flash']
   };
   const aiBtn = document.getElementById('ai-btn'), aiState = document.getElementById('ai-state');
   function refreshAiBadge() {
@@ -866,9 +868,19 @@
         if (!res.ok) {
           // capture the API's own reason (e.g. API_KEY_INVALID, RESOURCE_EXHAUSTED,
           // "model ... not found") so the UI can tell the boss exactly what to fix
-          let detail = '';
-          try { const ej = await res.json(); detail = (ej && ej.error && (ej.error.status || ej.error.message)) || ''; } catch {}
+          let detail = '', retryDelay = '';
+          try {
+            const ej = await res.json();
+            detail = (ej && ej.error && (ej.error.status || ej.error.message)) || '';
+            // Google returns a RetryInfo detail with the exact per-minute cooldown when
+            // the block is a rate limit, not the harder daily cap — surface it verbatim
+            const ri = ej?.error?.details?.find(d => String(d['@type']).includes('RetryInfo'));
+            retryDelay = ri?.retryDelay || '';
+          } catch {}
           if (res.status === 404) { lastErr = new Error('model-404'); lastErr.detail = detail; continue; }
+          // 429 is a per-model quota, not a global one — the next model in AI.models
+          // has its own separate bucket, so keep trying instead of giving up here
+          if (res.status === 429) { lastErr = new Error('http-429'); lastErr.detail = detail; lastErr.retryDelay = retryDelay; continue; }
           const he = new Error('http-' + res.status); he.status = res.status; he.detail = detail; throw he;
         }
         const j = await res.json();
@@ -881,7 +893,9 @@
         return out;
       } catch (e) {
         lastErr = e.name === 'AbortError' ? new Error('AbortError') : e;
-        if (String(lastErr.message) !== 'model-404') break;
+        // model-404 (wrong model name) and http-429 (per-model quota) both mean
+        // "try the next model" — anything else is a real failure, stop here
+        if (String(lastErr.message) !== 'model-404' && String(lastErr.message) !== 'http-429') break;
       } finally { clearTimeout(killT); }
     }
     // one retry for transient blips (rate limit / server hiccup / timeout) — most
@@ -901,8 +915,13 @@
     const m = String((err && err.message) || err), d = String((err && err.detail) || '').toLowerCase();
     if (m === 'http-400' && (d.includes('api key') || d.includes('api_key') || d.includes('invalid')) || m === 'http-401' || m === 'http-403')
       return { msg: 'Bos, API key Gemini ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari aistudio.google.com.', hint: 'API key tak sah — kemas kini di butang gear (⚙️).' };
-    if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota'))
-      return { msg: 'Bos, kuota Gemini kau dah penuh buat masa ni. Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project, bukan ikut key. Semak status di aistudio.google.com/usage, atau tunggu ia reset.', hint: 'Kuota Gemini habis (429) — key baru mungkin still share quota dengan yang lama.' };
+    if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota')) {
+      // if Google told us the exact per-minute cooldown, that means it's the small
+      // rate limit (not the hard daily cap) — worth saying so kau tak fikir kena tunggu sampai esok
+      const rd = err && err.retryDelay;
+      const waitLine = rd ? `Cuba lagi dalam lebih kurang ${rd.replace('s', ' saat')}.` : 'Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project, bukan ikut key. Semak status di aistudio.google.com/usage, atau tunggu ia reset.';
+      return { msg: `Bos, kuota Gemini kau dah penuh buat masa ni (dah cuba semua model percuma). ${waitLine}`, hint: rd ? `Kuota Gemini habis — cuba lagi dalam ${rd.replace('s', ' saat')}.` : 'Kuota Gemini habis (429) pada semua model — key baru mungkin still share quota dengan yang lama.' };
+    }
     if (m === 'model-404')
       return { msg: 'Bos, model Gemini tak dapat diakses dengan key ni (mungkin key lama atau region tak sokong). Cuba jana key baru dari aistudio.google.com.', hint: 'Model Gemini tak dijumpai — semak key/region.' };
     if (m === 'AbortError')
