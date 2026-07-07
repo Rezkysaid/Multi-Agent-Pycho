@@ -59,6 +59,13 @@
     border: 1px solid var(--accent); border-radius: 4px; padding: 2px 6px; align-self: center;
   }
   .topbar-right { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 12px; }
+  #ai-btn {
+    background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+    color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 700; padding: 4px 9px;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  #ai-btn:hover { border-color: var(--accent); color: var(--text); }
+  #ai-btn.on { color: var(--sage); border-color: #4d5c44; }
   .live { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: 1px; color: var(--sage); }
   .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 6px var(--sage); animation: pulse 1.8s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
@@ -186,6 +193,7 @@
       <span class="brand-sub">HQ</span>
     </div>
     <div class="topbar-right">
+      <button id="ai-btn" title="Sambungan AI (Gemini)">&#9881; <span id="ai-state">AI: off</span></button>
       <span class="live"><i class="live-dot"></i> LIVE</span>
       <span class="clock" id="clock">--:--</span>
     </div>
@@ -787,8 +795,99 @@
 
   const setStatus = t => document.getElementById('status').textContent = t;
 
+  // =====================================================================
+  //  GEMINI BRAIN — orchestrator (routing) + specialist replies + memory
+  //  The key is NEVER committed: it lives in this device's localStorage.
+  // =====================================================================
+  const AI = {
+    get key() { try { return localStorage.getItem('mo_gemini_key') || ''; } catch { return ''; } },
+    set key(v) { try { v ? localStorage.setItem('mo_gemini_key', v) : localStorage.removeItem('mo_gemini_key'); } catch {} },
+    models: ['gemini-2.5-flash', 'gemini-2.0-flash']    // first that works wins
+  };
+  const aiBtn = document.getElementById('ai-btn'), aiState = document.getElementById('ai-state');
+  function refreshAiBadge() {
+    const on = !!AI.key;
+    aiBtn.classList.toggle('on', on);
+    aiState.textContent = on ? 'AI: Gemini' : 'AI: off';
+  }
+  aiBtn.addEventListener('click', () => {
+    const cur = AI.key;
+    const v = window.prompt(cur
+      ? 'Gemini API key aktif. Tampal key baru untuk tukar, atau kosongkan & OK untuk buang (kembali ke mod demo).'
+      : 'Tampal Gemini API key kau (dari aistudio.google.com). Key disimpan dalam pelayar peranti ni sahaja — tak dihantar ke mana-mana selain Google.', cur);
+    if (v === null) return;
+    AI.key = v.trim(); refreshAiBadge();
+    setStatus(AI.key ? 'Otak Gemini dipasang. Staff kau kini berfikir sendiri.' : 'Mod demo — jawapan contoh sahaja.');
+  });
+  refreshAiBadge();
+
+  async function gemini(systemText, contents, maxTokens, timeoutMs) {
+    if (!AI.key) throw new Error('no-key');
+    let lastErr;
+    for (const model of AI.models) {
+      const ctl = new AbortController();
+      const killT = setTimeout(() => ctl.abort(), timeoutMs || 14000);
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(AI.key)}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemText }] },
+            contents,
+            generationConfig: { temperature: 0.8, maxOutputTokens: maxTokens || 260 }
+          })
+        });
+        if (res.status === 404) { lastErr = new Error('model-404'); continue; }
+        if (!res.ok) throw new Error('http-' + res.status);
+        const j = await res.json();
+        const out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+        if (!out.trim()) throw new Error('empty');
+        return out.trim();
+      } catch (e) { lastErr = e; if (String(e.message) !== 'model-404') break; }
+      finally { clearTimeout(killT); }
+    }
+    throw lastErr || new Error('gemini-failed');
+  }
+
+  // shared conversation memory — every specialist sees the same history
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem('mo_history') || '[]'); } catch {}
+  function remember(role, name, text) {
+    history.push({ role, name, text });
+    if (history.length > 20) history = history.slice(-20);
+    try { localStorage.setItem('mo_history', JSON.stringify(history)); } catch {}
+  }
+  const historyContents = () => history.map(h => ({
+    role: h.role, parts: [{ text: h.role === 'model' ? `(${h.name}) ${h.text}` : h.text }]
+  }));
+
+  const COMMON_RULES = `Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, mesra dan tidak menghakimi.
+Jangan beri diagnosis. Kau bukan pengganti bantuan profesional dan boleh sebut itu bila sesuai.
+Jika ada tanda bahaya kepada diri (self-harm/bunuh diri), utamakan: minta mereka hubungi Talian HEAL 15555 atau Befrienders KL 03-7627 2929 sekarang.`;
+  const PERSONA = {
+    amal: `Kau Dr. Amal, pendengar (general listener) di Mind Office. Gaya kau: dengar aktif, cerminkan perasaan, tanya satu soalan terbuka yang lembut. Jangan terus beri penyelesaian.\n${COMMON_RULES}`,
+    hakim: `Kau Dr. Hakim, pakar CBT di Mind Office. Gaya kau: kenal pasti pattern pemikiran (automatic thoughts, katastrofi, dll), terangkan mekanisme secara mudah, dan beri SATU langkah praktikal kecil.\n${COMMON_RULES}`,
+    ridhwan: `Kau Ustaz Ridhwan, pakar perspektif psikologi Islam di Mind Office. Gaya kau: lembut dan berhikmah, guna konsep seperti tawakkul, sabar, karamah insaniyyah bila relevan — bukan ceramah, bukan fatwa.\n${COMMON_RULES}`
+  };
+
+  // orchestrator: one small Gemini call to classify; keyword routing as fallback
+  async function routeLLM(text) {
+    const sys = `Kau router untuk Mind Office. Pilih SEORANG pakar untuk mesej user:
+- amal: luahan perasaan umum, sedih, sunyi, nak didengari
+- hakim: anxiety, takut, stress kerja, overthinking, pattern pemikiran
+- ridhwan: soalan agama/Islam, makna hidup, spiritual, tawakkul
+Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
+    const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 24, 6000);   // route must be snappy
+    const m = out.match(/amal|hakim|ridhwan/i);
+    if (!m) throw new Error('route-parse');
+    return m[0].toLowerCase();
+  }
+  async function specialistLLM(k, text) {
+    const contents = [...historyContents(), { role: 'user', parts: [{ text }] }];
+    return gemini(PERSONA[k], contents, 300, 16000);
+  }
+
   // summon a specialist to the front of the room — they report to YOU (the camera)
-  function summon(k, text) {
+  function summon(k, text, replyPromise) {
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
     setStat(k, 'menuju kau →');
@@ -796,20 +895,35 @@
     moveSpot(MEET.gx, MEET.gy);
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
-    s.talkT = setTimeout(() => {
-      showBubble(s, a.name, a.reply);
-      logDialog(a.name, a.reply);
+    const deliver = (reply) => {
+      showBubble(s, a.name, reply);
+      logDialog(a.name, reply);
+      remember('model', a.name, reply);
       setStat(k, 'dengan kau');
       setStatus(`${a.name} tengah lapor kat kau.`);
+      clearTimeout(s.releaseT);
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, 9000);
+    };
+    s.talkT = setTimeout(() => {
+      setStat(k, 'berfikir…');
+      showBubble(s, a.name, '…');
+      replyPromise.then(deliver).catch(() => deliver(a.reply));
     }, dur * 1000 + 180);
-    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 8000);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 20000);
   }
 
-  function handleSend() {
+  async function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     i.value = '';
-    if (checkCrisis(t)) { logDialog('Kau', t); showCrisisResources(); return; }
-    summon(routeAgent(t), t);
+    if (checkCrisis(t)) { logDialog('Kau', t); showCrisisResources(); return; }   // safety layer overrides everything
+    remember('user', 'Kau', t);
+    let k;
+    try { k = AI.key ? await routeLLM(t) : routeAgent(t); }
+    catch { k = routeAgent(t); }
+    const replyPromise = AI.key
+      ? specialistLLM(k, t)
+      : new Promise(r => setTimeout(() => r(staff[k].reply), 400));
+    summon(k, t, replyPromise);
   }
   document.getElementById('send-btn').addEventListener('click', handleSend);
   document.getElementById('user-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
