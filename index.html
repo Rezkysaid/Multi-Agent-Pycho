@@ -107,23 +107,25 @@
   }
   .boss .name { color: var(--accent); }
 
-  /* speech bubble anchored above the speaking character */
+  /* small "who's here / thinking" cue above the character — full text lives in the chat panel */
   #bubble {
-    position: absolute; z-index: 60; max-width: 210px; padding: 9px 12px 10px;
-    background: var(--surface2); color: var(--text);
-    border: 1px solid var(--line); border-radius: 12px;
-    box-shadow: 0 10px 22px #0007; transform: translate(-50%, -100%);
-    transform-origin: 50% 100%; animation: pop .26s cubic-bezier(.2,1.3,.35,1);
+    position: absolute; z-index: 60; padding: 5px 9px;
+    background: var(--surface2); color: var(--text); white-space: nowrap;
+    border: 1px solid var(--line); border-radius: 999px;
+    box-shadow: 0 8px 18px #0007; transform: translate(-50%, -100%);
+    transform-origin: 50% 100%; animation: pop .24s cubic-bezier(.2,1.3,.35,1);
+    display: flex; align-items: center; gap: 6px;
   }
   #bubble[hidden] { display: none; }
   #bubble::after {
-    content: ''; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
-    border: 8px solid transparent; border-top-color: var(--surface2); border-bottom: 0;
+    content: ''; position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%);
+    border: 7px solid transparent; border-top-color: var(--surface2); border-bottom: 0;
   }
-  #bubble .who { display: block; font-size: 9px; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
-  #bubble .say { font-family: 'Fraunces', Georgia, serif; font-size: 13.5px; line-height: 1.45; }
-  #bubble.boss { background: #33261a; } #bubble.boss::after { border-top-color: #33261a; }
-  #bubble.boss .who { color: #f0b877; }
+  #bubble .who { font-size: 9px; letter-spacing: .5px; font-weight: 800; text-transform: uppercase; color: var(--accent); }
+  #bubble .dots { display: inline-flex; gap: 3px; }
+  #bubble .dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); animation: td 1s ease-in-out infinite; }
+  #bubble .dots i:nth-child(2){ animation-delay: .16s } #bubble .dots i:nth-child(3){ animation-delay: .32s }
+  @keyframes td { 0%,100%{ opacity:.3; transform: translateY(0) } 50%{ opacity:1; transform: translateY(-2px) } }
   @keyframes pop { from { opacity: 0; transform: translate(-50%, calc(-100% + 8px)) scale(.9); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
 
   .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
@@ -143,17 +145,34 @@
   .m-role { font-size: 10px; color: var(--muted); }
   .m-stat { font-size: 10px; color: var(--sage); font-style: italic; }
 
-  /* conversation */
+  /* conversation — a real scrollable chat that holds long AI replies + history */
   .convo { width: min(1000px, 94vw); margin: 20px auto 0; }
-  #dialog {
-    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
-    border-radius: 12px; padding: 14px 16px; min-height: 64px;
+  #chat {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 14px; max-height: 46vh; min-height: 96px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin;
+    scroll-behavior: smooth;
   }
-  #dialog .speaker { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 7px; display: block; }
-  #dialog .line { font-family: 'Fraunces', Georgia, serif; font-size: 15px; line-height: 1.6; }
-  #dialog.crisis { border-color: var(--crisis); border-left-color: var(--crisis); box-shadow: 0 0 0 1px #e07a5f55, 0 10px 24px #0006; }
-  #dialog.crisis .speaker { color: var(--crisis); }
-  #dialog .crisis-list { margin: 8px 0 0; padding-left: 18px; font-family: 'Nunito', sans-serif; font-size: 14px; line-height: 1.85; }
+  .msg { display: flex; flex-direction: column; max-width: 82%; }
+  .msg .who { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0 2px 4px; }
+  .msg .bub {
+    padding: 10px 13px; border-radius: 13px; font-size: 14.5px; line-height: 1.55;
+    font-family: 'Fraunces', Georgia, serif; white-space: pre-wrap; word-wrap: break-word;
+  }
+  .msg.you { align-self: flex-end; align-items: flex-end; }
+  .msg.you .bub { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; font-family: 'Nunito', sans-serif; font-weight: 600; }
+  .msg.staff { align-self: flex-start; }
+  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border-left: 3px solid var(--dotc, var(--accent)); }
+  .msg.sys { align-self: center; max-width: 92%; text-align: center; }
+  .msg.sys .bub { background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 13px; padding: 4px 8px; }
+  .msg.crisis { align-self: stretch; max-width: 100%; }
+  .msg.crisis .bub {
+    background: #2c1c17; color: var(--text); border: 1px solid var(--crisis); border-left: 3px solid var(--crisis);
+    box-shadow: 0 0 0 1px #e07a5f33; font-family: 'Nunito', sans-serif; font-size: 14px;
+  }
+  .msg.crisis .who { color: var(--crisis); }
+  .msg .crisis-list { margin: 8px 0 0; padding-left: 18px; line-height: 1.85; }
+  .msg .bub.typing { color: var(--muted); font-style: italic; }
 
   #input-row { display: flex; gap: 8px; margin-top: 12px; }
   #user-input {
@@ -217,9 +236,8 @@
   </main>
 
   <section class="convo">
-    <div id="dialog">
-      <span class="speaker">Nota HQ</span>
-      <div class="line">Selamat pagi, boss. Semua orang dah masuk — ada yang di meja, ada yang singgah pantry. Cuba tanya sesuatu, contohnya <em>"aku takut nampak bodoh depan colleague"</em> atau <em>"macam mana Islam pandang self-worth"</em>, dan orang yang paling sesuai akan datang jumpa kau.</div>
+    <div id="chat">
+      <div class="msg sys"><div class="bub">Semua staff dah masuk. Taip sesuatu — contohnya <em>"aku takut nampak bodoh depan colleague"</em> atau <em>"macam mana Islam pandang self-worth"</em> — dan orang yang paling sesuai akan datang lapor kat kau.</div></div>
     </div>
     <div id="input-row">
       <input id="user-input" type="text" placeholder="Cakap apa yang kau nak tanya…" autocomplete="off">
@@ -751,45 +769,48 @@
   ];
   const checkCrisis = t => crisisKeywords.some(w => t.toLowerCase().includes(w));
 
+  // ---- head cue (small, over the character) — NOT the reading surface ----
   const bubble = document.getElementById('bubble');
   let bubbleT = null;
-  function showBubble(sprite, who, text, variant) {
+  function headCue(sprite, who, mode) {   // mode: 'think' | 'talk'
     const p = project(sprite.gx, sprite.gy);
-    bubble.className = variant || '';
-    bubble.innerHTML = '';
-    const w = document.createElement('span'); w.className = 'who'; w.textContent = who;
-    const say = document.createElement('span'); say.className = 'say'; say.textContent = text;
-    bubble.append(w, say);
+    bubble.innerHTML = mode === 'think'
+      ? `<span class="who">${who}</span><span class="dots"><i></i><i></i><i></i></span>`
+      : `<span class="who">${who}</span>&#128172;`;
     bubble.hidden = false;
-    // position above the character's head, in stage (screen) space, clamped horizontally
     const stageW = BOARD_W * currentScale;
     let x = p.x * currentScale, y = (p.y - SPR_H - 2) * currentScale;
-    x = Math.max(112, Math.min(stageW - 112, x));
+    x = Math.max(60, Math.min(stageW - 60, x));
     bubble.style.left = x + 'px'; bubble.style.top = Math.max(6, y) + 'px';
     bubble.style.animation = 'none'; void bubble.offsetWidth; bubble.style.animation = '';
-    clearTimeout(bubbleT); bubbleT = setTimeout(() => { bubble.hidden = true; }, 8000);
+    clearTimeout(bubbleT);
+    if (mode === 'talk') bubbleT = setTimeout(() => { bubble.hidden = true; }, 6000);
   }
   function hideBubble() { bubble.hidden = true; clearTimeout(bubbleT); }
 
-  function logDialog(sp, ln, crisis) {
-    const d = document.getElementById('dialog'); d.classList.toggle('crisis', !!crisis);
-    d.innerHTML = '';
-    const s = document.createElement('span'); s.className = 'speaker'; s.textContent = sp;
-    const l = document.createElement('div'); l.className = 'line'; l.textContent = ln;
-    d.append(s, l);
-    return d;
+  // ---- chat panel — the real conversation surface ----
+  const chat = document.getElementById('chat');
+  function addMsg(who, text, kind, dotColor) {
+    const m = document.createElement('div'); m.className = 'msg ' + (kind || 'staff');
+    if (who) { const w = document.createElement('div'); w.className = 'who'; w.textContent = who; m.appendChild(w); }
+    const bub = document.createElement('div'); bub.className = 'bub'; bub.textContent = text; m.appendChild(bub);
+    if (dotColor) m.style.setProperty('--dotc', dotColor);
+    chat.appendChild(m);
+    chat.scrollTop = chat.scrollHeight;
+    return bub;
   }
   function showCrisisResources() {
     hideBubble();
-    const d = document.getElementById('dialog'); d.classList.add('crisis');
-    d.innerHTML = `<span class="speaker">Sokongan segera</span>
-      <div class="line">Terima kasih sebab beritahu. Apa yang kau rasa sekarang penting, dan kau tak perlu hadap benda ni sorang-sorang. App ni bukan pengganti bantuan profesional — tolong hubungi salah satu talian ni sekarang:</div>
-      <ul class="crisis-list">
-        <li><strong>Talian HEAL (KKM):</strong> 15555 — 24 jam, percuma</li>
-        <li><strong>Befrienders KL:</strong> 03-7627 2929 — 24 jam</li>
-        <li><strong>Talian Kasih:</strong> 15999 (atau WhatsApp 019-261 5999)</li>
-        <li>Kalau bahaya segera: <strong>999</strong></li>
-      </ul>`;
+    const m = document.createElement('div'); m.className = 'msg crisis';
+    m.innerHTML = `<div class="who">Sokongan segera</div>
+      <div class="bub">Terima kasih sebab beritahu. Apa yang kau rasa sekarang penting, dan kau tak perlu hadap benda ni sorang-sorang. App ni bukan pengganti bantuan profesional — tolong hubungi salah satu talian ni sekarang:
+        <ul class="crisis-list">
+          <li><strong>Talian HEAL (KKM):</strong> 15555 — 24 jam, percuma</li>
+          <li><strong>Befrienders KL:</strong> 03-7627 2929 — 24 jam</li>
+          <li><strong>Talian Kasih:</strong> 15999 (atau WhatsApp 019-261 5999)</li>
+          <li>Kalau bahaya segera: <strong>999</strong></li>
+        </ul></div>`;
+    chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
     setStatus('Kami dengar kau. Talian di atas ada orang sebenar, sekarang juga.');
   }
 
@@ -886,18 +907,19 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
     return gemini(PERSONA[k], contents, 300, 16000);
   }
 
-  // summon a specialist to the front of the room — they report to YOU (the camera)
+  // summon a specialist to the front of the room — reply lands in the chat panel
   function summon(k, text, replyPromise) {
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
     setStat(k, 'menuju kau →');
-    logDialog('Kau', text);
     moveSpot(MEET.gx, MEET.gy);
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
+    let typingBub = null;
     const deliver = (reply) => {
-      showBubble(s, a.name, reply);
-      logDialog(a.name, reply);
+      headCue(s, a.name, 'talk');
+      if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
+      addMsg(a.name, reply, 'staff', a.dot);
       remember('model', a.name, reply);
       setStat(k, 'dengan kau');
       setStatus(`${a.name} tengah lapor kat kau.`);
@@ -906,16 +928,19 @@ Jawab JSON sahaja, contoh: {"agent":"hakim"}`;
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
-      showBubble(s, a.name, '…');
+      headCue(s, a.name, 'think');
+      typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot);
+      typingBub.classList.add('typing');
       replyPromise.then(deliver).catch(() => deliver(a.reply));
     }, dur * 1000 + 180);
-    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 20000);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
   }
 
   async function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     i.value = '';
-    if (checkCrisis(t)) { logDialog('Kau', t); showCrisisResources(); return; }   // safety layer overrides everything
+    addMsg('Kau', t, 'you');
+    if (checkCrisis(t)) { showCrisisResources(); return; }   // safety layer overrides everything
     remember('user', 'Kau', t);
     let k;
     try { k = AI.key ? await routeLLM(t) : routeAgent(t); }
