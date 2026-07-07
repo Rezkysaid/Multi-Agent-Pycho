@@ -81,7 +81,7 @@
   .facing { position: absolute; inset: 0; transform-origin: bottom center; }
   .sprite-canvas { position: relative; image-rendering: pixelated; }
   .sprite .sprite-canvas { animation: breathe 3.6s ease-in-out infinite; }
-  .walking .sprite-canvas { animation: bob 0.5s steps(2) infinite; }
+  .walking .sprite-canvas { animation: bob 0.72s steps(2) infinite; }
   .sprite .shadow { position: absolute; left: 50%; bottom: 1px; transform: translateX(-50%); width: 20px; height: 6px; border-radius: 50%; background: radial-gradient(closest-side, rgba(10,6,2,.42), transparent); z-index: -1; }
   @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
   @keyframes bob { 0% { transform: translateY(0); } 100% { transform: translateY(-2px); } }
@@ -231,7 +231,7 @@
   const SCALE = 3;
   const SPR_ROWS = 23;                       // slim silhouette: 12 wide x 23 tall
   const SPR_W = 12 * SCALE, SPR_H = SPR_ROWS * SCALE, SPR_HALF = SPR_W / 2;
-  const EASE = 'cubic-bezier(.45,.05,.35,1)';   // crafted glide instead of linear
+  const EASE = 'cubic-bezier(.37,.12,.63,.88)';   // soft start/stop, near-constant mid — human walking pace
 
   function project(gx, gy) {
     return { x: ORIGIN_X + (gx - gy) * TILE_W / 2, y: ORIGIN_Y + (gx + gy) * TILE_H / 2 };
@@ -468,10 +468,10 @@
     w1:    ["...TT..TT...","...TT..TT...","...TT..TT...","...TT..Tt...","...tt..t....","...oo...o..."],
     w2:    ["...TT..TT...","...TT..TT...","...TT..TT...","...tT..TT...","....t..tt...","...o...oo..."]
   };
-  const LEGS_R = { // robe hem (subtle sway) + peeking shoe tips
-    stand: [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jj....jj..","...oo..oo..."],
-    w1:    [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jj....jj..","..oo...oo..."],
-    w2:    [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jj....jj..","...oo...oo.."]
+  const LEGS_R = { // robe falls as one column: solid tapering hem, feet peeking close together beneath
+    stand: [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","..jjjjjjjj..","....oo.oo..."],
+    w1:    [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.",".jjjjjjjj...","...oo..o...."],
+    w2:    [".JJJJJJJJJJ.",".JJJJJJJJJJ.",".jJJJJJJJJj.",".jjJJJJJJjj.","...jjjjjjjj.","....o..oo..."]
   };
   const TORSO = {
     tailored: ["....WWWW....","...JJWWJJ...","..JJJWWJJJ..","..JJSWWSJJ..","..JJJWWJJJ..","..JJJWWJJJ..","...JJWWJJ...","...JJJJJJ...","...TTTTTT...","...TTTTTT..."],
@@ -577,7 +577,7 @@
   setInterval(() => {
     walkPhase ^= 1;
     for (const s of everyone) if (s.isWalking) s.px.style.boxShadow = walkPhase ? s.frames.walk2 : s.frames.walk1;
-  }, 200);
+  }, 280);
 
   // team rail
   const roster = document.getElementById('roster');
@@ -595,7 +595,7 @@
   function walk(s, gx, gy) {
     gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
     const p = project(gx, gy);
-    const dur = Math.min(3.6, Math.max(0.9, Math.hypot(gx - s.gx, gy - s.gy) * 0.46));   // slower, natural gait
+    const dur = Math.min(5.2, Math.max(1.3, Math.hypot(gx - s.gx, gy - s.gy) * 0.68));   // unhurried human pace
     const curX = parseFloat(s.wrap.style.left) + SPR_HALF;
     s.facing.style.transform = (p.x < curX) ? 'scaleX(-1)' : 'scaleX(1)';
     s.wrap.style.transition = `left ${dur}s ${EASE}, top ${dur}s ${EASE}`;
