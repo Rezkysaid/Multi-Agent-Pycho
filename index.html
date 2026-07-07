@@ -76,7 +76,7 @@
   #stage { position: relative; }
   #office {
     position: absolute; left: 0; top: 0; width: 632px; height: 420px;
-    transform-origin: top left; image-rendering: pixelated; cursor: pointer;
+    transform-origin: top left; image-rendering: pixelated;
     background: none; overflow: visible;
   }
   .layer { position: absolute; pointer-events: none; }
@@ -199,7 +199,7 @@
         <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
         <div id="bubble" hidden></div>
       </div>
-      <p class="hint" id="status">Klik lantai untuk kau melangkah · taip di bawah untuk panggil staff datang jumpa</p>
+      <p class="hint" id="status">Taip mesej di bawah — staff yang berkenaan akan berjalan ke depan dan lapor kat kau</p>
     </section>
 
     <aside class="rail">
@@ -576,11 +576,11 @@
 
   const sprites = {};
   for (const k in staff) { sprites[k] = makeSprite('s-' + k, staff[k].outfit, k, staff[k].name, false); place(sprites[k], staff[k].home.gx, staff[k].home.gy); }
-  const boss = makeSprite('boss', 'tailored', 'user', 'ALI (BOSS)', true);
-  const BOSS_POS = { gx: 4.3, gy: 8.6 }, BOSS_MEET = { gx: 5.6, gy: 7.7 };
-  place(boss, BOSS_POS.gx, BOSS_POS.gy);
+  // the user is the camera (POV) — no in-world avatar; staff report to the
+  // front edge of the room, toward the viewer
+  const MEET = { gx: 10.4, gy: 8.8 };   // front-centre of the screen, right before the viewer
 
-  const everyone = [...Object.values(sprites), boss];
+  const everyone = Object.values(sprites);
   let walkPhase = 0;
   setInterval(() => {
     walkPhase ^= 1;
@@ -787,22 +787,20 @@
 
   const setStatus = t => document.getElementById('status').textContent = t;
 
-  // summon a specialist over to the boss
+  // summon a specialist to the front of the room — they report to YOU (the camera)
   function summon(k, text) {
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
     setStat(k, 'menuju kau →');
-    showBubble(boss, 'Ali', text, 'boss');
-    logDialog('Ali', text);
-    moveSpot(BOSS_MEET.gx, BOSS_MEET.gy);
-    const dur = walk(s, BOSS_MEET.gx, BOSS_MEET.gy);
+    logDialog('Kau', text);
+    moveSpot(MEET.gx, MEET.gy);
+    const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
     s.talkT = setTimeout(() => {
-      s.facing.style.transform = (project(boss.gx, boss.gy).x < project(s.gx, s.gy).x) ? 'scaleX(-1)' : 'scaleX(1)';
       showBubble(s, a.name, a.reply);
       logDialog(a.name, a.reply);
       setStat(k, 'dengan kau');
-      setStatus(`${a.name} dengan kau sekarang.`);
+      setStatus(`${a.name} tengah lapor kat kau.`);
     }, dur * 1000 + 180);
     s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 8000);
   }
@@ -810,22 +808,11 @@
   function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     i.value = '';
-    if (checkCrisis(t)) { logDialog('Ali', t); showCrisisResources(); return; }
+    if (checkCrisis(t)) { logDialog('Kau', t); showCrisisResources(); return; }
     summon(routeAgent(t), t);
   }
   document.getElementById('send-btn').addEventListener('click', handleSend);
   document.getElementById('user-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
-
-  // click floor → boss walks there
-  office.addEventListener('click', e => {
-    const rect = office.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / currentScale, my = (e.clientY - rect.top) / currentScale;
-    const aa = (mx - ORIGIN_X) * 2 / TILE_W, bb = (my - ORIGIN_Y) * 2 / TILE_H;
-    let gx = (aa + bb) / 2, gy = (bb - aa) / 2;
-    if (gx < -0.5 || gy < -0.5 || gx > GRID_X + 0.5 || gy > GRID_Y + 0.5) return;
-    const t = nearestOpen(gx, gy);
-    moveSpot(t.gx, t.gy); walk(boss, t.gx, t.gy);
-  });
 
   // --- responsive scaling: office fills its column ---
   function fit() {
@@ -847,7 +834,7 @@
   tickClock(); setInterval(tickClock, 15000);
 
   // tiny debug handle for automated checks
-  window.__mo = { isBlocked, sprites, boss, los };
+  window.__mo = { isBlocked, sprites, los };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
