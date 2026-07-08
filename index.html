@@ -814,78 +814,124 @@
   const setStatus = t => document.getElementById('status').textContent = t;
 
   // =====================================================================
-  //  GEMINI BRAIN — orchestrator (routing) + specialist replies + memory
-  //  The key is NEVER committed: it lives in this device's localStorage.
+  //  LLM BRAIN — works with Gemini (Google AI Studio) OR OpenRouter.
+  //  Provider is auto-detected from the key shape. The key is NEVER
+  //  committed: it lives in this device's localStorage only.
   // =====================================================================
   const AI = {
     get key() { try { return localStorage.getItem('mo_gemini_key') || ''; } catch { return ''; } },
     set key(v) { try { v ? localStorage.setItem('mo_gemini_key', v) : localStorage.removeItem('mo_gemini_key'); } catch {} },
+    get model() { try { return localStorage.getItem('mo_llm_model') || ''; } catch { return ''; } },
+    set model(v) { try { v ? localStorage.setItem('mo_llm_model', v) : localStorage.removeItem('mo_llm_model'); } catch {} },
+    // OpenRouter keys look like "sk-or-v1-..."; Google AI Studio keys like "AIza...".
+    get provider() { return this.key.startsWith('sk-or-') ? 'openrouter' : 'gemini'; },
     // 2.0-flash first: its free-tier daily quota is far more generous than 2.5-flash's,
-    // and each model has its own separate quota bucket, so trying 2.5 second costs nothing
-    models: ['gemini-2.0-flash', 'gemini-2.5-flash']
+    // and each model has its own separate bucket, so trying 2.5 second costs nothing.
+    // OpenRouter: a chain of free (":free") models, tried in order until one answers.
+    DEFAULT_MODELS: {
+      gemini: ['gemini-2.0-flash', 'gemini-2.5-flash'],
+      openrouter: ['deepseek/deepseek-chat-v3-0324:free', 'meta-llama/llama-3.3-70b-instruct:free', 'google/gemini-2.0-flash-exp:free']
+    },
+    get models() {
+      const d = this.DEFAULT_MODELS[this.provider];
+      // a user-set model override is tried first, then the defaults as fallback
+      return this.model ? [this.model, ...d.filter(m => m !== this.model)] : d;
+    }
   };
+  const PROVIDER_LABEL = { gemini: 'Gemini', openrouter: 'OpenRouter' };
   const aiBtn = document.getElementById('ai-btn'), aiState = document.getElementById('ai-state');
   function refreshAiBadge() {
     const on = !!AI.key;
     aiBtn.classList.toggle('on', on);
-    aiState.textContent = on ? 'AI: Gemini' : 'AI: off';
+    aiState.textContent = on ? 'AI: ' + PROVIDER_LABEL[AI.provider] : 'AI: off';
   }
   aiBtn.addEventListener('click', () => {
     const cur = AI.key;
     const v = window.prompt(cur
-      ? 'Gemini API key aktif. Tampal key baru untuk tukar, atau kosongkan & OK untuk buang (kembali ke mod demo).'
-      : 'Tampal Gemini API key kau (dari aistudio.google.com). Key disimpan dalam pelayar peranti ni sahaja — tak dihantar ke mana-mana selain Google.', cur);
+      ? 'API key aktif (' + PROVIDER_LABEL[AI.provider] + '). Tampal key baru untuk tukar, atau kosongkan & OK untuk buang (kembali ke mod demo).'
+      : 'Tampal API key kau — sokong DUA jenis:\n• Google Gemini (dari aistudio.google.com, bermula "AIza…")\n• OpenRouter (dari openrouter.ai/keys, bermula "sk-or-…")\n\nApp kesan jenis key secara automatik. Key disimpan dalam pelayar peranti ni sahaja.', cur);
     if (v === null) return;
-    AI.key = v.trim(); refreshAiBadge();
-    setStatus(AI.key ? 'Otak Gemini dipasang. Staff kau kini berfikir sendiri.' : 'Mod demo — jawapan contoh sahaja.');
+    AI.key = v.trim();
+    // OpenRouter: let the boss pick a model (any :free model works). Blank = default chain.
+    if (AI.key && AI.provider === 'openrouter') {
+      const m = window.prompt('Model OpenRouter (pilihan) — kosongkan untuk guna model percuma default.\nContoh: deepseek/deepseek-chat-v3-0324:free', AI.model || AI.DEFAULT_MODELS.openrouter[0]);
+      if (m !== null) AI.model = m.trim();
+    } else if (AI.provider === 'gemini') {
+      AI.model = '';   // Gemini uses its own default chain; clear any OpenRouter override
+    }
+    refreshAiBadge();
+    setStatus(AI.key ? ('Otak ' + PROVIDER_LABEL[AI.provider] + ' dipasang. Staff kau kini berfikir sendiri.') : 'Mod demo — jawapan contoh sahaja.');
   });
   refreshAiBadge();
 
   // NOTE: 429 (rate/quota) is deliberately NOT in this set — retrying a quota error
   // instantly just spends another request against the same limit for no benefit.
   const TRANSIENT = new Set(['http-500', 'http-502', 'http-503', 'AbortError']);
+
+  // build the provider-specific request. Gemini and OpenRouter speak different
+  // protocols (endpoint, auth, body shape), so the shared `contents` array (in
+  // Gemini's {role,parts[]} form) is translated here for OpenRouter.
+  function buildRequest(provider, model, systemText, contents, maxTokens) {
+    if (provider === 'openrouter') {
+      const messages = [{ role: 'system', content: systemText }].concat(
+        contents.map(c => ({
+          role: c.role === 'model' ? 'assistant' : 'user',
+          content: (c.parts || []).map(p => p.text).join('')
+        }))
+      );
+      return {
+        url: 'https://openrouter.ai/api/v1/chat/completions',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key,
+                   'HTTP-Referer': location.origin, 'X-Title': 'Mind Office' },
+        body: JSON.stringify({ model, messages, max_tokens: maxTokens || 500, temperature: 0.8 })
+      };
+    }
+    // Gemini. thinkingBudget:0 stops 2.5-flash spending the whole token budget on
+    // internal reasoning (that cut answers off). Only the 2.5 series accepts it —
+    // sending it to 2.0-flash is a hard 400, so it's omitted there.
+    const genCfg = { temperature: 0.8, maxOutputTokens: maxTokens || 500 };
+    if (model.includes('2.5')) genCfg.thinkingConfig = { thinkingBudget: 0 };
+    return {
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(AI.key)}`,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system_instruction: { parts: [{ text: systemText }] }, contents, generationConfig: genCfg })
+    };
+  }
+  function extractReply(provider, j) {
+    return provider === 'openrouter'
+      ? (j.choices?.[0]?.message?.content || '')
+      : (j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '');
+  }
+
   async function gemini(systemText, contents, maxTokens, timeoutMs, _retried) {
     if (!AI.key) throw new Error('no-key');
+    const provider = AI.provider;
     let lastErr;
     for (const model of AI.models) {
       const ctl = new AbortController();
       const killT = setTimeout(() => ctl.abort(), timeoutMs || 14000);
       try {
-        // thinkingBudget:0 stops 2.5-flash spending the token budget on internal
-        // reasoning before the visible reply (that ate maxOutputTokens and cut answers off).
-        // ONLY the 2.5 series accepts thinkingConfig — sending it to 2.0-flash is a hard
-        // 400 INVALID_ARGUMENT, so it must be omitted for older models.
-        const genCfg = { temperature: 0.8, maxOutputTokens: maxTokens || 500 };
-        if (model.includes('2.5')) genCfg.thinkingConfig = { thinkingBudget: 0 };
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(AI.key)}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemText }] },
-            contents,
-            generationConfig: genCfg
-          })
-        });
+        const rq = buildRequest(provider, model, systemText, contents, maxTokens);
+        const res = await fetch(rq.url, { method: 'POST', headers: rq.headers, signal: ctl.signal, body: rq.body });
         if (!res.ok) {
-          // capture the API's own reason (e.g. API_KEY_INVALID, RESOURCE_EXHAUSTED,
-          // "model ... not found") so the UI can tell the boss exactly what to fix
+          // capture the API's own reason (API_KEY_INVALID, RESOURCE_EXHAUSTED,
+          // "model ... not found", …) so the UI can tell the boss exactly what to fix
           let detail = '', retryDelay = '';
           try {
             const ej = await res.json();
-            detail = (ej && ej.error && (ej.error.status || ej.error.message)) || '';
-            // Google returns a RetryInfo detail with the exact per-minute cooldown when
-            // the block is a rate limit, not the harder daily cap — surface it verbatim
+            detail = (ej && ej.error && (ej.error.status || ej.error.message || ej.error.code)) || '';
+            // Gemini returns a RetryInfo detail with the exact per-minute cooldown
             const ri = ej?.error?.details?.find(d => String(d['@type']).includes('RetryInfo'));
             retryDelay = ri?.retryDelay || '';
           } catch {}
           if (res.status === 404) { lastErr = new Error('model-404'); lastErr.detail = detail; continue; }
-          // 429 is a per-model quota, not a global one — the next model in AI.models
-          // has its own separate bucket, so keep trying instead of giving up here
+          // 429 is a per-model quota — the next model in the chain has its own bucket,
+          // so keep trying instead of giving up here
           if (res.status === 429) { lastErr = new Error('http-429'); lastErr.detail = detail; lastErr.retryDelay = retryDelay; continue; }
           const he = new Error('http-' + res.status); he.status = res.status; he.detail = detail; throw he;
         }
         const j = await res.json();
-        let out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-        out = out.trim()
+        let out = extractReply(provider, j).trim()
           .replace(/^\([^)]{1,40}\)\s*/, '')                                 // "(MEERA) " — with or without punctuation after
           .replace(/^(aiman|meera|wei|danish|hana|hafiz)\s*[:\-]\s*/i, '')   // "Meera: " without parens
           .trim();
@@ -898,39 +944,44 @@
         if (String(lastErr.message) !== 'model-404' && String(lastErr.message) !== 'http-429') break;
       } finally { clearTimeout(killT); }
     }
-    // one retry for transient blips (rate limit / server hiccup / timeout) — most
-    // Gemini failures clear up a second later, so this alone avoids most fallbacks
+    // one retry for transient blips (server hiccup / timeout) — these clear up fast
     if (!_retried && TRANSIENT.has(String(lastErr && lastErr.message))) {
       await new Promise(r => setTimeout(r, 700));
       return gemini(systemText, contents, maxTokens, timeoutMs, true);
     }
     // leave a breadcrumb in the console so the real cause is inspectable on-device
-    console.warn('[Mind Office] Gemini gagal:', lastErr && lastErr.message, lastErr && lastErr.detail ? ('· ' + lastErr.detail) : '');
-    throw lastErr || new Error('gemini-failed');
+    console.warn('[Mind Office] ' + PROVIDER_LABEL[provider] + ' gagal:', lastErr && lastErr.message, lastErr && lastErr.detail ? ('· ' + lastErr.detail) : '');
+    throw lastErr || new Error('llm-failed');
   }
 
-  // turn a Gemini failure into a specific, actionable line for the boss (not a
-  // vague "line lag") — plus a short status hint pointing at the fix
+  // turn an LLM failure into a specific, actionable line for the boss (not a
+  // vague "line lag") — plus a short status hint pointing at the fix. Wording
+  // adapts to whichever provider (Gemini / OpenRouter) is active.
   function aiTrouble(err) {
     const m = String((err && err.message) || err), d = String((err && err.detail) || '').toLowerCase();
+    const P = PROVIDER_LABEL[AI.provider] || 'AI';
+    const keyPage = AI.provider === 'openrouter' ? 'openrouter.ai/keys' : 'aistudio.google.com';
     if (m === 'http-400' && (d.includes('api key') || d.includes('api_key') || d.includes('invalid')) || m === 'http-401' || m === 'http-403')
-      return { msg: 'Bos, API key Gemini ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari aistudio.google.com.', hint: 'API key tak sah — kemas kini di butang gear (⚙️).' };
-    if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota')) {
-      // if Google told us the exact per-minute cooldown, that means it's the small
-      // rate limit (not the hard daily cap) — worth saying so kau tak fikir kena tunggu sampai esok
+      return { msg: `Bos, API key ${P} ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari ${keyPage}.`, hint: `API key ${P} tak sah — kemas kini di butang gear (⚙️).` };
+    if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota') || d.includes('rate')) {
+      // if the provider told us the exact per-minute cooldown, it's the small rate
+      // limit (not the hard daily cap) — say so, so kau tak fikir kena tunggu sampai esok
       const rd = err && err.retryDelay;
-      const waitLine = rd ? `Cuba lagi dalam lebih kurang ${rd.replace('s', ' saat')}.` : 'Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project, bukan ikut key. Semak status di aistudio.google.com/usage, atau tunggu ia reset.';
-      return { msg: `Bos, kuota Gemini kau dah penuh buat masa ni (dah cuba semua model percuma). ${waitLine}`, hint: rd ? `Kuota Gemini habis — cuba lagi dalam ${rd.replace('s', ' saat')}.` : 'Kuota Gemini habis (429) pada semua model — key baru mungkin still share quota dengan yang lama.' };
+      let waitLine;
+      if (rd) waitLine = `Cuba lagi dalam lebih kurang ${rd.replace('s', ' saat')}.`;
+      else if (AI.provider === 'openrouter') waitLine = 'Model :free OpenRouter ada had harian & per-minit. Tunggu sekejap, atau tukar ke model :free lain di butang gear (⚙️).';
+      else waitLine = 'Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project. Semak di aistudio.google.com/usage, atau tunggu ia reset.';
+      return { msg: `Bos, kuota ${P} kau dah penuh buat masa ni (dah cuba semua model percuma). ${waitLine}`, hint: rd ? `Kuota ${P} habis — cuba lagi dalam ${rd.replace('s', ' saat')}.` : `Kuota ${P} habis (429) pada semua model percuma.` };
     }
     if (m === 'model-404')
-      return { msg: 'Bos, model Gemini tak dapat diakses dengan key ni (mungkin key lama atau region tak sokong). Cuba jana key baru dari aistudio.google.com.', hint: 'Model Gemini tak dijumpai — semak key/region.' };
+      return { msg: `Bos, model ${P} tak dapat diakses dengan key ni. ${AI.provider === 'openrouter' ? 'Cuba set model :free lain (contoh meta-llama/llama-3.3-70b-instruct:free) di butang gear (⚙️).' : 'Mungkin key lama atau region tak sokong — cuba jana key baru dari aistudio.google.com.'}`, hint: `Model ${P} tak dijumpai — tukar model di butang gear (⚙️).` };
     if (m === 'AbortError')
-      return { msg: 'Bos, line ke Gemini lambat sangat tadi sampai time-out. Cuba hantar sekali lagi.', hint: 'Sambungan Gemini time-out — cuba lagi.' };
+      return { msg: `Bos, line ke ${P} lambat sangat tadi sampai time-out. Cuba hantar sekali lagi.`, hint: `Sambungan ${P} time-out — cuba lagi.` };
     if (m === 'empty')
-      return { msg: 'Bos, Gemini pulangkan jawapan kosong (mungkin kena tapis keselamatan). Cuba ubah ayat sikit dan tanya balik.', hint: 'Jawapan kosong dari Gemini — cuba ubah ayat.' };
+      return { msg: `Bos, ${P} pulangkan jawapan kosong (mungkin kena tapis). Cuba ubah ayat sikit dan tanya balik.`, hint: `Jawapan kosong dari ${P} — cuba ubah ayat.` };
     if (m.startsWith('http-'))
-      return { msg: 'Bos, Gemini bagi ralat pelayan sekejap tadi (' + m.replace('http-', '') + '). Cuba tanya sekali lagi tak lama ni.', hint: 'Ralat pelayan Gemini — cuba lagi.' };
-    return { msg: 'Sori bos, sambungan aku ke Gemini tersekat sekejap. Cuba tanya sekali lagi tak lama ni.', hint: 'Sambungan Gemini terganggu — cuba lagi.' };
+      return { msg: `Bos, ${P} bagi ralat pelayan sekejap tadi (${m.replace('http-', '')}). Cuba tanya sekali lagi tak lama ni.`, hint: `Ralat pelayan ${P} — cuba lagi.` };
+    return { msg: `Sori bos, sambungan aku ke ${P} tersekat sekejap. Cuba tanya sekali lagi tak lama ni.`, hint: `Sambungan ${P} terganggu — cuba lagi.` };
   }
 
   // shared conversation memory — every specialist sees the same history
@@ -999,7 +1050,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     clearTimeout(cooldownT);
     const s = secsLeft();
     if (s > 0) {
-      setStatus(`Kuota Gemini percuma cooldown — ${s} saat lagi sebelum boleh hantar. (Had per-minit, bukan sehari.)`);
+      setStatus(`Kuota ${PROVIDER_LABEL[AI.provider] || 'AI'} percuma cooldown — ${s} saat lagi sebelum boleh hantar.`);
       cooldownT = setTimeout(tickCooldown, 1000);
     } else {
       setStatus('Dah boleh hantar balik, bos. 👍');
