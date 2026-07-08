@@ -591,7 +591,7 @@
   // =====================================================================
   const staff = {
     aiman:   { name:'AIMAN', role:'Pembantu Am', outfit:'chic', kind:'specialist', dot:'#d0743a', home:{gx:6.35,gy:3.1},
-               keywords:['hi','hai','helo','apa khabar','korang','uruskan','agih','susun','set up','book'],
+               keywords:['hello','helo','hai','hey','salam','apa khabar','apa cerita','korang','uruskan','agih','susun','set up','book'],
                reply:'Siap bos. Bagi aku detail sikit — kau nak aku uruskan terus, atau susun dulu jadi senarai kerja?' },
     meera:   { name:'MEERA', role:'Penyelidik', outfit:'knit', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
                keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info'],
@@ -980,6 +980,32 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     return gemini(PERSONA[k], contents, 500, 16000);
   }
 
+  // ---- free-tier rate-limit cooldown ----
+  // A 429 with a retryDelay is the per-MINUTE limit (not the daily cap). The worst
+  // thing to do is keep firing requests — each one re-arms the burst window so it
+  // never resets. So when we see it, we gate ALL sends until the clock runs out and
+  // show a live countdown, instead of hammering the API into a permanent block.
+  let cooldownUntil = 0, cooldownT = null;
+  const secsLeft = () => Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+  function parseDelay(s) { const m = String(s || '').match(/([\d.]+)\s*s/); return m ? Math.ceil(parseFloat(m[1])) : 0; }
+  function noteRateLimit(err) {
+    if (!err || String(err.message) !== 'http-429') return false;
+    const secs = parseDelay(err.retryDelay) || 45;                 // Google didn't say → assume ~a minute
+    cooldownUntil = Math.max(cooldownUntil, Date.now() + secs * 1000);
+    tickCooldown();
+    return true;
+  }
+  function tickCooldown() {
+    clearTimeout(cooldownT);
+    const s = secsLeft();
+    if (s > 0) {
+      setStatus(`Kuota Gemini percuma cooldown — ${s} saat lagi sebelum boleh hantar. (Had per-minit, bukan sehari.)`);
+      cooldownT = setTimeout(tickCooldown, 1000);
+    } else {
+      setStatus('Dah boleh hantar balik, bos. 👍');
+    }
+  }
+
   // summon a specialist to the front of the room — reply lands in the chat panel
   function summon(k, text, replyPromise, usingAI) {
     const s = sprites[k], a = staff[k];
@@ -1005,7 +1031,12 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot);
       typingBub.classList.add('typing');
       replyPromise.then(deliver).catch(err => {
-        if (usingAI) { const info = aiTrouble(err); deliver(info.msg); setStatus(info.hint); }
+        if (usingAI) {
+          const info = aiTrouble(err); deliver(info.msg);
+          // if it's a rate limit, start the countdown so the status keeps ticking and
+          // the next send is gated; otherwise just show the one-off hint
+          if (!noteRateLimit(err)) setStatus(info.hint);
+        }
         else deliver(a.reply);
       });
     }, dur * 1000 + 180);
@@ -1014,16 +1045,27 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
 
   async function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
+    const usingAI = !!AI.key;
+    // still cooling down? don't fire — and don't eat the message, so kau boleh hantar
+    // balik sekali cooldown habis without retyping
+    if (usingAI && secsLeft() > 0) { tickCooldown(); return; }
     i.value = '';
     addMsg('Kau', t, 'you');
     remember('user', 'Kau', t);
-    const usingAI = !!AI.key;
     let k;
     // a clear keyword hit is routed for free — only spend a Gemini call on the
     // router when the message is ambiguous (keeps free-tier quota for replies)
     const kw = routeKeyword(t);
     if (kw.score > 0) k = kw.key;
-    else if (usingAI) { try { k = await routeLLM(t); } catch { k = kw.key; } }
+    else if (usingAI) {
+      try { k = await routeLLM(t); }
+      catch (e) {
+        // if the ROUTER already hit the rate limit, don't also fire the specialist —
+        // that just doubles the request storm. Report the cooldown and stop here.
+        if (noteRateLimit(e)) { const info = aiTrouble(e); summon('aiman', t, Promise.resolve(info.msg), false); return; }
+        k = kw.key;
+      }
+    }
     else k = kw.key;
     const replyPromise = usingAI
       ? specialistLLM(k, t)
