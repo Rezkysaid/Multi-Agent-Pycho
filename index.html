@@ -868,6 +868,43 @@
   // instantly just spends another request against the same limit for no benefit.
   const TRANSIENT = new Set(['http-500', 'http-502', 'http-503', 'AbortError']);
 
+  // Discover currently-available FREE models from OpenRouter at runtime, so we never
+  // rely on hardcoded model IDs that go stale (the reason a fixed default 404'd).
+  // Runs in the boss's browser, which can reach OpenRouter. Cached ~6h.
+  let _orModels = null;
+  async function openrouterFreeModels() {
+    if (_orModels) return _orModels;
+    try {
+      const c = JSON.parse(localStorage.getItem('mo_or_models') || 'null');
+      if (c && c.t && Date.now() - c.t < 6 * 3600 * 1000 && Array.isArray(c.m) && c.m.length) { _orModels = c.m; return c.m; }
+    } catch {}
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/models', { headers: { 'Authorization': 'Bearer ' + AI.key } });
+      if (!res.ok) return null;
+      const j = await res.json();
+      const free = (j.data || []).filter(m => {
+        const id = m.id || '', p = m.pricing || {};
+        return id.endsWith(':free') || (String(p.prompt) === '0' && String(p.completion) === '0');
+      }).map(m => m.id);
+      // put a few reliable instruct families up front; keep the list short so a
+      // rate-limited walk doesn't crawl through dozens of models
+      const PREF = ['deepseek', 'meta-llama/llama-3.3', 'google/gemini', 'qwen', 'mistralai', 'microsoft'];
+      const rank = id => { const i = PREF.findIndex(p => id.startsWith(p)); return i < 0 ? PREF.length : i; };
+      free.sort((a, b) => rank(a) - rank(b));
+      const list = free.slice(0, 6);
+      if (list.length) { _orModels = list; try { localStorage.setItem('mo_or_models', JSON.stringify({ t: Date.now(), m: list })); } catch {} return list; }
+    } catch {}
+    return null;
+  }
+  // resolve the model chain to actually try for this call
+  async function resolveModels(provider) {
+    if (provider !== 'openrouter') return AI.models;                 // Gemini: fixed defaults
+    const live = await openrouterFreeModels();                       // real, current free models
+    const base = (live && live.length) ? live : AI.DEFAULT_MODELS.openrouter;
+    // a user-set override is tried first, then the live/free list as fallback
+    return AI.model ? [AI.model, ...base.filter(m => m !== AI.model)].slice(0, 6) : base;
+  }
+
   // build the provider-specific request. Gemini and OpenRouter speak different
   // protocols (endpoint, auth, body shape), so the shared `contents` array (in
   // Gemini's {role,parts[]} form) is translated here for OpenRouter.
@@ -906,8 +943,9 @@
   async function gemini(systemText, contents, maxTokens, timeoutMs, _retried) {
     if (!AI.key) throw new Error('no-key');
     const provider = AI.provider;
+    const models = await resolveModels(provider);
     let lastErr;
-    for (const model of AI.models) {
+    for (const model of models) {
       const ctl = new AbortController();
       const killT = setTimeout(() => ctl.abort(), timeoutMs || 14000);
       try {
@@ -973,8 +1011,16 @@
       else waitLine = 'Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project. Semak di aistudio.google.com/usage, atau tunggu ia reset.';
       return { msg: `Bos, kuota ${P} kau dah penuh buat masa ni (dah cuba semua model percuma). ${waitLine}`, hint: rd ? `Kuota ${P} habis — cuba lagi dalam ${rd.replace('s', ' saat')}.` : `Kuota ${P} habis (429) pada semua model percuma.` };
     }
-    if (m === 'model-404')
+    if (m === 'model-404') {
+      // Very common OpenRouter trap: EVERY free model 404s ("no endpoints / no
+      // allowed providers / data policy") until you tick the free-models privacy
+      // setting. That's an account setting, not a model-name problem — say so.
+      if (AI.provider === 'openrouter' && (d.includes('data policy') || d.includes('no endpoint') || d.includes('no allowed') || d.includes('privacy') || d.includes('not allowed'))) {
+        setStatus('OpenRouter: aktifkan akses model :free di Settings → Privacy.');
+        return { msg: 'Bos, key OpenRouter kau belum benarkan model percuma lagi. Pergi openrouter.ai/settings/privacy, dan hidupkan tetapan untuk model :free (yang benarkan input diproses oleh penyedia free). Itu sebab SEMUA model :free kena tolak. Lepas hidupkan, cuba balik — tak perlu tukar model.', hint: 'OpenRouter: aktifkan model :free di Settings → Privacy, lepas tu cuba balik.' };
+      }
       return { msg: `Bos, model ${P} tak dapat diakses dengan key ni. ${AI.provider === 'openrouter' ? 'Cuba set model :free lain (contoh meta-llama/llama-3.3-70b-instruct:free) di butang gear (⚙️).' : 'Mungkin key lama atau region tak sokong — cuba jana key baru dari aistudio.google.com.'}`, hint: `Model ${P} tak dijumpai — tukar model di butang gear (⚙️).` };
+    }
     if (m === 'AbortError')
       return { msg: `Bos, line ke ${P} lambat sangat tadi sampai time-out. Cuba hantar sekali lagi.`, hint: `Sambungan ${P} time-out — cuba lagi.` };
     if (m === 'empty')
