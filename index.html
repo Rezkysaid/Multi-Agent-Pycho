@@ -130,6 +130,8 @@
     border: 7px solid transparent; border-top-color: var(--surface2); border-bottom: 0;
   }
   #bubble .who { font-size: 9px; letter-spacing: .5px; font-weight: 800; text-transform: uppercase; color: var(--accent); }
+  #bubble .cue-ico { width: 14px; height: 14px; display: block; color: var(--accent); animation: cuePop .3s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes cuePop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   #bubble .dots { display: inline-flex; gap: 3px; }
   #bubble .dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); animation: td 1s ease-in-out infinite; }
   #bubble .dots i:nth-child(2){ animation-delay: .16s } #bubble .dots i:nth-child(3){ animation-delay: .32s }
@@ -139,56 +141,67 @@
   .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
 
   /* team rail */
-  .rail { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 12px; }
-  .rail-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 10px 2px; }
-  #roster { display: flex; flex-direction: column; gap: 4px; }
+  .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
+  .rail-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px 2px; }
+  #roster { display: flex; flex-direction: column; gap: 6px; }
   .member {
-    display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 9px;
-    transition: background .18s ease; cursor: default;
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px;
+    background: var(--surface2); border: 1px solid #ffffff08;
+    transition: border-color .2s ease, transform .12s ease, box-shadow .2s ease; cursor: default;
   }
-  .member:hover { background: var(--surface2); }
-  .member .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 6px currentColor; }
-  .m-info { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-  .m-name { font-size: 12px; font-weight: 700; color: var(--text); }
+  .member:hover { transform: translateY(-1px); }
+  .member.active { border-color: var(--mc, var(--accent)); box-shadow: 0 0 0 1px var(--mc, var(--accent)), 0 10px 22px -12px var(--mc, var(--accent)); }
+  .member.active .m-stat { color: var(--mc, var(--accent)); font-style: normal; font-weight: 700; }
+  .member .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 9px currentColor, 0 0 3px currentColor; }
+  .m-info { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+  .m-name { font-size: 12px; font-weight: 800; color: var(--text); letter-spacing: .3px; }
   .m-role { font-size: 10px; color: var(--muted); }
-  .m-stat { font-size: 10px; color: var(--sage); font-style: italic; }
+  .m-stat { font-size: 10px; color: var(--sage); font-style: italic; transition: color .2s ease; }
 
   /* conversation — a real scrollable chat that holds long AI replies + history */
   .convo { width: 100%; }
   #chat {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px 14px; max-height: 46vh; min-height: 96px; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin;
-    scroll-behavior: smooth;
+    background: linear-gradient(180deg, var(--surface), #1a130c);
+    border: 1px solid var(--line); border-radius: 16px;
+    padding: 15px; max-height: 46vh; min-height: 110px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 13px; scrollbar-width: thin; scroll-behavior: smooth;
+    box-shadow: inset 0 1px 0 #ffffff0d, 0 14px 36px -24px #000;
   }
-  .msg { display: flex; flex-direction: column; max-width: 82%; }
-  .msg .who { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0 2px 4px; }
+  .msg { display: flex; flex-direction: column; max-width: 84%; animation: msgIn .34s cubic-bezier(.2,.9,.3,1) both; }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .msg .who { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0 3px 5px; display: flex; align-items: center; gap: 5px; }
+  .msg.staff .who::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--dotc, var(--accent)); box-shadow: 0 0 8px var(--dotc, var(--accent)); }
   .msg .bub {
-    padding: 10px 13px; border-radius: 13px; font-size: 14.5px; line-height: 1.55;
+    padding: 11px 14px; border-radius: 15px; font-size: 14.5px; line-height: 1.55;
     font-family: 'Fraunces', Georgia, serif; white-space: pre-wrap; word-wrap: break-word;
   }
   .msg.you { align-self: flex-end; align-items: flex-end; }
-  .msg.you .bub { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; font-family: 'Nunito', sans-serif; font-weight: 600; }
+  .msg.you .bub { background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink); border-bottom-right-radius: 5px; font-family: 'Nunito', sans-serif; font-weight: 600; box-shadow: 0 10px 22px -12px var(--accent); }
   .msg.staff { align-self: flex-start; }
-  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border-left: 3px solid var(--dotc, var(--accent)); }
-  .msg.sys { align-self: center; max-width: 92%; text-align: center; }
-  .msg.sys .bub { background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 13px; padding: 4px 8px; }
+  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 5px; border-left: 3px solid var(--dotc, var(--accent)); box-shadow: 0 8px 18px -14px #000; }
+  .msg.sys { align-self: center; max-width: 94%; text-align: center; }
+  .msg.sys .bub { background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 12.5px; padding: 3px 8px; line-height: 1.5; }
+  .msg.meet { align-self: center; max-width: 94%; text-align: center; }
+  .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
 
-  #input-row { display: flex; gap: 8px; margin-top: 12px; }
+  #input-row { display: flex; gap: 9px; margin-top: 13px; }
   #user-input {
-    flex: 1; background: var(--ink2); border: 1px solid var(--line); border-radius: 10px;
-    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 12px 14px;
+    flex: 1; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px;
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px;
     transition: border-color .18s ease, box-shadow .18s ease;
   }
   #user-input::placeholder { color: #8a7c6a; }
-  #user-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #e0894e22; }
+  #user-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #e0894e26; }
   #send-btn {
+    display: inline-flex; align-items: center; gap: 7px;
     font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .3px;
-    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 10px;
-    padding: 0 22px; cursor: pointer; transition: transform .1s ease, filter .15s ease;
+    background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink); border: none; border-radius: 12px;
+    padding: 0 20px; cursor: pointer; transition: transform .1s ease, filter .15s ease, box-shadow .18s ease;
+    box-shadow: 0 10px 22px -12px var(--accent);
   }
-  #send-btn:hover { filter: brightness(1.06); }
+  #send-btn svg { width: 15px; height: 15px; display: block; }
+  #send-btn:hover { filter: brightness(1.06); box-shadow: 0 12px 26px -12px var(--accent); }
   #send-btn:active { transform: translateY(1px) scale(.98); }
 
   .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
@@ -240,11 +253,11 @@
 
       <section class="convo">
         <div id="chat">
-          <div class="msg sys"><div class="bub">Semua staff dah masuk kerja. Suruh apa-apa — contohnya <em>"research pasal kereta EV kat Malaysia"</em> atau <em>"tolong tulis caption IG untuk produk baru"</em> — dan orang paling sesuai akan datang lapor kat kau.</div></div>
+          <div class="msg sys"><div class="bub">Suruh apa-apa kerja — research, tulis, analisa. Taip <b>“meeting …”</b> untuk kumpulkan semua staff di meja.</div></div>
         </div>
         <div id="input-row">
           <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
-          <button id="send-btn">Panggil</button>
+          <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
         </div>
       </section>
     </div>
@@ -633,13 +646,14 @@
   // team rail
   const roster = document.getElementById('roster');
   for (const k in staff) {
-    const m = document.createElement('div'); m.className = 'member';
+    const m = document.createElement('div'); m.className = 'member'; m.style.setProperty('--mc', staff[k].dot);
     m.innerHTML = `<span class="dot" style="color:${staff[k].dot};background:${staff[k].dot}"></span>`
       + `<div class="m-info"><span class="m-name">${staff[k].name}</span>`
       + `<span class="m-role">${staff[k].role}</span><span class="m-stat" id="stat-${k}">kat meja</span></div>`;
-    roster.appendChild(m); sprites[k].statEl = document.getElementById('stat-' + k);
+    roster.appendChild(m); sprites[k].statEl = document.getElementById('stat-' + k); sprites[k].memberEl = m;
   }
   function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
+  function setActive(k, on) { if (sprites[k].memberEl) sprites[k].memberEl.classList.toggle('active', on); }
 
   // ---- movement: A* pathfinding so characters walk AROUND furniture, never over it ----
   let currentScale = 1;
@@ -786,9 +800,11 @@
   let bubbleT = null;
   function headCue(sprite, who, mode) {   // mode: 'think' | 'talk'
     const p = project(sprite.gx, sprite.gy);
+    // custom SVG message icon (not the default emoji) when a character speaks
+    const cueSVG = `<svg class="cue-ico" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-4.4 3.6A.7.7 0 0 1 4.5 19V16a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="currentColor"/><circle cx="9" cy="10" r="1.15" fill="var(--accent-ink)"/><circle cx="12.5" cy="10" r="1.15" fill="var(--accent-ink)"/><circle cx="16" cy="10" r="1.15" fill="var(--accent-ink)"/></svg>`;
     bubble.innerHTML = mode === 'think'
       ? `<span class="who">${who}</span><span class="dots"><i></i><i></i><i></i></span>`
-      : `<span class="who">${who}</span>&#128172;`;
+      : `<span class="who">${who}</span>${cueSVG}`;
     bubble.hidden = false;
     const stageW = BOARD_W * currentScale;
     let x = p.x * currentScale, y = (p.y - SPR_H - 2) * currentScale;
@@ -1149,10 +1165,10 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
       addMsg(a.name, reply, 'staff', a.dot);
       if (!ephemeral) remember('model', a.name, reply);
-      setStat(k, 'dengan kau');
+      setStat(k, 'dengan kau'); setActive(k, true);
       setStatus(`${a.name} tengah lapor kat kau.`);
       clearTimeout(s.releaseT);
-      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, 9000);
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); spot.style.opacity = 0; }, 9000);
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
@@ -1170,7 +1186,89 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
         else deliver(a.reply, true);
       });
     }, dur * 1000 + 180);
-    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
+  }
+
+  // =====================================================================
+  //  MEETING — "meeting …" gathers the whole team at the round table
+  // =====================================================================
+  const MEETING_RE = /\b(meeting|mesyuarat|mesywarat|town\s?hall|perbincangan|taklimat)\b|\bkumpul(kan)?\s+(semua|semua\s+staff|pasukan|korang)\b|\bbincang(kan)?\s+(sama|ramai|bersama)\b/i;
+  // six standing spots ringing the round table at (2.9, 2.2)
+  const MEETING_SPOTS = [
+    { gx: 2.9, gy: 0.7 }, { gx: 4.5, gy: 1.3 }, { gx: 4.5, gy: 3.1 },
+    { gx: 2.9, gy: 3.9 }, { gx: 1.3, gy: 3.1 }, { gx: 1.3, gy: 1.3 }
+  ];
+  function meetingTopic(t) {
+    // strip a leading "meeting:"/"mesyuarat -" style lead-in, else drop the trigger word
+    let s = t.replace(/^\s*(meeting|mesyuarat|mesywarat|town\s?hall|taklimat|perbincangan)\b[\s:,\-–]*/i, '').trim();
+    return s;
+  }
+  let meetingBusy = false;
+  async function callMeeting(topic) {
+    if (meetingBusy) { setStatus('Mesyuarat tengah berjalan, bos.'); return; }
+    meetingBusy = true;
+    hideBubble();
+    addMsg('', `📋 Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff menuju ke meja…`, 'meet');
+    setStatus('Semua staff berkumpul di meja mesyuarat…');
+    const keys = Object.keys(staff);
+    keys.forEach((k, i) => {
+      const s = sprites[k];
+      s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
+      setStat(k, 'ke mesyuarat →'); setActive(k, true);
+      const spot = MEETING_SPOTS[i % MEETING_SPOTS.length];
+      // stagger departures so they file in, not teleport together
+      setTimeout(() => {
+        const d = walk(s, spot.gx, spot.gy);
+        setTimeout(() => { if (meetingBusy) { setStat(k, 'dalam mesyuarat'); headCue(s, staff[k].name, 'think'); } }, d * 1000 + 60);
+      }, i * 260);
+    });
+
+    // wait until EVERYONE has actually stopped walking (paths vary a lot in length),
+    // then the chair reports — never disperse before the far ones arrive
+    const started = Date.now();
+    const runChair = async () => {
+      const chair = sprites.aiman, ca = staff.aiman;
+      headCue(chair, ca.name, 'think');
+      const typing = addMsg(ca.name, 'sedang menaip…', 'staff', ca.dot); typing.classList.add('typing');
+      const finish = (reply, ephemeral) => {
+        if (typing.parentElement) typing.parentElement.remove();
+        headCue(chair, ca.name, 'talk');
+        addMsg(ca.name, reply, 'staff', ca.dot);
+        if (!ephemeral) remember('model', ca.name, reply);
+        setStatus('Mesyuarat tamat — semua kembali bertugas.');
+        endMeeting();
+      };
+      if (AI.key) {
+        const prompt = `[MESYUARAT PASUKAN] Kau Aiman, pengerusi. Topik: ${topic || '(bos tak nyatakan topik — tanya apa agenda)'}. `
+          + `Sebagai pengerusi, bagi ringkasan SANGAT pendek (2-3 ayat): apa pasukan akan buat dan siapa buat apa (sebut nama staff yang relevan: Meera research, Wei tulis, Danish analisa, Hana plan, Hafiz tekno). Santai, macam habis mesyuarat betul.`;
+        try {
+          const out = await gemini(PERSONA.aiman + '\n' + prompt, [{ role: 'user', parts: [{ text: topic || 'Apa agenda kita hari ni?' }] }], 300, 16000);
+          finish(out, false);
+        } catch (e) {
+          noteRateLimit(e); finish(aiTrouble(e).msg, true);
+        }
+      } else {
+        finish(topic
+          ? `Ok semua, pasal “${topic}” — Meera cari data dulu, Danish timbang pro/kontra, Hana susun langkah, Wei siapkan draf. Aku selaras. Jom gerak!`
+          : `Semua dah kumpul bos. Apa agenda kita? Bagi tajuk, aku agih tugas terus.`, true);
+      }
+    };
+    // poll: fire the chair once all have stopped walking (min gather, hard 13s cap)
+    const seated = () => {
+      const allStopped = keys.every(k => !sprites[k].isWalking);
+      const elapsed = Date.now() - started;
+      if ((allStopped && elapsed > (keys.length - 1) * 260 + 900) || elapsed > 13000) runChair();
+      else setTimeout(seated, 350);
+    };
+    setTimeout(seated, (keys.length - 1) * 260 + 1000);
+  }
+  function endMeeting() {
+    const keys = Object.keys(staff);
+    keys.forEach((k, i) => {
+      const s = sprites[k];
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); }, 5000 + i * 250);
+    });
+    setTimeout(() => { meetingBusy = false; }, 6500);
   }
 
   async function handleSend() {
@@ -1182,6 +1280,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     i.value = '';
     addMsg('Kau', t, 'you');
     remember('user', 'Kau', t);
+    // "meeting …" gathers the whole team at the table instead of summoning one staff
+    if (MEETING_RE.test(t)) { callMeeting(meetingTopic(t)); return; }
     let k;
     // a clear keyword hit is routed for free — only spend a Gemini call on the
     // router when the message is ambiguous (keeps free-tier quota for replies)
