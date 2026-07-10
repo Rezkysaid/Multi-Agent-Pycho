@@ -1049,9 +1049,20 @@
     return { msg: `Sori bos, sambungan aku ke ${P} tersekat sekejap. Cuba tanya sekali lagi tak lama ni.`, hint: `Sambungan ${P} terganggu — cuba lagi.` };
   }
 
-  // shared conversation memory — every specialist sees the same history
+  // shared conversation memory — every specialist sees the same history.
+  // Only GENUINE user turns and successful AI replies belong here; diagnostic/error
+  // lines must never be stored, or the model reads them back and starts roleplaying
+  // about "broken API keys". HIST_VER bumps to wipe memory polluted by that old bug.
+  const HIST_VER = '2';
   let history = [];
-  try { history = JSON.parse(localStorage.getItem('mo_history') || '[]'); } catch {}
+  try {
+    if (localStorage.getItem('mo_hist_v') !== HIST_VER) {
+      localStorage.removeItem('mo_history');
+      localStorage.setItem('mo_hist_v', HIST_VER);
+    } else {
+      history = JSON.parse(localStorage.getItem('mo_history') || '[]');
+    }
+  } catch {}
   function remember(role, name, text) {
     history.push({ role, name, text });
     if (history.length > 20) history = history.slice(-20);
@@ -1131,11 +1142,13 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
     let typingBub = null;
-    const deliver = (reply) => {
+    // ephemeral = a diagnostic / demo line, shown in the chat but NEVER written to
+    // memory (or the model reads it back and roleplays about broken API keys)
+    const deliver = (reply, ephemeral) => {
       headCue(s, a.name, 'talk');
       if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
       addMsg(a.name, reply, 'staff', a.dot);
-      remember('model', a.name, reply);
+      if (!ephemeral) remember('model', a.name, reply);
       setStat(k, 'dengan kau');
       setStatus(`${a.name} tengah lapor kat kau.`);
       clearTimeout(s.releaseT);
@@ -1146,14 +1159,15 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       headCue(s, a.name, 'think');
       typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot);
       typingBub.classList.add('typing');
-      replyPromise.then(deliver).catch(err => {
+      // real AI reply -> remembered; demo canned reply -> ephemeral
+      replyPromise.then(reply => deliver(reply, !usingAI)).catch(err => {
         if (usingAI) {
-          const info = aiTrouble(err); deliver(info.msg);
+          const info = aiTrouble(err); deliver(info.msg, true);   // error line: never remembered
           // if it's a rate limit, start the countdown so the status keeps ticking and
           // the next send is gated; otherwise just show the one-off hint
           if (!noteRateLimit(err)) setStatus(info.hint);
         }
-        else deliver(a.reply);
+        else deliver(a.reply, true);
       });
     }, dur * 1000 + 180);
     s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
@@ -1177,8 +1191,9 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       try { k = await routeLLM(t); }
       catch (e) {
         // if the ROUTER already hit the rate limit, don't also fire the specialist —
-        // that just doubles the request storm. Report the cooldown and stop here.
-        if (noteRateLimit(e)) { const info = aiTrouble(e); summon('aiman', t, Promise.resolve(info.msg), false); return; }
+        // that just doubles the request storm. Report the cooldown (via the error path
+        // so the line stays ephemeral / unremembered) and stop here.
+        if (noteRateLimit(e)) { const p = Promise.reject(e); p.catch(() => {}); summon('aiman', t, p, true); return; }
         k = kw.key;
       }
     }
