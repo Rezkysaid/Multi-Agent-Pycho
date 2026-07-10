@@ -138,25 +138,62 @@
   @keyframes td { 0%,100%{ opacity:.3; transform: translateY(0) } 50%{ opacity:1; transform: translateY(-2px) } }
   @keyframes pop { from { opacity: 0; transform: translate(-50%, calc(-100% + 8px)) scale(.9); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
 
+  /* comic-book speech bubble — the character actually "talks" over their head */
+  #comic {
+    position: absolute; z-index: 70; max-width: 230px; min-width: 92px;
+    background: #fdf7ea; color: #211a12;
+    border: 2.5px solid #211a12; border-radius: 16px;
+    padding: 9px 13px 9px; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; line-height: 1.36;
+    box-shadow: 3px 4px 0 #211a12cc; transform: translate(-50%, -100%);
+    transform-origin: 50% 110%; animation: comicPop .22s cubic-bezier(.2,1.5,.4,1);
+    -webkit-user-select: none; user-select: none;
+  }
+  #comic[hidden] { display: none; }
+  #comic .c-name { display: block; font-size: 8.5px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--cc, #c96f3a); margin-bottom: 3px; }
+  #comic .c-tail { position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); width: 0; height: 0; }
+  #comic .c-tail::before { content: ''; position: absolute; left: -11px; border-style: solid; border-width: 15px 11px 0 11px; border-color: #211a12 transparent transparent transparent; }
+  #comic .c-tail::after { content: ''; position: absolute; left: -7px; top: -2px; border-style: solid; border-width: 11px 7px 0 7px; border-color: #fdf7ea transparent transparent transparent; }
+  #comic .c-progress { display: flex; gap: 4px; justify-content: center; margin-top: 7px; }
+  #comic .c-progress i { width: 5px; height: 5px; border-radius: 50%; background: #211a1230; transition: background .2s ease; }
+  #comic .c-progress i.on { background: var(--cc, #c96f3a); }
+  #comic .c-more { position: absolute; right: 9px; bottom: 5px; font-size: 9px; color: #211a1266; font-weight: 800; }
+  @keyframes comicPop { from { opacity: 0; transform: translate(-50%, calc(-100% + 12px)) scale(.82); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
+
   .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
 
   /* team rail */
   .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
   .rail-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px 2px; }
-  #roster { display: flex; flex-direction: column; gap: 6px; }
-  .member {
-    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px;
-    background: var(--surface2); border: 1px solid #ffffff08;
-    transition: border-color .2s ease, transform .12s ease, box-shadow .2s ease; cursor: default;
+  #roster { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
+  /* lanyard ID badge: ribbon + clip + card with a pixel-face photo */
+  .member { position: relative; display: flex; flex-direction: column; align-items: center; transition: transform .14s ease; cursor: default; }
+  .member:hover { transform: translateY(-2px); }
+  .strap {
+    width: 15px; height: 17px; border-radius: 3px 3px 0 0; margin-bottom: -3px; z-index: 1;
+    background: repeating-linear-gradient(45deg, var(--mc, var(--accent)) 0 4px, #ffffff44 4px 7px);
+    box-shadow: inset 0 0 0 1px #0003;
   }
-  .member:hover { transform: translateY(-1px); }
-  .member.active { border-color: var(--mc, var(--accent)); box-shadow: 0 0 0 1px var(--mc, var(--accent)), 0 10px 22px -12px var(--mc, var(--accent)); }
-  .member.active .m-stat { color: var(--mc, var(--accent)); font-style: normal; font-weight: 700; }
-  .member .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 9px currentColor, 0 0 3px currentColor; }
-  .m-info { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-  .m-name { font-size: 12px; font-weight: 800; color: var(--text); letter-spacing: .3px; }
-  .m-role { font-size: 10px; color: var(--muted); }
-  .m-stat { font-size: 10px; color: var(--sage); font-style: italic; transition: color .2s ease; }
+  .clip { width: 22px; height: 7px; border-radius: 4px; margin-bottom: -3px; z-index: 2;
+    background: linear-gradient(180deg, #e3e5ea, #a7abb4); box-shadow: inset 0 1px 0 #fff9, 0 1px 2px #0006; }
+  .card {
+    position: relative; width: 100%; display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(180deg, #f5f0e4, #e6ddca); border-radius: 11px; padding: 9px 11px;
+    border-top: 3px solid var(--mc, var(--accent));
+    box-shadow: 0 8px 18px -10px #000, inset 0 0 0 1px #ffffffaa;
+    transition: box-shadow .2s ease;
+  }
+  .member.active .card { box-shadow: 0 0 0 2px var(--mc, var(--accent)), 0 12px 24px -10px var(--mc, var(--accent)); }
+  .member.active .m-stat { color: var(--mc, var(--accent)); font-style: normal; font-weight: 800; }
+  .photo {
+    position: relative; width: 46px; height: 44px; flex: 0 0 auto; border-radius: 7px; overflow: hidden;
+    background: linear-gradient(165deg, #cdd8e1, #a7b6c3); box-shadow: inset 0 0 0 1px #0002, inset 0 -6px 10px -6px #0004;
+  }
+  .photo .px { position: absolute; left: 5px; top: 11px; width: 3px; height: 3px; image-rendering: pixelated; }
+  .m-info { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+  .m-name { font-size: 12px; font-weight: 800; color: #241b12; letter-spacing: .3px; }
+  .m-role { font-size: 10px; font-weight: 700; color: #7a6748; }
+  .m-stat { font-size: 10px; color: #3c7a57; font-style: italic; transition: color .2s ease; }
 
   /* conversation — a real scrollable chat that holds long AI replies + history */
   .convo { width: 100%; }
@@ -211,8 +248,8 @@
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
     .rail { order: 2; }
-    #roster { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-    .member { flex: 0 0 auto; background: var(--surface2); }
+    #roster { flex-direction: row; flex-wrap: wrap; gap: 16px 10px; justify-content: center; }
+    .member { flex: 1 1 150px; max-width: 220px; }
     .topbar-right .clock { display: none; }
     #chat { max-height: 34vh; }   /* keep office + chat + input within one glance */
   }
@@ -247,6 +284,7 @@
         <div id="stage">
           <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
           <div id="bubble" hidden></div>
+          <div id="comic" hidden></div>
         </div>
         <p class="hint" id="status">Taip mesej di bawah — staff yang berkenaan akan berjalan ke depan dan lapor kat kau</p>
       </section>
@@ -645,12 +683,26 @@
 
   // team rail
   const roster = document.getElementById('roster');
+  // a small pixel "passport photo": head + shoulders, rendered with the same
+  // box-shadow technique as the walking sprite, coloured per staff skin
+  function faceShadow(outfit, skinKey, sc) {
+    const map = HEAD.concat(TORSO[outfit].slice(0, 3));
+    const pal = Object.assign({}, basePalette, skins[skinKey] || skins.user);
+    const sh = [];
+    for (let y = 0; y < map.length; y++) for (let x = 0; x < map[y].length; x++) {
+      const c = pal[map[y][x]]; if (c) sh.push(`${x*sc}px ${y*sc}px 0 0 ${c}`);
+    }
+    return sh.join(', ');
+  }
   for (const k in staff) {
     const m = document.createElement('div'); m.className = 'member'; m.style.setProperty('--mc', staff[k].dot);
-    m.innerHTML = `<span class="dot" style="color:${staff[k].dot};background:${staff[k].dot}"></span>`
+    m.innerHTML = `<span class="strap"></span><span class="clip"></span>`
+      + `<div class="card"><div class="photo"><div class="px"></div></div>`
       + `<div class="m-info"><span class="m-name">${staff[k].name}</span>`
-      + `<span class="m-role">${staff[k].role}</span><span class="m-stat" id="stat-${k}">kat meja</span></div>`;
-    roster.appendChild(m); sprites[k].statEl = document.getElementById('stat-' + k); sprites[k].memberEl = m;
+      + `<span class="m-role">${staff[k].role}</span><span class="m-stat" id="stat-${k}">kat meja</span></div></div>`;
+    roster.appendChild(m);
+    m.querySelector('.photo .px').style.boxShadow = faceShadow(staff[k].outfit, k, 3);
+    sprites[k].statEl = document.getElementById('stat-' + k); sprites[k].memberEl = m;
   }
   function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
   function setActive(k, on) { if (sprites[k].memberEl) sprites[k].memberEl.classList.toggle('active', on); }
@@ -815,6 +867,65 @@
     if (mode === 'talk') bubbleT = setTimeout(() => { bubble.hidden = true; }, 6000);
   }
   function hideBubble() { bubble.hidden = true; clearTimeout(bubbleT); }
+
+  // ---- comic-style speech bubble: the character talks over their head, and long
+  //      replies are split into panels shown in reading order (auto-advance, or tap) ----
+  const comic = document.getElementById('comic');
+  let comicT = null, comicSeq = 0;
+  const escHtml = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  function chunkText(text, max = 96) {
+    const parts = (text.match(/[^.!?…\n]+[.!?…]*/g) || [text]).map(s => s.trim()).filter(Boolean);
+    const out = []; let cur = '';
+    const push = s => { if (s) out.push(s); };
+    for (const s of parts) {
+      if (!cur) { cur = s; }
+      else if ((cur + ' ' + s).length <= max) cur += ' ' + s;
+      else { push(cur); cur = s; }
+      // hard-split any single chunk that's still too long
+      while (cur.length > max) {
+        let cut = cur.lastIndexOf(' ', max); if (cut < 40) cut = max;
+        push(cur.slice(0, cut).trim()); cur = cur.slice(cut).trim();
+      }
+    }
+    push(cur);
+    return out.length ? out : [text];
+  }
+  function positionComic(sprite) {
+    const p = project(sprite.gx, sprite.gy);
+    const stageW = BOARD_W * currentScale;
+    const halfW = comic.offsetWidth / 2 + 8;
+    let x = p.x * currentScale;
+    x = Math.max(halfW, Math.min(stageW - halfW, x));
+    const y = (p.y - SPR_H - 8) * currentScale;
+    comic.style.left = x + 'px'; comic.style.top = Math.max(6, y) + 'px';
+  }
+  // show `text` as one or more comic panels over the sprite; resolves when finished
+  function speakComic(sprite, name, dotColor, text) {
+    hideBubble();
+    const seq = ++comicSeq;                       // invalidates any earlier sequence
+    const chunks = chunkText(String(text || '').trim());
+    let i = 0;
+    return new Promise(resolve => {
+      const step = () => {
+        if (seq !== comicSeq) return;             // superseded by a newer speaker
+        if (i >= chunks.length) { comicT = setTimeout(() => { if (seq === comicSeq) comic.hidden = true; }, 4200); resolve(); return; }
+        const chunk = chunks[i]; i++;
+        comic.style.setProperty('--cc', dotColor || 'var(--accent)');
+        const dots = chunks.length > 1 ? `<span class="c-progress">${chunks.map((_, j) => `<i class="${j < i ? 'on' : ''}"></i>`).join('')}</span>` : '';
+        const more = i < chunks.length ? `<span class="c-more">▸</span>` : '';
+        comic.innerHTML = `<span class="c-name">${escHtml(name)}</span>${escHtml(chunk)}${dots}${more}<span class="c-tail"></span>`;
+        comic.hidden = false;
+        comic.style.animation = 'none'; void comic.offsetWidth; comic.style.animation = '';
+        positionComic(sprite);
+        clearTimeout(comicT);
+        comicT = setTimeout(step, Math.max(2000, chunk.length * 52));
+      };
+      comic._advance = () => { if (seq === comicSeq) { clearTimeout(comicT); step(); } };
+      step();
+    });
+  }
+  function hideComic() { comicSeq++; clearTimeout(comicT); comic.hidden = true; }
+  comic.addEventListener('click', () => { if (comic._advance) comic._advance(); });
 
   // ---- chat panel — the real conversation surface ----
   const chat = document.getElementById('chat');
@@ -1161,14 +1272,16 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     // ephemeral = a diagnostic / demo line, shown in the chat but NEVER written to
     // memory (or the model reads it back and roleplays about broken API keys)
     const deliver = (reply, ephemeral) => {
-      headCue(s, a.name, 'talk');
       if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
-      addMsg(a.name, reply, 'staff', a.dot);
+      speakComic(s, a.name, a.dot, reply);              // the comic bubble is the star
+      addMsg(a.name, reply, 'staff', a.dot);            // chat panel keeps the full transcript
       if (!ephemeral) remember('model', a.name, reply);
       setStat(k, 'dengan kau'); setActive(k, true);
       setStatus(`${a.name} tengah lapor kat kau.`);
       clearTimeout(s.releaseT);
-      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); spot.style.opacity = 0; }, 9000);
+      // hold the character in place long enough to read all the comic panels
+      const readMs = Math.max(9000, Math.min(26000, String(reply).length * 62));
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); spot.style.opacity = 0; }, readMs);
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
@@ -1232,7 +1345,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       const typing = addMsg(ca.name, 'sedang menaip…', 'staff', ca.dot); typing.classList.add('typing');
       const finish = (reply, ephemeral) => {
         if (typing.parentElement) typing.parentElement.remove();
-        headCue(chair, ca.name, 'talk');
+        speakComic(chair, ca.name, ca.dot, reply);
         addMsg(ca.name, reply, 'staff', ca.dot);
         if (!ephemeral) remember('model', ca.name, reply);
         setStatus('Mesyuarat tamat — semua kembali bertugas.');
