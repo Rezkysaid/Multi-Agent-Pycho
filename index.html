@@ -244,6 +244,27 @@
   .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
   .foot b { color: var(--muted); font-weight: 700; }
 
+  /* deliverables tray — captured staff output you can copy / export */
+  .tray { margin-top: 14px; background: linear-gradient(180deg, var(--surface), #19120b); border: 1px solid var(--line); border-radius: 16px; padding: 14px; box-shadow: 0 14px 36px -24px #000; }
+  .tray-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .tray-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .tray-count { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 10px; font-weight: 800; letter-spacing: 0; }
+  .tray-actions { display: flex; gap: 6px; }
+  .tray-actions button { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--muted); background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; padding: 6px 11px; cursor: pointer; transition: color .15s ease, border-color .15s ease; }
+  .tray-actions button:hover { color: var(--text); border-color: var(--accent); }
+  .tray-list { display: flex; flex-direction: column; gap: 10px; max-height: 46vh; overflow-y: auto; scrollbar-width: thin; }
+  .tray-empty { color: var(--muted); font-size: 12.5px; font-family: 'Nunito', sans-serif; text-align: center; padding: 20px 10px; line-height: 1.55; }
+  .deliv { background: var(--surface2); border: 1px solid #ffffff08; border-left: 3px solid var(--dc, var(--accent)); border-radius: 12px; padding: 11px 13px; animation: msgIn .3s cubic-bezier(.2,.9,.3,1) both; }
+  .deliv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .deliv-who { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--dc, var(--accent)); }
+  .deliv-who::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--dc, var(--accent)); box-shadow: 0 0 7px var(--dc, var(--accent)); }
+  .deliv-time { font-size: 10px; color: var(--muted); font-family: 'Nunito', sans-serif; }
+  .deliv-body { font-family: 'Fraunces', Georgia, serif; font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
+  .deliv-foot { margin-top: 8px; display: flex; justify-content: flex-end; }
+  .deliv-copy { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px; cursor: pointer; transition: color .15s ease, background .15s ease, border-color .15s ease; }
+  .deliv-copy:hover { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+  .deliv-copy.done { color: var(--sage); border-color: var(--sage); }
+
   /* stack on narrow screens: office + chat first (order 0, default), roster after */
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
@@ -297,6 +318,17 @@
           <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
           <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
         </div>
+      </section>
+
+      <section class="tray" id="tray">
+        <div class="tray-head">
+          <h2 class="tray-title">Hasil Kerja <span class="tray-count" id="tray-count">0</span></h2>
+          <div class="tray-actions">
+            <button id="tray-export" title="Muat turun semua sebagai fail .md">Export</button>
+            <button id="tray-clear" title="Kosongkan semua hasil">Kosong</button>
+          </div>
+        </div>
+        <div id="tray-list" class="tray-list"></div>
       </section>
     </div>
 
@@ -942,6 +974,67 @@
   }
   const setStatus = t => document.getElementById('status').textContent = t;
 
+  // ---- deliverables tray: capture every GENUINE staff output (not errors/demo),
+  //      persist it, and let the boss copy any card or export the lot ----
+  const trayList = document.getElementById('tray-list');
+  const trayCount = document.getElementById('tray-count');
+  let deliverables = [];
+  try { deliverables = JSON.parse(localStorage.getItem('mo_deliverables') || '[]'); } catch {}
+  const saveDeliverables = () => { try { localStorage.setItem('mo_deliverables', JSON.stringify(deliverables.slice(-80))); } catch {} };
+  const fmtTime = ts => { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done && done(); } catch {} document.body.removeChild(ta);
+  }
+  function copyText(text, btn) {
+    const done = () => { if (!btn) return; const o = btn.textContent; btn.textContent = 'Disalin ✓'; btn.classList.add('done'); setTimeout(() => { btn.textContent = o; btn.classList.remove('done'); }, 1400); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    else fallbackCopy(text, done);
+  }
+  function delivCard(d) {
+    const el = document.createElement('div'); el.className = 'deliv'; el.style.setProperty('--dc', d.dot || 'var(--accent)');
+    const top = document.createElement('div'); top.className = 'deliv-top';
+    const who = document.createElement('span'); who.className = 'deliv-who'; who.textContent = d.name + (d.role ? ' · ' + d.role : '');
+    const time = document.createElement('span'); time.className = 'deliv-time'; time.textContent = fmtTime(d.ts);
+    top.append(who, time);
+    const body = document.createElement('div'); body.className = 'deliv-body'; body.textContent = d.text;
+    const foot = document.createElement('div'); foot.className = 'deliv-foot';
+    const copy = document.createElement('button'); copy.className = 'deliv-copy'; copy.textContent = 'Salin';
+    copy.addEventListener('click', () => copyText(d.text, copy));
+    foot.appendChild(copy);
+    el.append(top, body, foot);
+    return el;
+  }
+  function renderTray() {
+    trayCount.textContent = deliverables.length;
+    if (!deliverables.length) { trayList.innerHTML = '<div class="tray-empty">Belum ada hasil lagi. Suruh staff buat kerja — output mereka tersimpan di sini, boleh salin & export.</div>'; return; }
+    trayList.innerHTML = '';
+    for (let i = deliverables.length - 1; i >= 0; i--) trayList.appendChild(delivCard(deliverables[i]));   // newest on top
+  }
+  function addDeliverable(k, text) {
+    const a = staff[k]; if (!a) return;
+    deliverables.push({ name: a.name, role: a.role, dot: a.dot, text: String(text), ts: Date.now() });
+    if (deliverables.length > 80) deliverables = deliverables.slice(-80);
+    saveDeliverables(); renderTray(); trayList.scrollTop = 0;
+  }
+  function exportTray() {
+    if (!deliverables.length) { setStatus('Belum ada hasil untuk di-export, bos.'); return; }
+    const body = deliverables.map(d => `## ${d.name} · ${d.role}  (${fmtTime(d.ts)})\n\n${d.text}\n`).join('\n---\n\n');
+    const md = `# Hasil Kerja — Mind Office\n_Dijana ${new Date().toLocaleString()}_\n\n${body}`;
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = 'mind-office-hasil.md'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setStatus('Hasil kerja di-export sebagai mind-office-hasil.md 📄');
+  }
+  document.getElementById('tray-export').addEventListener('click', exportTray);
+  document.getElementById('tray-clear').addEventListener('click', () => {
+    if (!deliverables.length) return;
+    if (window.confirm('Kosongkan semua hasil kerja? Tak boleh undo.')) { deliverables = []; saveDeliverables(); renderTray(); }
+  });
+  renderTray();
+
   // =====================================================================
   //  LLM BRAIN — works with Gemini (Google AI Studio) OR OpenRouter.
   //  Provider is auto-detected from the key shape. The key is NEVER
@@ -1275,7 +1368,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     // Staff replies live ONLY over the head now — the chat box is the boss's own space.
     const deliver = (reply, ephemeral) => {
       speakComic(s, a.name, a.dot, reply);              // the comic bubble is the ONLY reply surface
-      if (!ephemeral) remember('model', a.name, reply);
+      if (!ephemeral) { remember('model', a.name, reply); addDeliverable(k, reply); }   // capture the work
       setStat(k, 'dengan kau'); setActive(k, true);
       setStatus(`${a.name} tengah lapor kat kau.`);
       clearTimeout(s.releaseT);
@@ -1342,7 +1435,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       headCue(chair, ca.name, 'think');
       const finish = (reply, ephemeral) => {
         speakComic(chair, ca.name, ca.dot, reply);        // chair speaks over the head only
-        if (!ephemeral) remember('model', ca.name, reply);
+        if (!ephemeral) { remember('model', ca.name, reply); addDeliverable('aiman', reply); }
         setStatus('Mesyuarat tamat — semua kembali bertugas.');
         endMeeting();
       };
