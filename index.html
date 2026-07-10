@@ -312,7 +312,7 @@
 
       <section class="convo">
         <div id="chat">
-          <div class="msg sys"><div class="bub">Suruh apa-apa kerja — research, tulis, analisa. Taip <b>“meeting …”</b> untuk kumpulkan semua staff di meja.</div></div>
+          <div class="msg sys"><div class="bub">Suruh apa-apa kerja, atau sebut nama staff terus (contoh <b>“hafiz, …”</b>). Taip <b>“meeting …”</b> untuk kumpul semua, atau <b>“projek …”</b> untuk pasukan handoff kerja (plan→research→analisa→tulis).</div></div>
         </div>
         <div id="input-row">
           <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
@@ -878,6 +878,13 @@
     return { key: best, score: bs };
   }
   const routeAgent = text => routeKeyword(text).key;
+  // which staff are explicitly named in the message (by their own name)? An explicit
+  // name is the strongest possible routing signal — "hafiz, buat X" must go to Hafiz.
+  function staffMentioned(text) {
+    const found = [];
+    for (const k in staff) if (new RegExp(`\\b${k}\\b`, 'i').test(text)) found.push(k);
+    return found;
+  }
 
   // ---- head cue (small, over the character) — NOT the reading surface ----
   const bubble = document.getElementById('bubble');
@@ -1298,6 +1305,7 @@
 Kau seorang pekerja office yang buat kerja betul (research, tulisan, analisa, perancangan, teknikal). Layan bos macam rakan sekerja yang cekap dan boleh diharap — BUKAN macam pesakit, dan ini BUKAN sesi terapi atau kaunseling.
 Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, terus ke point dan berguna.
 PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan, atau "masalah tersembunyi" melainkan bos sendiri yang minta. Kalau bos tanya soalan biasa atau basa-basi, jawab terus macam colleague biasa. Fokus pada menyiapkan kerja, bukan menganalisis bos.
+IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Hana (Perancang), Hafiz (Jurutera/Tekno).
 Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.`;
   const PERSONA = {
     aiman: `Kau Aiman, Pembantu Am (general assistant) di office ni — orang pertama yang bos jumpa. Kau uruskan soalan am, basa-basi, koordinasi, dan agihkan kerja kepada orang yang betul. Kalau permintaan bos lebih sesuai untuk specialist lain, cadangkan mereka, tapi tetap bantu apa yang boleh.\n${COMMON_RULES}`,
@@ -1472,6 +1480,63 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     setTimeout(() => { meetingBusy = false; }, 6500);
   }
 
+  // =====================================================================
+  //  PROJECT — "projek …" runs the team as a pipeline: each staff picks up
+  //  where the last left off (plan → research → analyse → write), so the
+  //  multi-agent office actually does something one chatbot can't.
+  // =====================================================================
+  const PROJECT_RE = /\bprojek\b|\bproject\b/i;
+  const projectTopic = t => t.replace(/^\s*(buat\s+)?(projek|project)\b[\s:,\-–]*/i, '').trim();
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  // each stage: who works, and how to brief them given the work so far
+  const PROJECT_PIPELINE = [
+    { k: 'hana',   brief: (topic, ctx) => `PROJEK: "${topic}". Sebagai Perancang, pecahkan projek ni jadi 3-4 langkah ringkas + apa yang paling perlu difokus. Ringkas & padat.` },
+    { k: 'meera',  brief: (topic, ctx) => `PROJEK: "${topic}".\nPelan pasukan setakat ni:\n${ctx}\nSebagai Penyelidik, senaraikan 3-5 fakta/point penting yang relevan untuk projek ni. Ringkas.` },
+    { k: 'danish', brief: (topic, ctx) => `PROJEK: "${topic}".\nKerja setakat ni:\n${ctx}\nSebagai Penganalisis, bagi analisa ringkas + satu cadangan/keputusan yang jelas. Ringkas.` },
+    { k: 'wei',    brief: (topic, ctx) => `PROJEK: "${topic}".\nKerja setakat ni:\n${ctx}\nSebagai Penulis, siapkan HASIL AKHIR yang kemas dan terus boleh guna (ikut konteks projek — ringkasan/emel/caption/pelan). Ini output akhir projek.` }
+  ];
+  let projectBusy = false;
+  async function runProject(topic) {
+    if (projectBusy) { setStatus('Projek tengah berjalan, bos.'); return; }
+    if (meetingBusy) { setStatus('Tunggu mesyuarat habis dulu, bos.'); return; }
+    if (!AI.key) { addMsg('', '🚀 Mod Projek perlukan otak AI — tampal API key di butang gear (⚙️) dulu.', 'meet'); return; }
+    if (secsLeft() > 0) { tickCooldown(); return; }
+    projectBusy = true;
+    hideComic();
+    addMsg('', `🚀 Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`, 'meet');
+    let ctx = '(belum ada)';
+    for (let i = 0; i < PROJECT_PIPELINE.length; i++) {
+      const stage = PROJECT_PIPELINE[i], k = stage.k, a = staff[k], s = sprites[k];
+      s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
+      setStat(k, `projek ${i + 1}/${PROJECT_PIPELINE.length} →`); setActive(k, true);
+      setStatus(`${a.name} tengah buat bahagian dia… (${i + 1}/${PROJECT_PIPELINE.length})`);
+      const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
+      await sleep(dur * 1000 + 150);
+      setStat(k, 'berfikir…'); headCue(s, a.name, 'think');
+      let out;
+      try {
+        out = await gemini(PERSONA[k] + '\n' + stage.brief(topic, ctx), [{ role: 'user', parts: [{ text: topic || 'projek' }] }], 420, 16000);
+      } catch (e) {
+        noteRateLimit(e);
+        const info = aiTrouble(e); speakComic(s, a.name, a.dot, info.msg);
+        addMsg('', `⚠️ Projek terhenti di ${a.name} — ${info.hint}`, 'meet');
+        setActive(k, false); s.busy = false; scheduleWander(k); projectBusy = false;
+        return;
+      }
+      speakComic(s, a.name, a.dot, out);
+      remember('model', a.name, out);
+      addDeliverable(k, out);
+      ctx = (ctx === '(belum ada)' ? '' : ctx + '\n\n') + `[${a.role} — ${a.name}] ${out}`;
+      if (ctx.length > 1400) ctx = ctx.slice(-1400);
+      setStat(k, 'siap bahagian');
+      await sleep(Math.max(3600, Math.min(9000, out.length * 42)));
+      setActive(k, false); s.busy = false; scheduleWander(k);
+    }
+    addMsg('', `✅ Projek siap — semua bahagian ada dalam Hasil Kerja di bawah.`, 'meet');
+    setStatus('Projek tamat. Hasil tersimpan di Dulang Hasil. 📥');
+    projectBusy = false;
+  }
+
   async function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     const usingAI = !!AI.key;
@@ -1481,13 +1546,18 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     i.value = '';
     addMsg('Kau', t, 'you');
     remember('user', 'Kau', t);
+    // "projek …" runs the whole team as a pipeline (research → analyse → write)
+    if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
     // "meeting …" gathers the whole team at the table instead of summoning one staff
     if (MEETING_RE.test(t)) { callMeeting(meetingTopic(t)); return; }
     let k;
+    // an explicitly NAMED staff is the strongest signal — route straight to them
+    const named = staffMentioned(t);
+    const kw = routeKeyword(t);
+    if (named.length === 1) k = named[0];
     // a clear keyword hit is routed for free — only spend a Gemini call on the
     // router when the message is ambiguous (keeps free-tier quota for replies)
-    const kw = routeKeyword(t);
-    if (kw.score > 0) k = kw.key;
+    else if (kw.score > 0) k = kw.key;
     else if (usingAI) {
       try { k = await routeLLM(t); }
       catch (e) {
