@@ -212,7 +212,7 @@
     padding: 11px 14px; border-radius: 15px; font-size: 14.5px; line-height: 1.55;
     font-family: 'Fraunces', Georgia, serif; white-space: pre-wrap; word-wrap: break-word;
   }
-  .msg.you { align-self: flex-end; align-items: flex-end; }
+  .msg.you { align-self: flex-end; align-items: flex-end; animation: none; }   /* your sent message appears instantly, no send animation */
   .msg.you .bub { background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink); border-bottom-right-radius: 5px; font-family: 'Nunito', sans-serif; font-weight: 600; box-shadow: 0 10px 22px -12px var(--accent); }
   .msg.staff { align-self: flex-start; }
   .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 5px; border-left: 3px solid var(--dotc, var(--accent)); box-shadow: 0 8px 18px -14px #000; }
@@ -896,8 +896,10 @@
     const halfW = comic.offsetWidth / 2 + 8;
     let x = p.x * currentScale;
     x = Math.max(halfW, Math.min(stageW - halfW, x));
-    const y = (p.y - SPR_H - 8) * currentScale;
-    comic.style.left = x + 'px'; comic.style.top = Math.max(6, y) + 'px';
+    // sit the bubble WELL above the head — `top` is the bubble's bottom edge, the tail
+    // drops ~15px more, so lift it clear of the sprite so it never covers the character
+    const headTop = (p.y - SPR_H) * currentScale;
+    comic.style.left = x + 'px'; comic.style.top = Math.max(6, headTop - 32) + 'px';
   }
   // show `text` as one or more comic panels over the sprite; resolves when finished
   function speakComic(sprite, name, dotColor, text) {
@@ -1268,13 +1270,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     moveSpot(MEET.gx, MEET.gy);
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
-    let typingBub = null;
-    // ephemeral = a diagnostic / demo line, shown in the chat but NEVER written to
-    // memory (or the model reads it back and roleplays about broken API keys)
+    // ephemeral = a diagnostic / demo line, shown over the head but NEVER written to
+    // memory (or the model reads it back and roleplays about broken API keys).
+    // Staff replies live ONLY over the head now — the chat box is the boss's own space.
     const deliver = (reply, ephemeral) => {
-      if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
-      speakComic(s, a.name, a.dot, reply);              // the comic bubble is the star
-      addMsg(a.name, reply, 'staff', a.dot);            // chat panel keeps the full transcript
+      speakComic(s, a.name, a.dot, reply);              // the comic bubble is the ONLY reply surface
       if (!ephemeral) remember('model', a.name, reply);
       setStat(k, 'dengan kau'); setActive(k, true);
       setStatus(`${a.name} tengah lapor kat kau.`);
@@ -1285,9 +1285,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
-      headCue(s, a.name, 'think');
-      typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot);
-      typingBub.classList.add('typing');
+      headCue(s, a.name, 'think');                       // thinking shown over the head, not in chat
       // real AI reply -> remembered; demo canned reply -> ephemeral
       replyPromise.then(reply => deliver(reply, !usingAI)).catch(err => {
         if (usingAI) {
@@ -1342,11 +1340,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     const runChair = async () => {
       const chair = sprites.aiman, ca = staff.aiman;
       headCue(chair, ca.name, 'think');
-      const typing = addMsg(ca.name, 'sedang menaip…', 'staff', ca.dot); typing.classList.add('typing');
       const finish = (reply, ephemeral) => {
-        if (typing.parentElement) typing.parentElement.remove();
-        speakComic(chair, ca.name, ca.dot, reply);
-        addMsg(ca.name, reply, 'staff', ca.dot);
+        speakComic(chair, ca.name, ca.dot, reply);        // chair speaks over the head only
         if (!ephemeral) remember('model', ca.name, reply);
         setStatus('Mesyuarat tamat — semua kembali bertugas.');
         endMeeting();
