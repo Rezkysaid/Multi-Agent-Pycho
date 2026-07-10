@@ -823,14 +823,22 @@
     set key(v) { try { v ? localStorage.setItem('mo_gemini_key', v) : localStorage.removeItem('mo_gemini_key'); } catch {} },
     get model() { try { return localStorage.getItem('mo_llm_model') || ''; } catch { return ''; } },
     set model(v) { try { v ? localStorage.setItem('mo_llm_model', v) : localStorage.removeItem('mo_llm_model'); } catch {} },
-    // OpenRouter keys look like "sk-or-v1-..."; Google AI Studio keys like "AIza...".
-    get provider() { return this.key.startsWith('sk-or-') ? 'openrouter' : 'gemini'; },
+    // Key shapes: OpenRouter "sk-or-v1-...", DeepSeek "sk-..." (but not sk-or-),
+    // Google AI Studio "AIza...".
+    get provider() {
+      const k = this.key;
+      if (k.startsWith('sk-or-')) return 'openrouter';
+      if (k.startsWith('sk-')) return 'deepseek';
+      return 'gemini';
+    },
     // 2.0-flash first: its free-tier daily quota is far more generous than 2.5-flash's,
     // and each model has its own separate bucket, so trying 2.5 second costs nothing.
     // OpenRouter: a chain of free (":free") models, tried in order until one answers.
+    // DeepSeek: deepseek-chat (points to the latest V3 chat model).
     DEFAULT_MODELS: {
       gemini: ['gemini-2.0-flash', 'gemini-2.5-flash'],
-      openrouter: ['deepseek/deepseek-chat-v3-0324:free', 'meta-llama/llama-3.3-70b-instruct:free', 'google/gemini-2.0-flash-exp:free']
+      openrouter: ['deepseek/deepseek-chat-v3-0324:free', 'meta-llama/llama-3.3-70b-instruct:free', 'google/gemini-2.0-flash-exp:free'],
+      deepseek: ['deepseek-chat']
     },
     get models() {
       const d = this.DEFAULT_MODELS[this.provider];
@@ -838,7 +846,9 @@
       return this.model ? [this.model, ...d.filter(m => m !== this.model)] : d;
     }
   };
-  const PROVIDER_LABEL = { gemini: 'Gemini', openrouter: 'OpenRouter' };
+  const PROVIDER_LABEL = { gemini: 'Gemini', openrouter: 'OpenRouter', deepseek: 'DeepSeek' };
+  // providers that speak the OpenAI chat/completions dialect
+  const OPENAI_COMPAT = new Set(['openrouter', 'deepseek']);
   const aiBtn = document.getElementById('ai-btn'), aiState = document.getElementById('ai-state');
   function refreshAiBadge() {
     const on = !!AI.key;
@@ -849,15 +859,19 @@
     const cur = AI.key;
     const v = window.prompt(cur
       ? 'API key aktif (' + PROVIDER_LABEL[AI.provider] + '). Tampal key baru untuk tukar, atau kosongkan & OK untuk buang (kembali ke mod demo).'
-      : 'Tampal API key kau — sokong DUA jenis:\n• Google Gemini (dari aistudio.google.com, bermula "AIza…")\n• OpenRouter (dari openrouter.ai/keys, bermula "sk-or-…")\n\nApp kesan jenis key secara automatik. Key disimpan dalam pelayar peranti ni sahaja.', cur);
+      : 'Tampal API key kau — sokong TIGA jenis:\n• Google Gemini (aistudio.google.com, bermula "AIza…")\n• DeepSeek (platform.deepseek.com, bermula "sk-…")\n• OpenRouter (openrouter.ai/keys, bermula "sk-or-…")\n\nApp kesan jenis key secara automatik. Key disimpan dalam pelayar peranti ni sahaja.', cur);
     if (v === null) return;
     AI.key = v.trim();
-    // OpenRouter: let the boss pick a model (any :free model works). Blank = default chain.
-    if (AI.key && AI.provider === 'openrouter') {
+    const prov = AI.provider;
+    // OpenRouter / DeepSeek: let the boss pick a specific model. Blank = default.
+    if (AI.key && prov === 'openrouter') {
       const m = window.prompt('Model OpenRouter (pilihan) — kosongkan untuk guna model percuma default.\nContoh: deepseek/deepseek-chat-v3-0324:free', AI.model || AI.DEFAULT_MODELS.openrouter[0]);
       if (m !== null) AI.model = m.trim();
-    } else if (AI.provider === 'gemini') {
-      AI.model = '';   // Gemini uses its own default chain; clear any OpenRouter override
+    } else if (AI.key && prov === 'deepseek') {
+      const m = window.prompt('Model DeepSeek (pilihan) — kosongkan untuk guna deepseek-chat.\ndeepseek-chat = pantas & biasa · deepseek-reasoner = model reasoning (lebih lambat)', AI.model || 'deepseek-chat');
+      if (m !== null) AI.model = m.trim();
+    } else if (prov === 'gemini') {
+      AI.model = '';   // Gemini uses its own default chain; clear any override
     }
     refreshAiBadge();
     setStatus(AI.key ? ('Otak ' + PROVIDER_LABEL[AI.provider] + ' dipasang. Staff kau kini berfikir sendiri.') : 'Mod demo — jawapan contoh sahaja.');
@@ -905,23 +919,23 @@
     return AI.model ? [AI.model, ...base.filter(m => m !== AI.model)].slice(0, 6) : base;
   }
 
-  // build the provider-specific request. Gemini and OpenRouter speak different
-  // protocols (endpoint, auth, body shape), so the shared `contents` array (in
-  // Gemini's {role,parts[]} form) is translated here for OpenRouter.
+  // build the provider-specific request. Gemini speaks its own protocol; OpenRouter
+  // and DeepSeek both speak the OpenAI chat/completions dialect, so the shared
+  // `contents` array (in Gemini's {role,parts[]} form) is translated for them.
   function buildRequest(provider, model, systemText, contents, maxTokens) {
-    if (provider === 'openrouter') {
+    if (OPENAI_COMPAT.has(provider)) {
       const messages = [{ role: 'system', content: systemText }].concat(
         contents.map(c => ({
           role: c.role === 'model' ? 'assistant' : 'user',
           content: (c.parts || []).map(p => p.text).join('')
         }))
       );
-      return {
-        url: 'https://openrouter.ai/api/v1/chat/completions',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key,
-                   'HTTP-Referer': location.origin, 'X-Title': 'Mind Office' },
-        body: JSON.stringify({ model, messages, max_tokens: maxTokens || 500, temperature: 0.8 })
-      };
+      const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key };
+      if (provider === 'openrouter') { headers['HTTP-Referer'] = location.origin; headers['X-Title'] = 'Mind Office'; }
+      const url = provider === 'deepseek'
+        ? 'https://api.deepseek.com/chat/completions'
+        : 'https://openrouter.ai/api/v1/chat/completions';
+      return { url, headers, body: JSON.stringify({ model, messages, max_tokens: maxTokens || 500, temperature: 0.8 }) };
     }
     // Gemini. thinkingBudget:0 stops 2.5-flash spending the whole token budget on
     // internal reasoning (that cut answers off). Only the 2.5 series accepts it —
@@ -935,7 +949,7 @@
     };
   }
   function extractReply(provider, j) {
-    return provider === 'openrouter'
+    return OPENAI_COMPAT.has(provider)
       ? (j.choices?.[0]?.message?.content || '')
       : (j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '');
   }
@@ -998,7 +1012,12 @@
   function aiTrouble(err) {
     const m = String((err && err.message) || err), d = String((err && err.detail) || '').toLowerCase();
     const P = PROVIDER_LABEL[AI.provider] || 'AI';
-    const keyPage = AI.provider === 'openrouter' ? 'openrouter.ai/keys' : 'aistudio.google.com';
+    const keyPage = AI.provider === 'openrouter' ? 'openrouter.ai/keys'
+      : AI.provider === 'deepseek' ? 'platform.deepseek.com'
+      : 'aistudio.google.com';
+    // DeepSeek/OpenRouter return 402 when the account balance runs out
+    if (m === 'http-402' || d.includes('insufficient balance') || d.includes('insufficient_quota'))
+      return { msg: `Bos, baki akaun ${P} kau dah habis. Top up di ${keyPage} (billing), lepas tu terus boleh guna balik.`, hint: `Baki ${P} habis — top up di ${keyPage}.` };
     if (m === 'http-400' && (d.includes('api key') || d.includes('api_key') || d.includes('invalid')) || m === 'http-401' || m === 'http-403')
       return { msg: `Bos, API key ${P} ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari ${keyPage}.`, hint: `API key ${P} tak sah — kemas kini di butang gear (⚙️).` };
     if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota') || d.includes('rate')) {
