@@ -366,6 +366,7 @@
       </section>
 
       <section class="convo">
+        <div id="chat"></div>
         <div class="composer">
           <div class="composer-label">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
@@ -1060,10 +1061,10 @@
     if (mode === 'break' && mins > 0) breakTimer = setTimeout(() => { setOfficeMode('work'); announceMode('work'); }, mins * 60000);
   }
   function announceMode(mode, mins) {
-    const a = staff.aiman, s = sprites.aiman;
+    const a = staff.aiman;
     const msg = mode === 'work' ? 'Ok bos, semua balik meja — sambung kerja! 💻'
       : (mins ? `Rehat ${mins} minit semua, jom relax dulu!` : 'Ok bos, rehat dulu — korang boleh berkeliaran.');
-    if (!s.busy) speakComic(s, a.name, a.dot, msg);
+    addMsg(a.name, msg, 'staff', a.dot);
     setStatus(mode === 'work' ? 'Mod kerja — semua staff di meja masing-masing.' : 'Mod rehat — staff berkeliaran.');
   }
   for (const k in staff) setTimeout(() => goToDesk(k), 400 + Math.random() * 1200);   // start at desks (work mode)
@@ -1175,6 +1176,18 @@
   comic.addEventListener('click', () => { if (comic._advance) comic._advance(); });
 
   const setStatus = t => document.getElementById('status').textContent = t;
+
+  // ---- chat panel — the shared conversation surface (you + staff replies) ----
+  const chat = document.getElementById('chat');
+  function addMsg(who, text, kind, dotColor) {
+    const m = document.createElement('div'); m.className = 'msg ' + (kind || 'staff');
+    if (who) { const w = document.createElement('div'); w.className = 'who'; w.textContent = who; m.appendChild(w); }
+    const bub = document.createElement('div'); bub.className = 'bub'; bub.textContent = text; m.appendChild(bub);
+    if (dotColor) m.style.setProperty('--dotc', dotColor);
+    chat.appendChild(m);
+    chat.scrollTop = chat.scrollHeight;
+    return bub;
+  }
 
   // ---- deliverables tray: capture every GENUINE staff output (not errors/demo),
   //      persist it, and let the boss copy any card or export the lot ----
@@ -1595,22 +1608,25 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     moveSpot(MEET.gx, MEET.gy);
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
-    // ephemeral = a diagnostic / demo line, shown over the head but NEVER written to
-    // memory (or the model reads it back and roleplays about broken API keys).
-    // Staff replies live ONLY over the head now — the chat box is the boss's own space.
+    let typingBub = null;
+    // ephemeral = a diagnostic / demo line, shown in chat but NEVER written to memory
+    // (or the model reads it back and roleplays about broken API keys).
+    // The reply lands in the shared chat section — over-head bubbles were hard to read.
     const deliver = (reply, ephemeral) => {
-      speakComic(s, a.name, a.dot, reply);              // the comic bubble is the ONLY reply surface
+      if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
+      headCue(s, a.name, 'talk');                        // small "talking" cue over the head
+      addMsg(a.name, reply, 'staff', a.dot);             // the reply is read in the chat
       if (!ephemeral) { remember('model', a.name, reply); addDeliverable(k, reply); }   // capture the work
       setStat(k, 'dengan kau'); setActive(k, true);
       setStatus(`${a.name} tengah lapor kat kau.`);
       clearTimeout(s.releaseT);
-      // hold the character in place long enough to read all the comic panels
-      const readMs = Math.max(9000, Math.min(26000, String(reply).length * 62));
+      const readMs = Math.max(9000, Math.min(26000, String(reply).length * 55));
       s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, readMs);
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
-      headCue(s, a.name, 'think');                       // thinking shown over the head, not in chat
+      headCue(s, a.name, 'think');
+      typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typingBub.classList.add('typing');
       // real AI reply -> remembered; demo canned reply -> ephemeral
       replyPromise.then(reply => deliver(reply, !usingAI)).catch(err => {
         if (usingAI) {
@@ -1647,7 +1663,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (meetingBusy) { setStatus('Mesyuarat tengah berjalan, bos.'); return; }
     meetingBusy = true;
     hideBubble();
-    setStatus(`📋 Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff berkumpul di meja…`);
+    addMsg('', `📋 Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff berkumpul di meja…`, 'meet');
+    setStatus('Semua staff berkumpul di meja mesyuarat…');
     const keys = Object.keys(staff);
     keys.forEach((k, i) => {
       const s = sprites[k];
@@ -1667,8 +1684,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     const runChair = async () => {
       const chair = sprites.aiman, ca = staff.aiman;
       headCue(chair, ca.name, 'think');
+      const typing = addMsg(ca.name, 'sedang menaip…', 'staff', ca.dot); typing.classList.add('typing');
       const finish = (reply, ephemeral) => {
-        speakComic(chair, ca.name, ca.dot, reply);        // chair speaks over the head only
+        if (typing.parentElement) typing.parentElement.remove();
+        headCue(chair, ca.name, 'talk');
+        addMsg(ca.name, reply, 'staff', ca.dot);          // chair reports in the chat
         if (!ephemeral) { remember('model', ca.name, reply); addDeliverable('aiman', reply); }
         setStatus('Mesyuarat tamat — semua kembali bertugas.');
         endMeeting();
@@ -1728,8 +1748,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (!AI.key) { setStatus('🚀 Mod Projek perlukan otak AI — tampal API key di butang gear (⚙️) dulu.'); return; }
     if (secsLeft() > 0) { tickCooldown(); return; }
     projectBusy = true;
-    hideComic();
-    setStatus(`🚀 Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`);
+    addMsg('', `🚀 Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`, 'meet');
+    setStatus('Projek bermula — pasukan handoff kerja.');
     let ctx = '(belum ada)';
     for (let i = 0; i < PROJECT_PIPELINE.length; i++) {
       const stage = PROJECT_PIPELINE[i], k = stage.k, a = staff[k], s = sprites[k];
@@ -1739,17 +1759,21 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
       await sleep(dur * 1000 + 150);
       setStat(k, 'berfikir…'); headCue(s, a.name, 'think');
+      const typing = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typing.classList.add('typing');
       let out;
       try {
         out = await gemini(nowContext() + '\n' + PERSONA[k] + '\n' + stage.brief(topic, ctx), [{ role: 'user', parts: [{ text: topic || 'projek' }] }], 420, 16000);
       } catch (e) {
+        if (typing.parentElement) typing.parentElement.remove();
         noteRateLimit(e);
-        const info = aiTrouble(e); speakComic(s, a.name, a.dot, info.msg);
-        setStatus(`⚠️ Projek terhenti di ${a.name} — ${info.hint}`);
+        const info = aiTrouble(e); addMsg(a.name, info.msg, 'staff', a.dot);
+        addMsg('', `⚠️ Projek terhenti di ${a.name} — ${info.hint}`, 'meet');
         setActive(k, false); s.busy = false; releaseStaff(k); projectBusy = false;
         return;
       }
-      speakComic(s, a.name, a.dot, out);
+      if (typing.parentElement) typing.parentElement.remove();
+      headCue(s, a.name, 'talk');
+      addMsg(a.name, out, 'staff', a.dot);
       remember('model', a.name, out);
       addDeliverable(k, out);
       ctx = (ctx === '(belum ada)' ? '' : ctx + '\n\n') + `[${a.role} — ${a.name}] ${out}`;
@@ -1758,7 +1782,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       await sleep(Math.max(3600, Math.min(9000, out.length * 42)));
       setActive(k, false); s.busy = false; releaseStaff(k);
     }
-    setStatus('✅ Projek siap — semua bahagian tersimpan di Dulang Hasil. 📥');
+    addMsg('', '✅ Projek siap — semua bahagian tersimpan di Dulang Hasil.', 'meet');
+    setStatus('Projek tamat. Hasil di Dulang Hasil. 📥');
     projectBusy = false;
   }
 
@@ -1790,7 +1815,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     // balik sekali cooldown habis without retyping
     if (usingAI && secsLeft() > 0) { tickCooldown(); return; }
     i.value = '';
-    flyToOffice(t);                    // whoosh the message up into the office (the only "sent" feedback)
+    flyToOffice(t);                    // whoosh the message up into the office
+    addMsg('Kau', t, 'you');           // and log it in the shared chat
     remember('user', 'Kau', t);
     // "projek …" runs the whole team as a pipeline (research → analyse → write)
     if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
