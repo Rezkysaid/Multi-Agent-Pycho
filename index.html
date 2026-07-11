@@ -349,7 +349,6 @@
       </section>
 
       <section class="convo">
-        <div id="chat"></div>
         <div class="composer">
           <div class="composer-label">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
@@ -1013,17 +1012,6 @@
   function hideComic() { comicSeq++; clearTimeout(comicT); comic.hidden = true; }
   comic.addEventListener('click', () => { if (comic._advance) comic._advance(); });
 
-  // ---- chat panel — the real conversation surface ----
-  const chat = document.getElementById('chat');
-  function addMsg(who, text, kind, dotColor) {
-    const m = document.createElement('div'); m.className = 'msg ' + (kind || 'staff');
-    if (who) { const w = document.createElement('div'); w.className = 'who'; w.textContent = who; m.appendChild(w); }
-    const bub = document.createElement('div'); bub.className = 'bub'; bub.textContent = text; m.appendChild(bub);
-    if (dotColor) m.style.setProperty('--dotc', dotColor);
-    chat.appendChild(m);
-    chat.scrollTop = chat.scrollHeight;
-    return bub;
-  }
   const setStatus = t => document.getElementById('status').textContent = t;
 
   // ---- deliverables tray: capture every GENUINE staff output (not errors/demo),
@@ -1465,8 +1453,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (meetingBusy) { setStatus('Mesyuarat tengah berjalan, bos.'); return; }
     meetingBusy = true;
     hideBubble();
-    addMsg('', `📋 Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff menuju ke meja…`, 'meet');
-    setStatus('Semua staff berkumpul di meja mesyuarat…');
+    setStatus(`📋 Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff berkumpul di meja…`);
     const keys = Object.keys(staff);
     keys.forEach((k, i) => {
       const s = sprites[k];
@@ -1544,11 +1531,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   async function runProject(topic) {
     if (projectBusy) { setStatus('Projek tengah berjalan, bos.'); return; }
     if (meetingBusy) { setStatus('Tunggu mesyuarat habis dulu, bos.'); return; }
-    if (!AI.key) { addMsg('', '🚀 Mod Projek perlukan otak AI — tampal API key di butang gear (⚙️) dulu.', 'meet'); return; }
+    if (!AI.key) { setStatus('🚀 Mod Projek perlukan otak AI — tampal API key di butang gear (⚙️) dulu.'); return; }
     if (secsLeft() > 0) { tickCooldown(); return; }
     projectBusy = true;
     hideComic();
-    addMsg('', `🚀 Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`, 'meet');
+    setStatus(`🚀 Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`);
     let ctx = '(belum ada)';
     for (let i = 0; i < PROJECT_PIPELINE.length; i++) {
       const stage = PROJECT_PIPELINE[i], k = stage.k, a = staff[k], s = sprites[k];
@@ -1564,7 +1551,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       } catch (e) {
         noteRateLimit(e);
         const info = aiTrouble(e); speakComic(s, a.name, a.dot, info.msg);
-        addMsg('', `⚠️ Projek terhenti di ${a.name} — ${info.hint}`, 'meet');
+        setStatus(`⚠️ Projek terhenti di ${a.name} — ${info.hint}`);
         setActive(k, false); s.busy = false; scheduleWander(k); projectBusy = false;
         return;
       }
@@ -1577,8 +1564,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       await sleep(Math.max(3600, Math.min(9000, out.length * 42)));
       setActive(k, false); s.busy = false; scheduleWander(k);
     }
-    addMsg('', `✅ Projek siap — semua bahagian ada dalam Hasil Kerja di bawah.`, 'meet');
-    setStatus('Projek tamat. Hasil tersimpan di Dulang Hasil. 📥');
+    setStatus('✅ Projek siap — semua bahagian tersimpan di Dulang Hasil. 📥');
     projectBusy = false;
   }
 
@@ -1610,8 +1596,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     // balik sekali cooldown habis without retyping
     if (usingAI && secsLeft() > 0) { tickCooldown(); return; }
     i.value = '';
-    flyToOffice(t);                    // whoosh the message up into the office
-    addMsg('Kau', t, 'you');
+    flyToOffice(t);                    // whoosh the message up into the office (the only "sent" feedback)
     remember('user', 'Kau', t);
     // "projek …" runs the whole team as a pipeline (research → analyse → write)
     if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
