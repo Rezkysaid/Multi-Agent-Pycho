@@ -1339,7 +1339,17 @@ Kau seorang pekerja office yang buat kerja betul (research, tulisan, analisa, pe
 Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, terus ke point dan berguna.
 PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan, atau "masalah tersembunyi" melainkan bos sendiri yang minta. Kalau bos tanya soalan biasa atau basa-basi, jawab terus macam colleague biasa. Fokus pada menyiapkan kerja, bukan menganalisis bos.
 IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Hana (Perancang), Hafiz (Jurutera/Tekno).
-Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.`;
+Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.
+REALITI (penting): Kau TIADA akses internet langsung — kau tak boleh melayari web atau tengok berita/harga terkini secara live. "Research" kau bermakna guna pengetahuan am yang kau dah tahu (ada had pengetahuan/cutoff), bukan carian internet masa nyata. Jadi untuk apa-apa yang mungkin dah berubah (harga, berita, statistik terkini), jujur beritahu ia berdasarkan pengetahuan am kau dan cadangkan bos sahkan sumber terkini. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.`;
+  // real device date/time, injected into every persona call so staff answer
+  // "hari ni hari apa / pukul berapa" correctly instead of hallucinating
+  function nowContext() {
+    const d = new Date();
+    const hari = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'][d.getDay()];
+    const bulan = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'][d.getMonth()];
+    const jj = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    return `MAKLUMAT MASA SEBENAR (guna untuk sebarang soalan hari/tarikh/masa — JANGAN teka): Sekarang hari ${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}, pukul ${jj}:${mm} (waktu peranti bos).`;
+  }
   const PERSONA = {
     aiman: `Kau Aiman, Pembantu Am (general assistant) di office ni — orang pertama yang bos jumpa. Kau uruskan soalan am, basa-basi, koordinasi, dan agihkan kerja kepada orang yang betul. Kalau permintaan bos lebih sesuai untuk specialist lain, cadangkan mereka, tapi tetap bantu apa yang boleh.\n${COMMON_RULES}`,
     meera: `Kau Meera, Penyelidik (research) di office ni. Kerja kau cari maklumat, fakta, data, dan ringkaskan jadi point yang jelas. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
@@ -1367,7 +1377,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }
   async function specialistLLM(k, text) {
     const contents = [...historyContents(), { role: 'user', parts: [{ text }] }];
-    return gemini(PERSONA[k], contents, 500, 16000);
+    return gemini(nowContext() + '\n' + PERSONA[k], contents, 500, 16000);
   }
 
   // ---- free-tier rate-limit cooldown ----
@@ -1483,7 +1493,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
         const prompt = `[MESYUARAT PASUKAN] Kau Aiman, pengerusi. Topik: ${topic || '(bos tak nyatakan topik — tanya apa agenda)'}. `
           + `Sebagai pengerusi, bagi ringkasan SANGAT pendek (2-3 ayat): apa pasukan akan buat dan siapa buat apa (sebut nama staff yang relevan: Meera research, Wei tulis, Danish analisa, Hana plan, Hafiz tekno). Santai, macam habis mesyuarat betul.`;
         try {
-          const out = await gemini(PERSONA.aiman + '\n' + prompt, [{ role: 'user', parts: [{ text: topic || 'Apa agenda kita hari ni?' }] }], 300, 16000);
+          const out = await gemini(nowContext() + '\n' + PERSONA.aiman + '\n' + prompt, [{ role: 'user', parts: [{ text: topic || 'Apa agenda kita hari ni?' }] }], 300, 16000);
           finish(out, false);
         } catch (e) {
           noteRateLimit(e); finish(aiTrouble(e).msg, true);
@@ -1547,7 +1557,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       setStat(k, 'berfikir…'); headCue(s, a.name, 'think');
       let out;
       try {
-        out = await gemini(PERSONA[k] + '\n' + stage.brief(topic, ctx), [{ role: 'user', parts: [{ text: topic || 'projek' }] }], 420, 16000);
+        out = await gemini(nowContext() + '\n' + PERSONA[k] + '\n' + stage.brief(topic, ctx), [{ role: 'user', parts: [{ text: topic || 'projek' }] }], 420, 16000);
       } catch (e) {
         noteRateLimit(e);
         const info = aiTrouble(e); speakComic(s, a.name, a.dot, info.msg);
