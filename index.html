@@ -729,7 +729,7 @@
     danish:  { name:'DANISH', role:'Penganalisis', outfit:'tailored', kind:'specialist', dot:'#3a5a9c', home:{gx:6.35,gy:5.6},
                keywords:['analisa','analisis','pro','kontra','banding','pilihan','keputusan','angka','kos','untung','risiko','roi','nombor'],
                reply:'Aku tengok datanya dulu bos. Aku boleh bagi pro/kontra dengan cadangan berasaskan angka — hantar je nombornya.' },
-    hana:    { name:'HANA', role:'Perancang', outfit:'knit', kind:'specialist', dot:'#7a5aa0', home:{gx:8.35,gy:5.6},
+    hana:    { name:'KAK SUMI', role:'Perancang', outfit:'knit', kind:'specialist', dot:'#7a5aa0', home:{gx:8.35,gy:5.6}, aka:['sumi','kak sumi'],
                keywords:['plan','rancang','strategi','langkah','matlamat','jadual','timeline','projek','fasa','roadmap','sasaran'],
                reply:'Jom pecahkan bos. Kita set matlamat, pecah jadi langkah kecil, letak timeline — kau target siap bila?' },
     hafiz:   { name:'HAFIZ', role:'Jurutera / Tekno', outfit:'chic', kind:'specialist', dot:'#4a8f88', home:{gx:10.35,gy:5.6},
@@ -926,7 +926,10 @@
   // name is the strongest possible routing signal — "hafiz, buat X" must go to Hafiz.
   function staffMentioned(text) {
     const found = [];
-    for (const k in staff) if (new RegExp(`\\b${k}\\b`, 'i').test(text)) found.push(k);
+    for (const k in staff) {
+      const tokens = [k, ...(staff[k].aka || [])];   // internal key + any display-name aliases
+      if (tokens.some(tok => new RegExp(`\\b${tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) found.push(k);
+    }
     return found;
   }
 
@@ -1338,7 +1341,7 @@
 Kau seorang pekerja office yang buat kerja betul (research, tulisan, analisa, perancangan, teknikal). Layan bos macam rakan sekerja yang cekap dan boleh diharap — BUKAN macam pesakit, dan ini BUKAN sesi terapi atau kaunseling.
 Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, terus ke point dan berguna.
 PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan, atau "masalah tersembunyi" melainkan bos sendiri yang minta. Kalau bos tanya soalan biasa atau basa-basi, jawab terus macam colleague biasa. Fokus pada menyiapkan kerja, bukan menganalisis bos.
-IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Hana (Perancang), Hafiz (Jurutera/Tekno).
+IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Kak Sumi (Perancang), Hafiz (Jurutera/Tekno).
 Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.
 REALITI (penting): Kau TIADA akses internet langsung — kau tak boleh melayari web atau tengok berita/harga terkini secara live. "Research" kau bermakna guna pengetahuan am yang kau dah tahu (ada had pengetahuan/cutoff), bukan carian internet masa nyata. Jadi untuk apa-apa yang mungkin dah berubah (harga, berita, statistik terkini), jujur beritahu ia berdasarkan pengetahuan am kau dan cadangkan bos sahkan sumber terkini. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.`;
   // real device date/time, injected into every persona call so staff answer
@@ -1373,7 +1376,7 @@ REALITI (penting): Kau TIADA akses internet langsung — kau tak boleh melayari 
     meera: `Kau Meera, Penyelidik (research) di office ni. Kerja kau cari maklumat, fakta, data, dan ringkaskan jadi point yang jelas. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
     wei: `Kau Wei, Penulis (copywriter) di office ni. Kerja kau draf emel, caption, artikel, skrip, headline. Tanya nada atau audience kalau perlu, dan bagi draf yang kemas yang terus boleh pakai.\n${COMMON_RULES}`,
     danish: `Kau Danish, Penganalisis (analyst) di office ni. Kerja kau timbang pro/kontra, banding pilihan, dan bagi cadangan berasaskan logik dan angka. Kalau ada data guna data; kalau tak ada, nyatakan andaian kau dengan jelas.\n${COMMON_RULES}`,
-    hana: `Kau Hana, Perancang (strategy/planner) di office ni. Kerja kau pecahkan matlamat besar jadi langkah-langkah kecil dengan timeline dan keutamaan. Bagi pelan yang praktikal dan boleh terus diikut.\n${COMMON_RULES}`,
+    hana: `Kau Kak Sumi, Perancang (strategy/planner) di office ni. Kerja kau pecahkan matlamat besar jadi langkah-langkah kecil dengan timeline dan keutamaan. Bagi pelan yang praktikal dan boleh terus diikut.\n${COMMON_RULES}`,
     hafiz: `Kau Hafiz, Jurutera/Tekno (tech) di office ni. Kerja kau hal teknikal — kod, debug, sistem, tools, automasi. Terangkan dengan mudah, dan bila sesuai bagi contoh kod atau langkah teknikal yang tepat.\n${COMMON_RULES}`
   };
 
@@ -1384,7 +1387,7 @@ REALITI (penting): Kau TIADA akses internet langsung — kau tak boleh melayari 
 - meera: cari maklumat, research, fakta, data, kaji sesuatu
 - wei: tulis atau draf apa-apa — emel, caption, artikel, copy, skrip
 - danish: analisa, banding pilihan, pro/kontra, angka, keputusan berasaskan data
-- hana: rancang, strategi, pecah matlamat jadi langkah, jadual, timeline
+- hana: rancang, strategi, pecah matlamat jadi langkah, jadual, timeline (nama dia Kak Sumi)
 - hafiz: teknikal — kod, debug, app, web, sistem, automasi
 Kalau ragu-ragu atau mesej tu am/basa-basi, pilih aiman.
 Jawab JSON sahaja, contoh: {"agent":"meera"}`;
@@ -1509,7 +1512,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       };
       if (AI.key) {
         const prompt = `[MESYUARAT PASUKAN] Kau Aiman, pengerusi. Topik: ${topic || '(bos tak nyatakan topik — tanya apa agenda)'}. `
-          + `Sebagai pengerusi, bagi ringkasan SANGAT pendek (2-3 ayat): apa pasukan akan buat dan siapa buat apa (sebut nama staff yang relevan: Meera research, Wei tulis, Danish analisa, Hana plan, Hafiz tekno). Santai, macam habis mesyuarat betul.`;
+          + `Sebagai pengerusi, bagi ringkasan SANGAT pendek (2-3 ayat): apa pasukan akan buat dan siapa buat apa (sebut nama staff yang relevan: Meera research, Wei tulis, Danish analisa, Kak Sumi plan, Hafiz tekno). Santai, macam habis mesyuarat betul.`;
         try {
           const out = await gemini(nowContext() + '\n' + PERSONA.aiman + '\n' + prompt, [{ role: 'user', parts: [{ text: topic || 'Apa agenda kita hari ni?' }] }], 300, 16000);
           finish(out, false);
@@ -1518,7 +1521,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
         }
       } else {
         finish(topic
-          ? `Ok semua, pasal “${topic}” — Meera cari data dulu, Danish timbang pro/kontra, Hana susun langkah, Wei siapkan draf. Aku selaras. Jom gerak!`
+          ? `Ok semua, pasal “${topic}” — Meera cari data dulu, Danish timbang pro/kontra, Kak Sumi susun langkah, Wei siapkan draf. Aku selaras. Jom gerak!`
           : `Semua dah kumpul bos. Apa agenda kita? Bagi tajuk, aku agih tugas terus.`, true);
       }
     };
