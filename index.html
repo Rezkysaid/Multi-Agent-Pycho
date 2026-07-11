@@ -624,7 +624,9 @@
     box(gx + 0.06, gy + 0.04, 0.3, 0.07, 14, seatC, false, 13);      // backrest
     solids.push([gx + 0.02, gy + 0.02, gx + 0.4, gy + 0.42]);        // chairs are not walkable
   }
-  // desk: 4 legs + floating top + monitor (with screen) + keyboard, then a chair in front
+  // desk laid out like a reception counter: the CHAIR sits BEHIND the desk, so the
+  // staff face the boss (viewer) across the tabletop; the MONITOR sits on the desk's
+  // FRONT edge with its screen toward the sitter — the viewer sees the monitor's back
   function desk(gx, gy) {
     const TOP = 17, TH = 3.5, deskLeg = { top:'#7a5636', left:'#4f3823', right:'#5f4329' };
     contactShadow(gx, gy, 1.15, 0.62);
@@ -633,16 +635,23 @@
     box(gx + 0.05, gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
     box(gx + 1.0,  gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
     box(gx, gy, 1.15, 0.62, TH, wood, true, TOP);                     // tabletop slab (footprint)
-    box(gx + 0.53, gy + 0.33, 0.08, 0.08, 7, legC, false, TOP + TH);  // monitor stand
-    const mz = box(gx + 0.26, gy + 0.26, 0.62, 0.07, 18, screenC, false, TOP + TH + 5); // bigger monitor panel
-    // glowing screen ON the panel's front face, facing the chair — an obviously-on computer
-    const sb0 = up(project(gx + 0.30, gy + 0.33), TOP + TH + 7), sb1 = up(project(gx + 0.84, gy + 0.33), TOP + TH + 7);
-    const scr = face([up(sb0, 14), up(sb1, 14), sb1, sb0], 'linear-gradient(168deg,#d6ecff 0%,#7db8e8 46%,#2e6ea6 100%)', mz + 2);
-    scr.style.boxShadow = '0 0 8px #7db8e880';
-    box(gx + 0.3,  gy + 0.44, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard
+    box(gx + 0.53, gy + 0.40, 0.08, 0.08, 7, legC, false, TOP + TH);  // monitor stand (front edge)
+    const monBack = { top:'#14161b', left:'#1c2026', right:'#101318' };
+    const mz = box(gx + 0.26, gy + 0.40, 0.62, 0.07, 18, monBack, false, TOP + TH + 5); // monitor, back to the viewer
+    // small power LED on the monitor's back + a soft light-bleed over its top edge,
+    // so the machine still clearly reads as ON even from behind
+    const ledP = project(gx + 0.78, gy + 0.47);
+    const led = document.createElement('div'); led.className = 'deco';
+    Object.assign(led.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 4px #e0894e', left:ledP.x+'px', top:(ledP.y - TOP - TH - 5 - 8)+'px', zIndex: mz + 2 });
+    office.appendChild(led);
+    const glP = project(gx + 0.57, gy + 0.40);
+    const gl = document.createElement('div'); gl.className = 'deco';
+    Object.assign(gl.style, { width:'34px', height:'10px', borderRadius:'50%', background:'radial-gradient(closest-side, rgba(150,200,245,.4), transparent)', left:(glP.x - 17)+'px', top:(glP.y - TOP - TH - 5 - 18 - 8)+'px', zIndex: mz + 2 });
+    office.appendChild(gl);
+    box(gx + 0.32, gy + 0.14, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard on the sitter's side
     box(gx + 0.9,  gy + 0.1,  0.1, 0.1, 4, { top:'#d9694a', left:'#a84a34', right:'#c25a40' }, false, TOP + TH); // coffee mug
     box(gx + 0.06, gy + 0.06, 0.22, 0.14, 1, { top:'#efe7d6', left:'#c9c2b2', right:'#ddd6c6' }, false, TOP + TH); // papers
-    chair(gx + 0.4, gy + 0.82);
+    chair(gx + 0.4, gy - 0.48);                                       // chair BEHIND the desk
   }
   // sofa: seat base + backrest + two armrests + seam
   function sofa(gx, gy, w, d, col) {
@@ -1092,15 +1101,16 @@
   // =====================================================================
   let officeMode = 'work';   // 'work' (at desks) | 'break' (wandering)
   let breakTimer = null;
-  // walking approach spot just behind each staff's own chair…
+  // walking approach spot just behind each staff's own chair (chairs now sit
+  // BEHIND the desks, so the approach corridor runs along the back)…
   const DESK = {
-    aiman:  { gx: 5.6, gy: 3.2 }, meera:  { gx: 7.6, gy: 3.2 }, wei:    { gx: 9.6, gy: 3.2 },
-    danish: { gx: 5.6, gy: 5.7 }, hana:   { gx: 7.6, gy: 5.7 }, hafiz:  { gx: 9.6, gy: 5.7 }
+    aiman:  { gx: 5.6, gy: 1.15 }, meera:  { gx: 7.6, gy: 1.15 }, wei:    { gx: 9.6, gy: 1.15 },
+    danish: { gx: 5.6, gy: 3.65 }, hana:   { gx: 7.6, gy: 3.65 }, hafiz:  { gx: 9.6, gy: 3.65 }
   };
-  // …and the chair seat itself, where they actually SIT (centre of the desk chair)
+  // …and the chair seat itself, where they actually SIT facing the boss across the desk
   const SEAT = {
-    aiman:  { gx: 5.61, gy: 2.95 }, meera:  { gx: 7.61, gy: 2.95 }, wei:    { gx: 9.61, gy: 2.95 },
-    danish: { gx: 5.61, gy: 5.45 }, hana:   { gx: 7.61, gy: 5.45 }, hafiz:  { gx: 9.61, gy: 5.45 }
+    aiman:  { gx: 5.61, gy: 1.65 }, meera:  { gx: 7.61, gy: 1.65 }, wei:    { gx: 9.61, gy: 1.65 },
+    danish: { gx: 5.61, gy: 4.15 }, hana:   { gx: 7.61, gy: 4.15 }, hafiz:  { gx: 9.61, gy: 4.15 }
   };
   const CHAIR_LIFT = 12;     // seat-cushion height: sitting sprites ride this many px up
   const WORK_PHRASES = ['tengah kerja', 'fokus skrin', 'buat report', 'reply emel', 'siapkan tugas', 'kat komputer'];
