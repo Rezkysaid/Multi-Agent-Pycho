@@ -621,8 +621,12 @@
     box(gx + 0.05, gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
     box(gx + 1.0,  gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
     box(gx, gy, 1.15, 0.62, TH, wood, true, TOP);                     // tabletop slab (footprint)
-    box(gx + 0.52, gy + 0.34, 0.06, 0.06, 9, legC, false, TOP + TH);  // monitor stand
-    box(gx + 0.32, gy + 0.28, 0.5, 0.05, 15, screenC, false, TOP + TH); // monitor (screen faces front)
+    box(gx + 0.53, gy + 0.33, 0.08, 0.08, 7, legC, false, TOP + TH);  // monitor stand
+    const mz = box(gx + 0.26, gy + 0.26, 0.62, 0.07, 18, screenC, false, TOP + TH + 5); // bigger monitor panel
+    // glowing screen ON the panel's front face, facing the chair — an obviously-on computer
+    const sb0 = up(project(gx + 0.30, gy + 0.33), TOP + TH + 7), sb1 = up(project(gx + 0.84, gy + 0.33), TOP + TH + 7);
+    const scr = face([up(sb0, 14), up(sb1, 14), sb1, sb0], 'linear-gradient(168deg,#d6ecff 0%,#7db8e8 46%,#2e6ea6 100%)', mz + 2);
+    scr.style.boxShadow = '0 0 8px #7db8e880';
     box(gx + 0.3,  gy + 0.44, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard
     box(gx + 0.9,  gy + 0.1,  0.1, 0.1, 4, { top:'#d9694a', left:'#a84a34', right:'#c25a40' }, false, TOP + TH); // coffee mug
     box(gx + 0.06, gy + 0.06, 0.22, 0.14, 1, { top:'#efe7d6', left:'#c9c2b2', right:'#ddd6c6' }, false, TOP + TH); // papers
@@ -761,10 +765,21 @@
     chic:     ["....JJJJ....","...JJJJJJ...","...JJJAJJ...","...JJAJJJ...","...JAJJJJ...","...AJJJJJ...","...JJJJJJ...","...JJJJJJ...","...jJJJJj...","...TTTTTT..."]
   };
   const LEGSET = { tailored:LEGS_T, knit:LEGS_T, chic:LEGS_T, robe:LEGS_R };
-  function outfitMap(outfit, frame) { return HEAD.concat(TORSO[outfit], LEGSET[outfit][frame]); }
+  // seated-at-desk: BACK view — they face the monitor, so the viewer sees the
+  // back of the head (hair, no face) and the figure drops 4 rows onto the chair,
+  // legs hidden behind the seat. Reads unmistakably as "working at the computer".
+  const BLANK = "............";
+  const HEAD_B = ["....KKKK....","...KKKKKK...","..KHHHHHHK..","..HHHHHHHH..","..HHHHHHHH..","..HHHHHHHH..","...sHHHHs..."];
+  const SIT_T = ["...TTTTTT...", BLANK];
+  const SIT_R = ["..JJJJJJJJ..", BLANK];
+  const backTorso = o => TORSO[o].map(r => r.replace(/[WA]/g, 'J'));   // no collar/shirt detail from behind
+  function outfitMap(outfit, frame) {
+    if (frame === 'sit') return [BLANK, BLANK, BLANK, BLANK].concat(HEAD_B, backTorso(outfit), LEGSET[outfit] === LEGS_R ? SIT_R : SIT_T);
+    return HEAD.concat(TORSO[outfit], LEGSET[outfit][frame]);
+  }
 
   // sanity: every row 12 wide, every map 23 tall (surfaces as a pageerror if broken)
-  for (const o in TORSO) for (const f of ['stand','w1','w2']) {
+  for (const o in TORSO) for (const f of ['stand','w1','w2','sit']) {
     const m = outfitMap(o, f);
     if (m.length !== SPR_ROWS) throw new Error(`sprite ${o}/${f} has ${m.length} rows`);
     m.forEach((r, i) => { if (r.length !== 12) throw new Error(`sprite ${o}/${f} row ${i} width ${r.length}`); });
@@ -793,7 +808,8 @@
     if (!frameCache[key]) frameCache[key] = {
       stand: shadowStr(outfitMap(outfit, 'stand'), skinKey),
       walk1: shadowStr(outfitMap(outfit, 'w1'), skinKey),
-      walk2: shadowStr(outfitMap(outfit, 'w2'), skinKey)
+      walk2: shadowStr(outfitMap(outfit, 'w2'), skinKey),
+      sit:   shadowStr(outfitMap(outfit, 'sit'), skinKey)
     };
     return frameCache[key];
   }
@@ -1035,6 +1051,7 @@
   }
   // public walk: plans an obstacle-free route, chains the legs, returns total duration
   function walk(s, gx, gy) {
+    if (s.sitting) unSit(s);                        // stand up first, wherever they're heading
     gx = Math.max(0.4, Math.min(GRID_X - 0.4, gx)); gy = Math.max(0.4, Math.min(GRID_Y - 0.4, gy));
     const t = isBlocked(gx, gy, BODY_M) ? (n => n ? { gx: n.x, gy: n.y } : { gx, gy })(nearestNode(gx, gy)) : { gx, gy };
     let pts;
@@ -1064,14 +1081,41 @@
   // =====================================================================
   let officeMode = 'work';   // 'work' (at desks) | 'break' (wandering)
   let breakTimer = null;
-  // each staff's own desk seat (in front of their monitor)
+  // walking approach spot just behind each staff's own chair…
   const DESK = {
     aiman:  { gx: 5.6, gy: 3.2 }, meera:  { gx: 7.6, gy: 3.2 }, wei:    { gx: 9.6, gy: 3.2 },
     danish: { gx: 5.6, gy: 5.7 }, hana:   { gx: 7.6, gy: 5.7 }, hafiz:  { gx: 9.6, gy: 5.7 }
   };
-  const WORK_PHRASES = ['tengah kerja', 'fokus laptop', 'buat report', 'reply emel', 'siapkan tugas', 'kat laptop'];
+  // …and the chair seat itself, where they actually SIT (centre of the desk chair)
+  const SEAT = {
+    aiman:  { gx: 5.61, gy: 2.95 }, meera:  { gx: 7.61, gy: 2.95 }, wei:    { gx: 9.61, gy: 2.95 },
+    danish: { gx: 5.61, gy: 5.45 }, hana:   { gx: 7.61, gy: 5.45 }, hafiz:  { gx: 9.61, gy: 5.45 }
+  };
+  const CHAIR_LIFT = 12;     // seat-cushion height: sitting sprites ride this many px up
+  const WORK_PHRASES = ['tengah kerja', 'fokus skrin', 'buat report', 'reply emel', 'siapkan tugas', 'kat komputer'];
 
-  // walk to own desk and stay there (working), facing the monitor
+  // ease onto the chair: short slide from the approach spot, swap to the seated
+  // frame, face the monitor — they now LOOK like they're working, not loitering
+  function sitAt(k, seat) {
+    const s = sprites[k];
+    clearTimeout(s.segT); clearTimeout(s.stopT);
+    s.wrap.classList.remove('walking'); s.isWalking = false;
+    const p = project(seat.gx, seat.gy);
+    s.wrap.style.transition = 'left .38s ease, top .38s ease';
+    s.wrap.style.left = (p.x - SPR_HALF) + 'px';
+    s.wrap.style.top = (p.y - SPR_H - CHAIR_LIFT) + 'px';
+    s.wrap.style.zIndex = Math.round((seat.gx + seat.gy) * 10) + 121;
+    s.gx = seat.gx; s.gy = seat.gy;
+    s.sitting = true;
+    s.px.style.boxShadow = s.frames.sit;
+    s.facing.style.transform = 'scaleX(-1)';                   // face the glowing screen
+  }
+  function unSit(s) {
+    s.sitting = false;
+    s.px.style.boxShadow = s.frames.stand;                     // stands up; walk() animates the rest
+  }
+
+  // walk to own desk, then sit on the chair facing the monitor
   function goToDesk(k) {
     const s = sprites[k]; if (s.busy) return;
     clearTimeout(s.wanderT); clearTimeout(s.arriveT);
@@ -1080,7 +1124,7 @@
     const dur = walk(s, d.gx, d.gy);
     s.arriveT = setTimeout(() => {
       if (s.busy || officeMode !== 'work') return;
-      s.facing.style.transform = 'scaleX(-1)';                 // face the desk
+      sitAt(k, SEAT[k] || d);
       setStat(k, WORK_PHRASES[(Math.random() * WORK_PHRASES.length) | 0]);
     }, dur * 1000 + 150);
   }
