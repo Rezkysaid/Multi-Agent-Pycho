@@ -470,7 +470,8 @@
   wallItem('L', 3.5, 56, 72, 40, { background: '#f3f1ea', border: '3px solid #b7ad9a' },
     '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(90deg,#5b8bd0 0 14px,transparent 14px 30px),repeating-linear-gradient(90deg,#e0894e 6px 16px,transparent 16px 34px);opacity:.5"></div>');
   wallItem('L', 6.8, 54, 40, 34, { background: '#caa84e', border: '3px solid #a4863c' },
-    '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center"><span style="color:#b83f8f;font-size:15px;line-height:1">&#10084;</span></div>');
+    '<div style="position:absolute;inset:5px;background:repeating-linear-gradient(45deg,#f6c9de 0 6px,#efb3ce 6px 12px);display:flex;align-items:center;justify-content:center">'
+    + '<svg viewBox="0 0 24 24" width="17" height="17" xmlns="http://www.w3.org/2000/svg" style="display:block"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#b83f8f"/></svg></div>');
 
   // lighten (+) / darken (-) a hex colour for material shading
   function shade(hex, pct) {
@@ -647,7 +648,7 @@
   Object.assign(cmDot.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 5px #e0894e', left:cmL.x+'px', top:(cmL.y-44)+'px', zIndex:400 });
   office.appendChild(cmDot);
   plant(10.9, 8.5); plant(0.55, 0.45);                                                       // corner greenery
-  wallItem('L', 8.4, 58, 60, 34, { background:'#f4f2ec', border:'3px solid #cbc3b2', borderRadius:'3px' },
+  wallItem('L', 9.35, 54, 54, 32, { background:'#f4f2ec', border:'3px solid #cbc3b2', borderRadius:'3px' },
     '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(0deg,transparent 0 9px,#3a8f8a33 9px 10px);opacity:.9"></div>'
     + '<div style="position:absolute;left:8px;top:8px;width:38%;height:4px;background:#c9463a99;border-radius:2px"></div>'
     + '<div style="position:absolute;left:8px;top:18px;width:55%;height:3px;background:#3a8f8a99;border-radius:2px"></div>');
