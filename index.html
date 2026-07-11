@@ -177,46 +177,37 @@
 
   .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
 
-  /* team rail — swipeable stacked staff-card deck (Tinder style) */
+  /* team rail — swipeable stacked staff-card deck (Tinder style), minimal badge look */
   .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
   .rail-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px 2px; }
   .deck-count { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 18px; padding: 0 7px; border-radius: 9px; background: var(--surface2); color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .5px; }
-  .deck { position: relative; height: 396px; margin: 4px auto 0; max-width: 320px; touch-action: pan-y; }
+  .deck { position: relative; height: 252px; margin: 4px auto 0; max-width: 300px; touch-action: pan-y; }
   .staff-card {
-    position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 384px;
-    border-radius: 20px; padding: 18px; overflow: hidden;
+    position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 224px;
+    border-radius: 16px; padding: 15px 16px 13px; overflow: hidden;
     display: flex; flex-direction: column;
-    background:
-      radial-gradient(130% 90% at 12% -8%, var(--mc, var(--accent)), transparent 52%),
-      linear-gradient(160deg, #2a2015, #16110c 70%);
-    border: 1px solid #ffffff1c;
-    box-shadow: 0 22px 44px -20px #000, inset 0 1px 0 #ffffff26;
+    background: linear-gradient(172deg, var(--surface2), #1d160e 78%);
+    border: 1px solid var(--line); border-top: 3px solid var(--mc, var(--accent));
+    box-shadow: 0 18px 34px -18px #000;
     color: var(--text); cursor: grab; will-change: transform;
     -webkit-user-select: none; user-select: none;
   }
-  .staff-card::after { content: ''; position: absolute; inset: 0; border-radius: 20px; background: linear-gradient(120deg, #ffffff14, transparent 40%); pointer-events: none; }
-  .staff-card.front { cursor: grab; }
   .staff-card.front:active { cursor: grabbing; }
-  .staff-card.active { box-shadow: 0 0 0 2px var(--mc, var(--accent)), 0 22px 46px -16px var(--mc, var(--accent)), inset 0 1px 0 #ffffff26; }
+  .staff-card.active { box-shadow: 0 0 0 1.5px var(--mc, var(--accent)), 0 18px 36px -14px var(--mc, var(--accent)); }
   .staff-card.active .sc-status { color: #fff; font-style: normal; font-weight: 800; }
-  .sc-top { display: flex; align-items: center; justify-content: space-between; }
-  .sc-brand { font-size: 8.5px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #ffffffb0; }
-  .sc-chip { width: 30px; height: 22px; border-radius: 5px; background: linear-gradient(135deg, #f4d38a, #c99a4e); box-shadow: inset 0 0 0 1px #ffffff55, inset 0 -3px 5px -2px #0006; position: relative; }
-  .sc-chip::before { content: ''; position: absolute; inset: 5px 6px; border: 1px solid #00000030; border-radius: 2px; }
+  .sc-head { display: flex; align-items: center; gap: 12px; }
   .sc-face {
-    width: 92px; height: 88px; margin: 14px auto 12px; position: relative; border-radius: 14px; overflow: hidden;
-    background: linear-gradient(165deg, #d3dde5, #aab8c5); box-shadow: inset 0 0 0 1px #0003, inset 0 -8px 14px -8px #0006, 0 6px 14px -8px #000;
+    flex: 0 0 auto; width: 56px; height: 56px; position: relative; border-radius: 12px; overflow: hidden;
+    background: #1a140d; box-shadow: inset 0 0 0 1px var(--line);
   }
-  .sc-face .px { position: absolute; left: 50%; top: 20px; margin-left: -24px; width: 4px; height: 4px; image-rendering: pixelated; }
-  .sc-name { text-align: center; font-size: 20px; font-weight: 800; letter-spacing: .4px; color: #fff; }
-  .sc-role { text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--mc, var(--accent)); margin-top: 2px; }
-  .sc-bio { margin: 11px 0 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.5; color: #d9cebd; text-align: center; }
-  .sc-skills { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
-  .sc-skills span { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700; color: #efe6d6; background: #ffffff14; border: 1px solid #ffffff1f; border-radius: 999px; padding: 3px 9px; }
-  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #ffffff18; }
+  .sc-face .px { position: absolute; left: 4px; top: 8px; width: 4px; height: 4px; image-rendering: pixelated; }
+  .sc-name { font-size: 17px; font-weight: 800; letter-spacing: .3px; color: #fff; line-height: 1.15; }
+  .sc-role { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--mc, var(--accent)); margin-top: 3px; }
+  .sc-bio { margin: 12px 0 0; font-family: 'Nunito', sans-serif; font-size: 12px; line-height: 1.55; color: var(--muted); }
+  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid #ffffff10; }
   .sc-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'Nunito', sans-serif; font-size: 11px; font-style: italic; color: #b9d8c4; }
   .sc-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 7px var(--mc, var(--accent)); }
-  .sc-id { font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #ffffff70; }
+  .sc-id { font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #ffffff55; }
   .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
   .deck-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -249,6 +240,67 @@
   .msg.meet { align-self: center; max-width: 94%; text-align: center; }
   .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
+
+  /* empty room-chat watermark — sways gently, slips aside when the boss types */
+  .chat-empty {
+    margin: auto; padding: 18px 0; text-align: center; pointer-events: none;
+    transition: opacity .7s ease, transform .7s cubic-bezier(.4,0,.2,1);
+  }
+  .chat-empty span {
+    display: inline-block; font-family: 'Fraunces', Georgia, serif; font-style: italic;
+    font-size: 21px; font-weight: 500; letter-spacing: .5px; color: #6e604e;
+    animation: chatSway 4.2s ease-in-out infinite; transform-origin: 50% 120%;
+  }
+  @keyframes chatSway { 0%,100% { transform: rotate(-1.6deg) translateY(0); } 50% { transform: rotate(1.6deg) translateY(-3px); } }
+  .chat-empty.bye { opacity: 0; transform: translateX(72px); }
+  .chat-empty[hidden] { display: none; }
+
+  /* task queue — live progress of what the office is working on */
+  .taskq { background: linear-gradient(180deg, var(--surface), #1a130c); border: 1px solid var(--line); border-radius: 14px; padding: 12px 15px 8px; box-shadow: 0 12px 30px -22px #000; }
+  .taskq[hidden] { display: none; }
+  .taskq-title { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+  .taskq-title svg { width: 12px; height: 12px; color: var(--accent); }
+  .tq { display: flex; align-items: center; gap: 10px; padding: 8px 0; transition: opacity .6s ease; }
+  .tq + .tq { border-top: 1px dashed #ffffff0e; }
+  .tq.gone { opacity: 0; }
+  .tq-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--tqc, var(--accent)); box-shadow: 0 0 7px var(--tqc, var(--accent)); }
+  .tq-label { flex: 1; min-width: 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tq-bar { flex: 0 0 88px; height: 5px; border-radius: 3px; background: #ffffff12; overflow: hidden; }
+  .tq-fill { height: 100%; width: 0%; border-radius: 3px; background: var(--tqc, var(--accent)); transition: width .55s ease; }
+  .tq-pct { flex: 0 0 58px; text-align: right; font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tq.done .tq-fill, .tq.done .tq-dot { background: var(--sage); box-shadow: none; }
+  .tq.done .tq-pct { color: var(--sage); }
+  .tq.fail .tq-fill, .tq.fail .tq-dot { background: #c2563e; box-shadow: none; }
+  .tq.fail .tq-pct { color: #d98b76; }
+
+  /* real-file chip + download on a deliverable card */
+  .deliv-file { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+  .deliv-file svg { width: 13px; height: 13px; color: var(--dc, var(--accent)); }
+  .deliv-dl { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent-ink); background: linear-gradient(135deg, #efac6c, var(--accent)); border: none; border-radius: 8px; padding: 5px 12px; margin-right: 6px; cursor: pointer; transition: filter .15s ease; }
+  .deliv-dl:hover { filter: brightness(1.07); }
+
+  /* dragging a staff into the meeting room */
+  .sprite.grabbable { pointer-events: auto; cursor: grab; touch-action: none; }
+  .drag-ghost {
+    position: fixed; z-index: 300; pointer-events: none; transform: translate(-50%, -130%);
+    padding: 5px 11px; border-radius: 999px; background: var(--surface2); border: 1.5px solid var(--gc, var(--accent));
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .4px; white-space: nowrap;
+    box-shadow: 0 10px 24px -8px #000;
+  }
+  #roomzone { position: absolute; pointer-events: none; border: 2px dashed #e0894e88; border-radius: 50%; background: rgba(224,137,78,.08); z-index: 48; transition: background .2s ease, border-color .2s ease; }
+  #roomzone[hidden] { display: none; }
+  #roomzone.hot { background: rgba(224,137,78,.22); border-color: var(--accent); }
+  #roomzone .rz-label { position: absolute; left: 50%; top: -20px; transform: translateX(-50%); font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); white-space: nowrap; text-shadow: 0 1px 3px #000; }
+
+  /* printed report — rises from the printer, carried, lands on the boss desk */
+  .paper { position: absolute; width: 11px; height: 14px; background: #f6f1e4; border: 1px solid #b9b2a2; border-radius: 1px; box-shadow: 0 2px 5px #0006; z-index: 400; }
+  .paper::before { content: ''; position: absolute; left: 2px; right: 2px; top: 3px; height: 1px; background: #a89f8d; box-shadow: 0 3px 0 #a89f8d, 0 6px 0 #a89f8d; }
+  .paper.rise { animation: paperRise 1s ease-out both; }
+  @keyframes paperRise { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(-8px); opacity: 1; } }
+  .paper.carry { animation: paperCarry .9s ease-in-out infinite alternate; }
+  @keyframes paperCarry { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+  .paper.land { animation: paperLand .45s cubic-bezier(.2,1.4,.4,1) both; }
+  @keyframes paperLand { from { transform: scale(1.7) translateY(-14px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
   /* composer — the "dispatch to office" console */
   .composer { margin-top: 13px; }
@@ -365,8 +417,16 @@
         <p class="hint" id="status">Taip mesej di bawah — staff yang berkenaan akan berjalan ke depan dan lapor kat kau</p>
       </section>
 
+      <section class="taskq" id="taskq" hidden>
+        <h2 class="taskq-title">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 6h9M4 12h9M4 18h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 6 2 2 3.5-4M16 12l2 2 3.5-4M16 18l2 2 3.5-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Tugasan berjalan
+        </h2>
+        <div id="taskq-list"></div>
+      </section>
+
       <section class="convo">
-        <div id="chat"></div>
+        <div id="chat"><div class="chat-empty" id="chat-empty"><span>Room Chat</span></div></div>
         <div class="composer">
           <div class="composer-label">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
@@ -406,8 +466,7 @@
   </main>
 
   <footer class="foot">
-    Dibina tangan sebagai <b>proof-of-concept</b> — layer AI (routing + pakar) berasingan daripada layer game (ruang, gerak, dialog).
-    Staff bergerak sendiri; kau memandu dengan bertanya dan mengagih kerja.
+    <b>Mind Office</b> — dibina tangan. Tarik staff ke meja bulat untuk buka bilik meeting.
   </footer>
 
 <script>
@@ -637,6 +696,12 @@
   contactShadow(3.4, 7.3, 1.9, 1.05);
   box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, screenC, false, 30); // boss desk + monitor
   chair(4.15, 7.55);                                                                        // boss chair
+  // office printer on the low cabinet — final reports are "printed" here then hand-delivered
+  box(0.22, 6.15, 0.55, 0.6, 9, { top:'#e2e5ea', left:'#aab0bb', right:'#c6cbd4' }, false, 30);   // printer body
+  box(0.26, 6.22, 0.46, 0.1, 2, { top:'#2a2e36', left:'#1b1e24', right:'#22252c' }, false, 39);   // paper slot
+  const prLedP = project(0.66, 6.5); const prLed = document.createElement('div'); prLed.className = 'deco';
+  Object.assign(prLed.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#93ad86', boxShadow:'0 0 4px #93ad86', left:prLedP.x+'px', top:(prLedP.y-41)+'px', zIndex:400 });
+  office.appendChild(prLed);
 
   // --- extra office nuance: rug, water cooler, coffee machine, greenery, whiteboard ---
   function rug(gx, gy, w, d, col, border) {
@@ -813,14 +878,14 @@
     }
     return sh.join(', ');
   }
-  // per-staff bio + skills shown on the big swipeable card
+  // per-staff one-liner shown on the swipeable badge
   const STAFF_INFO = {
-    aiman:  { bio: 'Orang pertama kau jumpa. Uruskan soalan am, koordinasi, dan agih kerja ke orang yang betul.', skills: ['koordinasi', 'basa-basi', 'agih tugas'] },
-    meera:  { bio: 'Cari maklumat, fakta & data — ringkaskan jadi point yang jelas dan tepat.', skills: ['research', 'fakta', 'ringkasan'] },
-    wei:    { bio: 'Draf emel, caption, artikel, skrip & headline yang kemas, terus boleh guna.', skills: ['copywriting', 'caption', 'artikel'] },
-    danish: { bio: 'Timbang pro/kontra, banding pilihan, dan bagi keputusan berasaskan angka.', skills: ['analisa', 'pro/kontra', 'angka'] },
-    hana:   { bio: 'Pecah matlamat besar jadi langkah kecil dengan timeline & keutamaan.', skills: ['strategi', 'pelan', 'timeline'] },
-    hafiz:  { bio: 'Hal teknikal — kod, debug, sistem, tools & automasi. Terangkan dengan mudah.', skills: ['kod', 'debug', 'automasi'] }
+    aiman:  { bio: 'Orang pertama kau jumpa — uruskan soalan am, koordinasi, dan agih kerja ke orang yang betul.' },
+    meera:  { bio: 'Cari maklumat, fakta & data, dan ringkaskan jadi point yang jelas dan tepat.' },
+    wei:    { bio: 'Draf emel, caption, artikel, skrip & headline yang kemas, terus boleh guna.' },
+    danish: { bio: 'Timbang pro/kontra, banding pilihan, dan bagi keputusan berasaskan angka.' },
+    hana:   { bio: 'Pecah matlamat besar jadi langkah kecil dengan timeline & keutamaan.' },
+    hafiz:  { bio: 'Hal teknikal — kod, debug, sistem, tools & automasi. Terangkan dengan mudah.' }
   };
   // ---- swipeable stacked card deck ----
   const deck = document.getElementById('deck');
@@ -829,17 +894,14 @@
   const cardEls = {};
   let order = deckKeys.slice();     // order[0] = front card
   deckKeys.forEach((k, idx) => {
-    const a = staff[k], info = STAFF_INFO[k] || { bio: '', skills: [] };
+    const a = staff[k], info = STAFF_INFO[k] || { bio: '' };
     const card = document.createElement('div'); card.className = 'staff-card'; card.dataset.k = k;
     card.style.setProperty('--mc', a.dot);
     card.innerHTML =
-      `<div class="sc-top"><span class="sc-brand">Mind Office · Staff Pass</span><span class="sc-chip"></span></div>`
-      + `<div class="sc-face"><div class="px"></div></div>`
-      + `<div class="sc-name">${a.name}</div>`
-      + `<div class="sc-role">${a.role}</div>`
-      + `<div class="sc-bio">${info.bio}</div>`
-      + `<div class="sc-skills">${info.skills.map(s => `<span>${s}</span>`).join('')}</div>`
-      + `<div class="sc-foot"><span class="sc-status">kat meja</span><span class="sc-id">MO · ${String(idx + 1).padStart(2, '0')}/${String(deckKeys.length).padStart(2, '0')}</span></div>`;
+      `<div class="sc-head"><div class="sc-face"><div class="px"></div></div>`
+      + `<div><div class="sc-name">${a.name}</div><div class="sc-role">${a.role}</div></div></div>`
+      + `<p class="sc-bio">${info.bio}</p>`
+      + `<div class="sc-foot"><span class="sc-status">kat meja</span><span class="sc-id">${String(idx + 1).padStart(2, '0')}</span></div>`;
     deck.appendChild(card);
     card.querySelector('.sc-face .px').style.boxShadow = faceShadow(a.outfit, k, 4);
     cardEls[k] = card;
@@ -853,7 +915,7 @@
       card.classList.toggle('front', i === 0);
       card.style.zIndex = 100 - i;
       card.style.opacity = i < 4 ? '1' : '0';
-      card.style.transform = `translateY(${depth * 12}px) scale(${1 - depth * 0.045})`;
+      card.style.transform = `translateY(${depth * 9}px) scale(${1 - depth * 0.04})`;
       card.style.pointerEvents = i === 0 ? 'auto' : 'none';
       if (k === snapKey) { void card.offsetWidth; card.style.transition = 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease'; }
     });
@@ -1062,7 +1124,7 @@
   }
   function announceMode(mode, mins) {
     const a = staff.aiman;
-    const msg = mode === 'work' ? 'Ok bos, semua balik meja — sambung kerja! 💻'
+    const msg = mode === 'work' ? 'Ok bos, semua balik meja — sambung kerja!'
       : (mins ? `Rehat ${mins} minit semua, jom relax dulu!` : 'Ok bos, rehat dulu — korang boleh berkeliaran.');
     addMsg(a.name, msg, 'staff', a.dot);
     setStatus(mode === 'work' ? 'Mod kerja — semua staff di meja masing-masing.' : 'Mod rehat — staff berkeliaran.');
@@ -1179,7 +1241,9 @@
 
   // ---- chat panel — the shared conversation surface (you + staff replies) ----
   const chat = document.getElementById('chat');
+  const chatEmpty = document.getElementById('chat-empty');
   function addMsg(who, text, kind, dotColor) {
+    if (chatEmpty && !chatEmpty.hidden) chatEmpty.hidden = true;   // first message retires the watermark
     const m = document.createElement('div'); m.className = 'msg ' + (kind || 'staff');
     if (who) { const w = document.createElement('div'); w.className = 'who'; w.textContent = who; m.appendChild(w); }
     const bub = document.createElement('div'); bub.className = 'bub'; bub.textContent = text; m.appendChild(bub);
@@ -1187,6 +1251,137 @@
     chat.appendChild(m);
     chat.scrollTop = chat.scrollHeight;
     return bub;
+  }
+  // the "Room Chat" watermark slides aside while the boss is typing, drifts back if
+  // the field is cleared before anything was ever sent
+  document.getElementById('user-input').addEventListener('input', e => {
+    if (!chatEmpty || chatEmpty.hidden) return;
+    chatEmpty.classList.toggle('bye', !!e.target.value.trim());
+  });
+
+  // ---- task queue — a live progress board of what the office is working on ----
+  const taskqWrap = document.getElementById('taskq');
+  const taskqList = document.getElementById('taskq-list');
+  function addTask(label, k) {
+    const a = staff[k];
+    const el = document.createElement('div'); el.className = 'tq';
+    if (a) el.style.setProperty('--tqc', a.dot);
+    el.innerHTML = `<i class="tq-dot"></i><span class="tq-label"></span><span class="tq-bar"><i class="tq-fill"></i></span><span class="tq-pct">Menunggu</span>`;
+    el.querySelector('.tq-label').textContent = (a ? a.name + ' · ' : '') + (label.length > 44 ? label.slice(0, 44) + '…' : label);
+    taskqList.appendChild(el); taskqWrap.hidden = false;
+    const t = { el, fill: el.querySelector('.tq-fill'), pct: el.querySelector('.tq-pct'), v: 0, timer: null, over: false };
+    t.fill.style.width = '4%';
+    return t;
+  }
+  function taskStart(t) {
+    if (!t || t.over) return;
+    t.v = 8; t.pct.textContent = '8%'; t.fill.style.width = '8%';
+    clearInterval(t.timer);
+    t.timer = setInterval(() => {           // creep toward 90% while the model thinks
+      t.v = Math.min(90, t.v + 3 + Math.random() * 9);
+      t.fill.style.width = t.v + '%'; t.pct.textContent = Math.round(t.v) + '%';
+    }, 800);
+  }
+  function taskEnd(t, ok) {
+    if (!t || t.over) return;
+    t.over = true; clearInterval(t.timer);
+    t.el.classList.add(ok ? 'done' : 'fail');
+    t.fill.style.width = '100%'; t.pct.textContent = ok ? 'Siap' : 'Tersekat';
+    setTimeout(() => {
+      t.el.classList.add('gone');
+      setTimeout(() => { t.el.remove(); if (!taskqList.children.length) taskqWrap.hidden = true; }, 700);
+    }, ok ? 9000 : 14000);
+  }
+
+  // ---- real file output — the staff can hand over actual files, not just text.
+  //      Everything is generated in-browser (no libraries): PDF is written by hand,
+  //      DOC/XLS use the HTML formats Word/Excel open natively. ----
+  const FMT_META = {
+    pdf: { ext: 'pdf', mime: 'application/pdf', label: 'PDF' },
+    doc: { ext: 'doc', mime: 'application/msword', label: 'Word' },
+    xls: { ext: 'xls', mime: 'application/vnd.ms-excel', label: 'Excel' },
+    csv: { ext: 'csv', mime: 'text/csv', label: 'CSV' },
+    md:  { ext: 'md',  mime: 'text/markdown', label: 'Markdown' },
+    txt: { ext: 'txt', mime: 'text/plain', label: 'Teks' }
+  };
+  // which file the boss asked for — explicit format words win; "laporan/report" defaults to PDF
+  function pickFormat(t) {
+    if (/\bpdf\b/i.test(t)) return 'pdf';
+    if (/\b(docx?|word)\b/i.test(t)) return 'doc';
+    if (/\b(xlsx?|excel|spreadsheet|hamparan)\b/i.test(t)) return 'xls';
+    if (/\bcsv\b/i.test(t)) return 'csv';
+    if (/\b(markdown|\.md)\b|\bfail md\b/i.test(t)) return 'md';
+    if (/\bfail (txt|teks)\b|\btxt\b/i.test(t)) return 'txt';
+    if (/\b(laporan|report)\b/i.test(t)) return 'pdf';
+    return null;
+  }
+  const fileSlug = t => (t.toLowerCase().replace(/\b(pdf|docx?|word|xlsx?|excel|csv|markdown|txt|fail|file|buat(kan)?|tulis(kan)?|sediakan|jana|dalam|bentuk|format|tolong|sebagai)\b/g, ' ')
+    .replace(/[^a-z0-9À-ɏ ]+/g, ' ').trim().split(/\s+/).slice(0, 5).join('-') || 'dokumen');
+  const escOne = c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]);
+  const escAll = s => String(s).replace(/[&<>]/g, escOne);
+  // minimal but valid multi-page PDF (Helvetica, WinAnsi — Malay text is latin, safe)
+  function makePdfBlob(title, text) {
+    const esc = s => s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    const lines = [];
+    for (let raw of String(text).split('\n')) {
+      if (!raw.trim()) { lines.push(''); continue; }
+      while (raw.length > 92) { let cut = raw.lastIndexOf(' ', 92); if (cut < 40) cut = 92; lines.push(raw.slice(0, cut)); raw = raw.slice(cut).trim(); }
+      lines.push(raw);
+    }
+    const pages = []; for (let i = 0; i < lines.length; i += 44) pages.push(lines.slice(i, i + 44));
+    if (!pages.length) pages.push(['']);
+    const objs = []; const pageNum = [], contNum = []; let next = 4;
+    for (let p = 0; p < pages.length; p++) { pageNum.push(next++); contNum.push(next++); }
+    objs[0] = '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n';
+    objs[1] = `2 0 obj\n<< /Type /Pages /Kids [${pageNum.map(n => n + ' 0 R').join(' ')}] /Count ${pages.length} >>\nendobj\n`;
+    objs[2] = '3 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\nendobj\n';
+    pages.forEach((pg, i) => {
+      let c = `BT /F1 15 Tf 56 786 Td (${esc(i ? title + ' (samb.)' : title)}) Tj ET\nBT /F1 10.5 Tf 56 752 Td 15.5 TL\n`;
+      for (const ln of pg) c += `(${esc(ln)}) Tj T*\n`;
+      c += 'ET\n';
+      objs[pageNum[i] - 1] = `${pageNum[i]} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contNum[i]} 0 R >>\nendobj\n`;
+      objs[contNum[i] - 1] = `${contNum[i]} 0 obj\n<< /Length ${c.length} >>\nstream\n${c}endstream\nendobj\n`;
+    });
+    let pdf = '%PDF-1.4\n'; const offs = [];
+    for (const o of objs) { offs.push(pdf.length); pdf += o; }
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+    pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const bytes = new Uint8Array(pdf.length);
+    for (let i = 0; i < pdf.length; i++) { const cc = pdf.charCodeAt(i); bytes[i] = cc < 256 ? cc : 63; }
+    return new Blob([bytes], { type: FMT_META.pdf.mime });
+  }
+  // rough table split for spreadsheet-ish text: pipes, tabs, or "label: value" rows
+  function toRows(text) {
+    return String(text).split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+      if (l.includes('|')) return l.split('|').map(c => c.trim()).filter((c, i, a) => !(c === '' && (i === 0 || i === a.length - 1)));
+      if (l.includes('\t')) return l.split('\t').map(c => c.trim());
+      const m = l.match(/^([^:]{2,40}):\s+(.+)$/); if (m) return [m[1].trim(), m[2].trim()];
+      return [l];
+    }).filter(r => !r.every(c => /^[-–—\s:]*$/.test(c)));   // drop markdown separator rows
+  }
+  function makeFileBlob(fmt, title, text) {
+    if (fmt === 'pdf') return makePdfBlob(title, text);
+    if (fmt === 'doc') {
+      const paras = String(text).split(/\n{2,}/).map(p => `<p>${escAll(p).replace(/\n/g, '<br>')}</p>`).join('');
+      return new Blob(['﻿', `<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${escAll(title)}</title></head><body><h1>${escAll(title)}</h1>${paras}</body></html>`], { type: FMT_META.doc.mime });
+    }
+    if (fmt === 'xls') {
+      const rows = toRows(text).map(r => `<tr>${r.map(c => `<td>${escAll(c)}</td>`).join('')}</tr>`).join('');
+      return new Blob(['﻿', `<html><head><meta charset="utf-8"></head><body><table border="1">${rows}</table></body></html>`], { type: FMT_META.xls.mime });
+    }
+    if (fmt === 'csv') {
+      const csv = toRows(text).map(r => r.map(c => /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c).join(',')).join('\n');
+      return new Blob(['﻿', csv], { type: FMT_META.csv.mime });
+    }
+    if (fmt === 'md') return new Blob([`# ${title}\n\n${text}`], { type: FMT_META.md.mime });
+    return new Blob([text], { type: FMT_META.txt.mime });
+  }
+  function downloadFile(fmt, fname, title, text) {
+    const blob = makeFileBlob(fmt, title, text);
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   // ---- deliverables tray: capture every GENUINE staff output (not errors/demo),
@@ -1215,6 +1410,15 @@
     top.append(who, time);
     const body = document.createElement('div'); body.className = 'deliv-body'; body.textContent = d.text;
     const foot = document.createElement('div'); foot.className = 'deliv-foot';
+    if (d.fmt && FMT_META[d.fmt]) {
+      const meta = FMT_META[d.fmt];
+      const chip = document.createElement('span'); chip.className = 'deliv-file';
+      chip.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 2.8h7.2L19 8.6V20a1.4 1.4 0 0 1-1.4 1.4H6A1.4 1.4 0 0 1 4.6 20V4.2A1.4 1.4 0 0 1 6 2.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13 3v6h6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`;
+      chip.append(meta.label + ' · ' + (d.fname || ''));
+      const dl = document.createElement('button'); dl.className = 'deliv-dl'; dl.textContent = 'Muat turun';
+      dl.addEventListener('click', () => downloadFile(d.fmt, d.fname || ('mind-office.' + meta.ext), d.title || 'Mind Office', d.text));
+      foot.append(chip, dl);
+    }
     const copy = document.createElement('button'); copy.className = 'deliv-copy'; copy.textContent = 'Salin';
     copy.addEventListener('click', () => copyText(d.text, copy));
     foot.appendChild(copy);
@@ -1227,9 +1431,15 @@
     trayList.innerHTML = '';
     for (let i = deliverables.length - 1; i >= 0; i--) trayList.appendChild(delivCard(deliverables[i]));   // newest on top
   }
-  function addDeliverable(k, text) {
+  function addDeliverable(k, text, fmt, srcText) {
     const a = staff[k]; if (!a) return;
-    deliverables.push({ name: a.name, role: a.role, dot: a.dot, text: String(text), ts: Date.now() });
+    const d = { name: a.name, role: a.role, dot: a.dot, text: String(text), ts: Date.now() };
+    if (fmt && FMT_META[fmt]) {
+      d.fmt = fmt;
+      d.title = (srcText || 'Dokumen').slice(0, 80);
+      d.fname = fileSlug(srcText || '') + '.' + FMT_META[fmt].ext;
+    }
+    deliverables.push(d);
     if (deliverables.length > 80) deliverables = deliverables.slice(-80);
     saveDeliverables(); renderTray(); trayList.scrollTop = 0;
   }
@@ -1241,7 +1451,7 @@
     const url = URL.createObjectURL(blob); const a = document.createElement('a');
     a.href = url; a.download = 'mind-office-hasil.md'; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setStatus('Hasil kerja di-export sebagai mind-office-hasil.md 📄');
+    setStatus('Hasil kerja di-export sebagai mind-office-hasil.md');
   }
   document.getElementById('tray-export').addEventListener('click', exportTray);
   document.getElementById('tray-clear').addEventListener('click', () => {
@@ -1360,7 +1570,7 @@
   // build the provider-specific request. Gemini speaks its own protocol; OpenRouter
   // and DeepSeek both speak the OpenAI chat/completions dialect, so the shared
   // `contents` array (in Gemini's {role,parts[]} form) is translated for them.
-  function buildRequest(provider, model, systemText, contents, maxTokens) {
+  function buildRequest(provider, model, systemText, contents, maxTokens, opts) {
     if (OPENAI_COMPAT.has(provider)) {
       const messages = [{ role: 'system', content: systemText }].concat(
         contents.map(c => ({
@@ -1380,10 +1590,13 @@
     // sending it to 2.0-flash is a hard 400, so it's omitted there.
     const genCfg = { temperature: 0.8, maxOutputTokens: maxTokens || 500 };
     if (model.includes('2.5')) genCfg.thinkingConfig = { thinkingBudget: 0 };
+    const payload = { system_instruction: { parts: [{ text: systemText }] }, contents, generationConfig: genCfg };
+    // live-info question on a Gemini key → let the model actually search Google
+    if (opts && opts.search) payload.tools = [{ google_search: {} }];
     return {
       url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(AI.key)}`,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system_instruction: { parts: [{ text: systemText }] }, contents, generationConfig: genCfg })
+      body: JSON.stringify(payload)
     };
   }
   function extractReply(provider, j) {
@@ -1392,8 +1605,9 @@
       : (j.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '');
   }
 
-  async function gemini(systemText, contents, maxTokens, timeoutMs, _retried) {
+  async function gemini(systemText, contents, maxTokens, timeoutMs, opts) {
     if (!AI.key) throw new Error('no-key');
+    opts = opts || {};
     const provider = AI.provider;
     const models = await resolveModels(provider);
     let lastErr;
@@ -1401,7 +1615,7 @@
       const ctl = new AbortController();
       const killT = setTimeout(() => ctl.abort(), timeoutMs || 14000);
       try {
-        const rq = buildRequest(provider, model, systemText, contents, maxTokens);
+        const rq = buildRequest(provider, model, systemText, contents, maxTokens, opts);
         const res = await fetch(rq.url, { method: 'POST', headers: rq.headers, signal: ctl.signal, body: rq.body });
         if (!res.ok) {
           // capture the API's own reason (API_KEY_INVALID, RESOURCE_EXHAUSTED,
@@ -1422,8 +1636,8 @@
         }
         const j = await res.json();
         let out = extractReply(provider, j).trim()
-          .replace(/^\([^)]{1,40}\)\s*/, '')                                 // "(MEERA) " — with or without punctuation after
-          .replace(/^(aiman|meera|wei|danish|hana|hafiz)\s*[:\-]\s*/i, '')   // "Meera: " without parens
+          .replace(/^\([^)]{1,40}\)\s*/, '')                                            // "(MEERA) " — with or without punctuation after
+          .replace(/^(aiman|meera|wei|danish|hana|kak\s*sumi|sumi|hafiz)\s*[:\-]\s*/i, '')   // "Meera: " without parens
           .trim();
         if (!out) throw new Error('empty');
         return out;
@@ -1435,9 +1649,9 @@
       } finally { clearTimeout(killT); }
     }
     // one retry for transient blips (server hiccup / timeout) — these clear up fast
-    if (!_retried && TRANSIENT.has(String(lastErr && lastErr.message))) {
+    if (!opts._retried && TRANSIENT.has(String(lastErr && lastErr.message))) {
       await new Promise(r => setTimeout(r, 700));
-      return gemini(systemText, contents, maxTokens, timeoutMs, true);
+      return gemini(systemText, contents, maxTokens, timeoutMs, Object.assign({}, opts, { _retried: true }));
     }
     // leave a breadcrumb in the console so the real cause is inspectable on-device
     console.warn('[Mind Office] ' + PROVIDER_LABEL[provider] + ' gagal:', lastErr && lastErr.message, lastErr && lastErr.detail ? ('· ' + lastErr.detail) : '');
@@ -1457,14 +1671,14 @@
     if (m === 'http-402' || d.includes('insufficient balance') || d.includes('insufficient_quota'))
       return { msg: `Bos, baki akaun ${P} kau dah habis. Top up di ${keyPage} (billing), lepas tu terus boleh guna balik.`, hint: `Baki ${P} habis — top up di ${keyPage}.` };
     if (m === 'http-400' && (d.includes('api key') || d.includes('api_key') || d.includes('invalid')) || m === 'http-401' || m === 'http-403')
-      return { msg: `Bos, API key ${P} ni nampak tak sah atau ditolak. Tekan butang gear (⚙️) kat atas, dan tampal key betul dari ${keyPage}.`, hint: `API key ${P} tak sah — kemas kini di butang gear (⚙️).` };
+      return { msg: `Bos, API key ${P} ni nampak tak sah atau ditolak. Tekan butang API di atas, dan tampal key betul dari ${keyPage}.`, hint: `API key ${P} tak sah — kemas kini di butang API di atas.` };
     if (m === 'http-429' || d.includes('resource_exhausted') || d.includes('quota') || d.includes('rate')) {
       // if the provider told us the exact per-minute cooldown, it's the small rate
       // limit (not the hard daily cap) — say so, so kau tak fikir kena tunggu sampai esok
       const rd = err && err.retryDelay;
       let waitLine;
       if (rd) waitLine = `Cuba lagi dalam lebih kurang ${rd.replace('s', ' saat')}.`;
-      else if (AI.provider === 'openrouter') waitLine = 'Model :free OpenRouter ada had harian & per-minit. Tunggu sekejap, atau tukar ke model :free lain di butang gear (⚙️).';
+      else if (AI.provider === 'openrouter') waitLine = 'Model :free OpenRouter ada had harian & per-minit. Tunggu sekejap, atau tukar ke model :free lain di butang API di atas.';
       else waitLine = 'Kalau baru tukar key tapi still kena, mungkin key baru tu dalam Google Cloud project yang sama macam key lama — kuota dikongsi ikut project. Semak di aistudio.google.com/usage, atau tunggu ia reset.';
       return { msg: `Bos, kuota ${P} kau dah penuh buat masa ni (dah cuba semua model percuma). ${waitLine}`, hint: rd ? `Kuota ${P} habis — cuba lagi dalam ${rd.replace('s', ' saat')}.` : `Kuota ${P} habis (429) pada semua model percuma.` };
     }
@@ -1476,7 +1690,7 @@
         setStatus('OpenRouter: aktifkan akses model :free di Settings → Privacy.');
         return { msg: 'Bos, key OpenRouter kau belum benarkan model percuma lagi. Pergi openrouter.ai/settings/privacy, dan hidupkan tetapan untuk model :free (yang benarkan input diproses oleh penyedia free). Itu sebab SEMUA model :free kena tolak. Lepas hidupkan, cuba balik — tak perlu tukar model.', hint: 'OpenRouter: aktifkan model :free di Settings → Privacy, lepas tu cuba balik.' };
       }
-      return { msg: `Bos, model ${P} tak dapat diakses dengan key ni. ${AI.provider === 'openrouter' ? 'Cuba set model :free lain (contoh meta-llama/llama-3.3-70b-instruct:free) di butang gear (⚙️).' : 'Mungkin key lama atau region tak sokong — cuba jana key baru dari aistudio.google.com.'}`, hint: `Model ${P} tak dijumpai — tukar model di butang gear (⚙️).` };
+      return { msg: `Bos, model ${P} tak dapat diakses dengan key ni. ${AI.provider === 'openrouter' ? 'Cuba set model :free lain (contoh meta-llama/llama-3.3-70b-instruct:free) di butang API di atas.' : 'Mungkin key lama atau region tak sokong — cuba jana key baru dari aistudio.google.com.'}`, hint: `Model ${P} tak dijumpai — tukar model di butang API di atas.` };
     }
     if (m === 'AbortError')
       return { msg: `Bos, line ke ${P} lambat sangat tadi sampai time-out. Cuba hantar sekali lagi.`, hint: `Sambungan ${P} time-out — cuba lagi.` };
@@ -1506,9 +1720,13 @@
     if (history.length > 20) history = history.slice(-20);
     try { localStorage.setItem('mo_history', JSON.stringify(history)); } catch {}
   }
-  // plain text only — no "(Name) ..." prefix, or the model starts imitating that
-  // pattern and prepending its own name to new replies
-  const historyContents = () => history.map(h => ({ role: h.role, parts: [{ text: h.text }] }));
+  // staff replies carry a "(Name)" tag in history so the CURRENT speaker knows which
+  // colleague said what (identity awareness) — the tag is stripped off new replies
+  // in gemini() so the model imitating the pattern never leaks to the boss
+  const historyContents = () => history.map(h => ({
+    role: h.role,
+    parts: [{ text: h.role === 'model' && h.name ? `(${h.name}) ${h.text}` : h.text }]
+  }));
 
   const COMMON_RULES = `User yang bercakap dengan kau ni ialah BOS kau di office ni — panggil dia "bos" sekali-sekala dalam ayat, tapi jangan letak di setiap ayat, biar natural.
 Kau seorang pekerja office yang buat kerja betul (research, tulisan, analisa, perancangan, teknikal). Layan bos macam rakan sekerja yang cekap dan boleh diharap — BUKAN macam pesakit, dan ini BUKAN sesi terapi atau kaunseling.
@@ -1516,7 +1734,8 @@ Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, 
 PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan, atau "masalah tersembunyi" melainkan bos sendiri yang minta. Kalau bos tanya soalan biasa atau basa-basi, jawab terus macam colleague biasa. Fokus pada menyiapkan kerja, bukan menganalisis bos.
 IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Kak Sumi (Perancang), Hafiz (Jurutera/Tekno).
 Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.
-REALITI (penting): Kau TIADA akses internet langsung — kau tak boleh melayari web atau tengok berita/harga terkini secara live. "Research" kau bermakna guna pengetahuan am yang kau dah tahu (ada had pengetahuan/cutoff), bukan carian internet masa nyata. Jadi untuk apa-apa yang mungkin dah berubah (harga, berita, statistik terkini), jujur beritahu ia berdasarkan pengetahuan am kau dan cadangkan bos sahkan sumber terkini. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.`;
+SEJARAH PERBUALAN: balasan colleague lain dalam sejarah bermula dengan "(Nama)". Itu cakap MEREKA, bukan kau — jangan sambung watak mereka, dan jangan letak "(Nama)" di depan jawapan kau sendiri.
+REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem sertakan HASIL CARIAN LANGSUNG (data masa nyata) di dalam mesej — bila ada, GUNAKANNYA sebagai fakta terkini dan sebut sumbernya sekali. Kalau tiada hasil carian disertakan dan soalan perlukan data terkini (harga, berita, ketersediaan), jujur beritahu jawapan kau berdasarkan pengetahuan am dan cadangkan bos sahkan. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.`;
   // real device date/time, injected into every persona call so staff answer
   // "hari ni hari apa / pukul berapa" correctly instead of hallucinating
   function nowContext() {
@@ -1569,9 +1788,37 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (!m) throw new Error('route-parse');
     return m[0].toLowerCase();
   }
+  // ---- live research — a real web lookup the browser can do itself ----
+  // Place/POI queries go to OpenStreetMap's Nominatim (free, CORS-friendly, keyless),
+  // so "cari hotel murah di Ampang" gets REAL current places with any provider,
+  // DeepSeek included. On a Gemini key, general live queries also get Google Search
+  // grounding via the API's google_search tool.
+  const LIVE_RE = /\b(terkini|semasa|berita|news|hotel|homestay|penginapan|resort|restoran|restaurant|kafe|cafe|kedai|farmasi|klinik|hospital|masjid|surau|petrol|gym|pasar|mall|salun|salon|bengkel|barber|harga|tiket|flight|penerbangan|cuaca|weather|dekat|berhampiran|near)\b/i;
+  const PLACE_RE = /\b(hotel|homestay|penginapan|resort|restoran|restaurant|kedai makan|kafe|cafe|kedai|farmasi|klinik|hospital|masjid|surau|stesen minyak|petrol|atm|bank|gym|pasar|mall|salun|salon|bengkel|barber|playground|taman)\b/i;
+  async function liveSearch(t) {
+    const typeM = t.match(PLACE_RE); if (!typeM) return null;
+    const locM = t.match(/(?:\bdi\b|\bdekat\b|\bkat\b|\barea\b|\bsekitar\b|\bberhampiran\b|\bnear\b)\s+([\w@'’\- ]{3,40})/i);
+    const q = (typeM[0] + (locM ? ' ' + locM[1].trim() : '')).trim();
+    const ctl = new AbortController(); const killT = setTimeout(() => ctl.abort(), 5000);
+    try {
+      const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=ms&q=' + encodeURIComponent(q), { signal: ctl.signal });
+      if (!res.ok) return null;
+      const j = await res.json();
+      if (!Array.isArray(j) || !j.length) return null;
+      const rows = j.map((r, i) => `${i + 1}. ${r.display_name}${r.type ? ' (' + r.type + ')' : ''}`).join('\n');
+      return `HASIL CARIAN LANGSUNG (OpenStreetMap, masa nyata) untuk "${q}":\n${rows}\nGuna senarai ini sebagai data live — pilih yang paling relevan, susun elok, dan sebut ia dari carian OpenStreetMap. Kalau bos minta ciri yang tiada dalam data (contoh harga), jujur cakap data tu perlu disemak terus.`;
+    } catch { return null; } finally { clearTimeout(killT); }
+  }
   async function specialistLLM(k, text) {
-    const contents = [...historyContents(), { role: 'user', parts: [{ text }] }];
-    return gemini(nowContext() + '\n' + PERSONA[k], contents, 500, 16000);
+    const a = staff[k];
+    const wantsLive = LIVE_RE.test(text);
+    const fmt = pickFormat(text);
+    let userText = text;
+    if (wantsLive) { const live = await liveSearch(text); if (live) userText += '\n\n' + live; }
+    if (fmt) userText += `\n\n[ARAHAN OUTPUT] Bos mahu hasil ini sebagai FAIL ${FMT_META[fmt].label.toUpperCase()}. Tulis KANDUNGAN penuh dokumen sahaja — tajuk, seksyen/point tersusun — TANPA ayat pembuka/penutup chat.${fmt === 'xls' || fmt === 'csv' ? ' Susun data sebagai jadual: satu baris satu rekod, kolum dipisah dengan " | ".' : ''}`;
+    const sys = nowContext() + `\nPERINGATAN IDENTITI: Kau ${a.name} (${a.role}). Jawab HANYA sebagai ${a.name}.\n` + PERSONA[k];
+    const contents = [...historyContents(), { role: 'user', parts: [{ text: userText }] }];
+    return gemini(sys, contents, fmt ? 900 : 500, fmt ? 24000 : 16000, { search: wantsLive && AI.provider === 'gemini' });
   }
 
   // ---- free-tier rate-limit cooldown ----
@@ -1596,7 +1843,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       setStatus(`Kuota ${PROVIDER_LABEL[AI.provider] || 'AI'} percuma cooldown — ${s} saat lagi sebelum boleh hantar.`);
       cooldownT = setTimeout(tickCooldown, 1000);
     } else {
-      setStatus('Dah boleh hantar balik, bos. 👍');
+      setStatus('Dah boleh hantar balik, bos.');
     }
   }
 
@@ -1608,17 +1855,24 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     moveSpot(MEET.gx, MEET.gy);
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
     setStatus(`${a.name} tengah berjalan datang…`);
+    const task = addTask(text, k);                       // shows up on the task board
+    const fmt = pickFormat(text);                        // did the boss ask for a real file?
     let typingBub = null;
     // ephemeral = a diagnostic / demo line, shown in chat but NEVER written to memory
     // (or the model reads it back and roleplays about broken API keys).
     // The reply lands in the shared chat section — over-head bubbles were hard to read.
-    const deliver = (reply, ephemeral) => {
+    const deliver = (reply, ephemeral, failed) => {
       if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
+      taskEnd(task, !failed);
       headCue(s, a.name, 'talk');                        // small "talking" cue over the head
       addMsg(a.name, reply, 'staff', a.dot);             // the reply is read in the chat
-      if (!ephemeral) { remember('model', a.name, reply); addDeliverable(k, reply); }   // capture the work
+      if (!ephemeral) {
+        remember('model', a.name, reply);
+        addDeliverable(k, reply, fmt, text);             // real files land in the tray, downloadable
+        if (fmt) setStatus(`${a.name} dah siapkan fail ${FMT_META[fmt].label} — muat turun di Hasil Kerja.`);
+      }
       setStat(k, 'dengan kau'); setActive(k, true);
-      setStatus(`${a.name} tengah lapor kat kau.`);
+      if (!fmt || ephemeral) setStatus(`${a.name} tengah lapor kat kau.`);
       clearTimeout(s.releaseT);
       const readMs = Math.max(9000, Math.min(26000, String(reply).length * 55));
       s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, readMs);
@@ -1626,11 +1880,12 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
       headCue(s, a.name, 'think');
+      taskStart(task);
       typingBub = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typingBub.classList.add('typing');
       // real AI reply -> remembered; demo canned reply -> ephemeral
       replyPromise.then(reply => deliver(reply, !usingAI)).catch(err => {
         if (usingAI) {
-          const info = aiTrouble(err); deliver(info.msg, true);   // error line: never remembered
+          const info = aiTrouble(err); deliver(info.msg, true, true);   // error line: never remembered
           // if it's a rate limit, start the countdown so the status keeps ticking and
           // the next send is gated; otherwise just show the one-off hint
           if (!noteRateLimit(err)) setStatus(info.hint);
@@ -1663,8 +1918,9 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (meetingBusy) { setStatus('Mesyuarat tengah berjalan, bos.'); return; }
     meetingBusy = true;
     hideBubble();
-    addMsg('', `📋 Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff berkumpul di meja…`, 'meet');
+    addMsg('', `Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff berkumpul di meja…`, 'meet');
     setStatus('Semua staff berkumpul di meja mesyuarat…');
+    const task = addTask('Mesyuarat' + (topic ? ': ' + topic : ''), 'aiman');
     const keys = Object.keys(staff);
     keys.forEach((k, i) => {
       const s = sprites[k];
@@ -1684,9 +1940,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     const runChair = async () => {
       const chair = sprites.aiman, ca = staff.aiman;
       headCue(chair, ca.name, 'think');
+      taskStart(task);
       const typing = addMsg(ca.name, 'sedang menaip…', 'staff', ca.dot); typing.classList.add('typing');
-      const finish = (reply, ephemeral) => {
+      const finish = (reply, ephemeral, failed) => {
         if (typing.parentElement) typing.parentElement.remove();
+        taskEnd(task, !failed);
         headCue(chair, ca.name, 'talk');
         addMsg(ca.name, reply, 'staff', ca.dot);          // chair reports in the chat
         if (!ephemeral) { remember('model', ca.name, reply); addDeliverable('aiman', reply); }
@@ -1700,7 +1958,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
           const out = await gemini(nowContext() + '\n' + PERSONA.aiman + '\n' + prompt, [{ role: 'user', parts: [{ text: topic || 'Apa agenda kita hari ni?' }] }], 300, 16000);
           finish(out, false);
         } catch (e) {
-          noteRateLimit(e); finish(aiTrouble(e).msg, true);
+          noteRateLimit(e); finish(aiTrouble(e).msg, true, true);
         }
       } else {
         finish(topic
@@ -1745,47 +2003,236 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   async function runProject(topic) {
     if (projectBusy) { setStatus('Projek tengah berjalan, bos.'); return; }
     if (meetingBusy) { setStatus('Tunggu mesyuarat habis dulu, bos.'); return; }
-    if (!AI.key) { setStatus('🚀 Mod Projek perlukan otak AI — tampal API key di butang gear (⚙️) dulu.'); return; }
+    if (!AI.key) { setStatus('Mod Projek perlukan otak AI — tampal API key di butang API dulu.'); return; }
     if (secsLeft() > 0) { tickCooldown(); return; }
     projectBusy = true;
-    addMsg('', `🚀 Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`, 'meet');
+    addMsg('', `Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`, 'meet');
     setStatus('Projek bermula — pasukan handoff kerja.');
-    let ctx = '(belum ada)';
+    const fmt = pickFormat(topic || '');
+    let ctx = '(belum ada)', lastK = 'wei';
     for (let i = 0; i < PROJECT_PIPELINE.length; i++) {
       const stage = PROJECT_PIPELINE[i], k = stage.k, a = staff[k], s = sprites[k];
+      lastK = k;
       s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
       setStat(k, `projek ${i + 1}/${PROJECT_PIPELINE.length} →`); setActive(k, true);
       setStatus(`${a.name} tengah buat bahagian dia… (${i + 1}/${PROJECT_PIPELINE.length})`);
+      const task = addTask(`${a.role} — ${topic || 'projek'}`, k);
       const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
       await sleep(dur * 1000 + 150);
       setStat(k, 'berfikir…'); headCue(s, a.name, 'think');
+      taskStart(task);
       const typing = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typing.classList.add('typing');
       let out;
       try {
         out = await gemini(nowContext() + '\n' + PERSONA[k] + '\n' + stage.brief(topic, ctx), [{ role: 'user', parts: [{ text: topic || 'projek' }] }], 420, 16000);
       } catch (e) {
         if (typing.parentElement) typing.parentElement.remove();
+        taskEnd(task, false);
         noteRateLimit(e);
         const info = aiTrouble(e); addMsg(a.name, info.msg, 'staff', a.dot);
-        addMsg('', `⚠️ Projek terhenti di ${a.name} — ${info.hint}`, 'meet');
+        addMsg('', `Projek terhenti di ${a.name} — ${info.hint}`, 'meet');
         setActive(k, false); s.busy = false; releaseStaff(k); projectBusy = false;
         return;
       }
       if (typing.parentElement) typing.parentElement.remove();
+      taskEnd(task, true);
       headCue(s, a.name, 'talk');
       addMsg(a.name, out, 'staff', a.dot);
       remember('model', a.name, out);
-      addDeliverable(k, out);
+      addDeliverable(k, out, i === PROJECT_PIPELINE.length - 1 ? fmt : null, topic);
       ctx = (ctx === '(belum ada)' ? '' : ctx + '\n\n') + `[${a.role} — ${a.name}] ${out}`;
       if (ctx.length > 1400) ctx = ctx.slice(-1400);
       setStat(k, 'siap bahagian');
       await sleep(Math.max(3600, Math.min(9000, out.length * 42)));
       setActive(k, false); s.busy = false; releaseStaff(k);
     }
-    addMsg('', '✅ Projek siap — semua bahagian tersimpan di Dulang Hasil.', 'meet');
-    setStatus('Projek tamat. Hasil di Dulang Hasil. 📥');
+    addMsg('', 'Projek siap — semua bahagian tersimpan di Hasil Kerja.', 'meet');
+    setStatus('Projek tamat. Hasil di bahagian Hasil Kerja.');
+    printerRun(lastK);                  // the closer collects the printout for the boss
     projectBusy = false;
   }
+
+  // =====================================================================
+  //  PRINTER RUN — after a big piece of work, the closer walks to the office
+  //  printer, collects the printout, and hand-delivers it to the boss desk.
+  // =====================================================================
+  const PRINTER_AT = { gx: 0.5, gy: 6.45 };          // printer body (on the low cabinet)
+  const PRINTER_SPOT = { gx: 1.35, gy: 6.9 };        // where the staff stands
+  const BOSS_DESK_SPOT = { gx: 4.6, gy: 8.6 };       // beside the boss desk
+  const BOSS_PAPER_AT = { gx: 4.5, gy: 7.9 };        // where the report lands on the desk
+  let deskPapers = [];
+  function spawnPaper(gx, gy, dy, cls) {
+    const p = project(gx, gy);
+    const el = document.createElement('div'); el.className = 'paper ' + (cls || '');
+    el.style.left = (p.x - 5) + 'px'; el.style.top = (p.y - dy) + 'px';
+    office.appendChild(el); return el;
+  }
+  function printerRun(k, onDone) {
+    const s = sprites[k], a = staff[k];
+    s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT);
+    setStat(k, 'ke printer →');
+    const d1 = walk(s, PRINTER_SPOT.gx, PRINTER_SPOT.gy);
+    setTimeout(() => {
+      setStat(k, 'tunggu cetakan…');
+      const sheet = spawnPaper(PRINTER_AT.gx, PRINTER_AT.gy, 46, 'rise');   // paper rises out of the slot
+      setTimeout(() => {
+        sheet.remove();
+        // carry it: a little sheet swings in the staff's hand while they walk
+        const carry = document.createElement('div'); carry.className = 'paper carry';
+        carry.style.left = (SPR_W - 4) + 'px'; carry.style.top = (SPR_H - 26) + 'px';
+        s.wrap.appendChild(carry);
+        setStat(k, 'hantar laporan →');
+        const d2 = walk(s, BOSS_DESK_SPOT.gx, BOSS_DESK_SPOT.gy);
+        setTimeout(() => {
+          carry.remove();
+          const landed = spawnPaper(BOSS_PAPER_AT.gx, BOSS_PAPER_AT.gy, 34, 'land');   // lands on the boss desk
+          deskPapers.push(landed);
+          while (deskPapers.length > 3) deskPapers.shift().remove();
+          addMsg('', `${a.name} dah letak laporan bercetak atas meja kau.`, 'meet');
+          setStat(k, 'siap hantar');
+          s.busy = false;
+          s.releaseT = setTimeout(() => { setStat(k, 'kat meja'); releaseStaff(k); }, 2500);
+          onDone && onDone();
+        }, d2 * 1000 + 200);
+      }, 1150);
+    }, d1 * 1000 + 150);
+  }
+
+  // =====================================================================
+  //  MEETING ROOM (drag & drop) — the boss drags staff onto the round table;
+  //  once ≥2 are in the room, the next message becomes the room's project and
+  //  every member contributes to ONE combined report.
+  // =====================================================================
+  const ROOM_C = { gx: 2.9, gy: 2.2 };               // round table centre
+  const roomRoster = new Set();
+  // dashed drop-zone ellipse over the meeting corner (shown while dragging)
+  const roomzone = document.createElement('div'); roomzone.id = 'roomzone'; roomzone.hidden = true;
+  roomzone.innerHTML = '<span class="rz-label">Bilik meeting</span>';
+  {
+    const c = project(ROOM_C.gx, ROOM_C.gy), rw = 2.6 * TILE_W, rh = 2.6 * TILE_H;
+    Object.assign(roomzone.style, { width: rw + 'px', height: rh + 'px', left: (c.x - rw / 2) + 'px', top: (c.y - rh / 2) + 'px' });
+    office.appendChild(roomzone);
+  }
+  const toGrid = (cx, cy) => {
+    const r = office.getBoundingClientRect();
+    const x = (cx - r.left) / currentScale, y = (cy - r.top) / currentScale;
+    const u = (x - ORIGIN_X) / (TILE_W / 2), v = (y - ORIGIN_Y) / (TILE_H / 2);
+    return { gx: (v + u) / 2, gy: (v - u) / 2 };
+  };
+  const inRoom = g => Math.hypot(g.gx - ROOM_C.gx, g.gy - ROOM_C.gy) < 2.4;
+  function roomAdd(k) {
+    if (roomRoster.has(k)) return;
+    roomRoster.add(k);
+    const s = sprites[k];
+    s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
+    const spotIdx = (roomRoster.size - 1) % MEETING_SPOTS.length, sp = MEETING_SPOTS[spotIdx];
+    walk(s, sp.gx, sp.gy);
+    setStat(k, 'dalam bilik meeting'); setActive(k, true);
+    if (roomRoster.size === 1) addMsg('', `${staff[k].name} masuk bilik meeting. Tarik lagi seorang dua, lepas tu hantar topik — mereka siapkan SATU laporan bersama. Taip “bubar” untuk lepaskan.`, 'meet');
+    setStatus('Bilik meeting: ' + [...roomRoster].map(x => staff[x].name).join(', '));
+  }
+  function roomRemove(k) {
+    if (!roomRoster.has(k)) return;
+    roomRoster.delete(k);
+    const s = sprites[k]; s.busy = false;
+    setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k);
+    setStatus(roomRoster.size ? ('Bilik meeting: ' + [...roomRoster].map(x => staff[x].name).join(', ')) : 'Bilik meeting kosong.');
+  }
+  function roomClear() { [...roomRoster].forEach(roomRemove); }
+  const BUBAR_RE = /^\s*(bubar|selesai|habis)\s*(meeting|mesyuarat|bilik)?\s*$|\bkeluar bilik\b/i;
+  // per-role contribution briefs inside the room (order fixed: plan → data → analysis → tech → coord → final write-up)
+  const ROOM_ORDER = ['hana', 'meera', 'danish', 'hafiz', 'aiman', 'wei'];
+  const ROOM_BRIEF = {
+    hana:   t => `BILIK MEETING — tugasan: "${t}". Sebagai Perancang, bagi rangka & langkah utama (3-4 point). Ringkas.`,
+    meera:  t => `BILIK MEETING — tugasan: "${t}". Sebagai Penyelidik, bagi 3-5 fakta/maklumat paling penting. Ringkas.`,
+    danish: t => `BILIK MEETING — tugasan: "${t}". Sebagai Penganalisis, bagi analisa ringkas (kos/bajet/pro-kontra) + satu cadangan jelas.`,
+    hafiz:  t => `BILIK MEETING — tugasan: "${t}". Sebagai orang teknikal, bagi point teknikal/tools/langkah praktikal yang relevan. Ringkas.`,
+    aiman:  t => `BILIK MEETING — tugasan: "${t}". Sebagai koordinator, senaraikan siapa buat apa & urutan kerja. Ringkas.`,
+    wei:    t => `BILIK MEETING — tugasan: "${t}". Sebagai Penulis, ini bahagian AKHIR: gabungkan semua input pasukan di atas jadi SATU laporan lengkap tersusun (tajuk + seksyen). Terus boleh guna.`
+  };
+  let roomBusy = false;
+  async function runRoomMeeting(topic) {
+    if (roomBusy) { setStatus('Bilik meeting tengah bekerja, bos.'); return; }
+    if (!AI.key) { setStatus('Bilik meeting perlukan otak AI — tampal API key di butang API dulu.'); return; }
+    if (secsLeft() > 0) { tickCooldown(); return; }
+    roomBusy = true;
+    const members = ROOM_ORDER.filter(k => roomRoster.has(k));
+    // the final write-up always closes the meeting — wei if present, else the last member
+    if (members.includes('wei')) { members.splice(members.indexOf('wei'), 1); members.push('wei'); }
+    addMsg('', `Bilik meeting mula bekerja — “${topic}” (${members.map(k => staff[k].name).join(' + ')})`, 'meet');
+    const fmt = pickFormat(topic);
+    let ctx = '', finalOut = '', failed = false;
+    for (let i = 0; i < members.length; i++) {
+      const k = members[i], a = staff[k], s = sprites[k];
+      const isLast = i === members.length - 1;
+      setStat(k, 'bentang dalam bilik'); headCue(s, a.name, 'think');
+      const task = addTask(`${a.role} — ${topic}`, k);
+      taskStart(task);
+      const typing = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typing.classList.add('typing');
+      const brief = (ROOM_BRIEF[k] || ROOM_BRIEF.aiman)(topic)
+        + (ctx ? `\n\nInput pasukan setakat ni:\n${ctx.slice(-1400)}` : '')
+        + (isLast && fmt ? `\nBos mahu hasil akhir sebagai FAIL ${FMT_META[fmt].label.toUpperCase()} — tulis kandungan penuh dokumen sahaja.` : '');
+      let out;
+      try {
+        out = await gemini(nowContext() + '\n' + PERSONA[k] + '\n' + brief, [{ role: 'user', parts: [{ text: topic }] }], isLast ? 800 : 320, 18000);
+      } catch (e) {
+        if (typing.parentElement) typing.parentElement.remove();
+        taskEnd(task, false);
+        noteRateLimit(e);
+        const info = aiTrouble(e);
+        addMsg('', `Bilik meeting terhenti di ${a.name} — ${info.hint}`, 'meet');
+        failed = true; break;
+      }
+      if (typing.parentElement) typing.parentElement.remove();
+      taskEnd(task, true);
+      headCue(s, a.name, 'talk');
+      addMsg(a.name, out, 'staff', a.dot);
+      remember('model', a.name, out);
+      ctx += (ctx ? '\n\n' : '') + `[${a.role} — ${a.name}] ${out}`;
+      if (isLast) finalOut = out;
+      await sleep(Math.max(2200, Math.min(7000, out.length * 30)));
+    }
+    if (!failed && finalOut) {
+      const lead = members[members.length - 1];
+      addDeliverable(lead, finalOut, fmt, topic);
+      addMsg('', 'Laporan bersama siap — tersimpan di Hasil Kerja.', 'meet');
+      const printK = lead;
+      roomBusy = false; roomClear();
+      printerRun(printK);
+    } else {
+      roomBusy = false; roomClear();
+    }
+  }
+  // drag a staff sprite → drop over the round table = into the room; drop outside = out
+  let dragK2 = null, dragGhost = null;
+  Object.keys(staff).forEach(k => sprites[k].wrap.classList.add('grabbable'));
+  office.addEventListener('pointerdown', e => {
+    const w = e.target.closest('.sprite'); if (!w) return;
+    const k = w.id.replace('s-', ''); if (!staff[k]) return;
+    if (sprites[k].busy && !roomRoster.has(k)) return;      // mid-task staff can't be dragged
+    dragK2 = k;
+    dragGhost = document.createElement('div'); dragGhost.className = 'drag-ghost';
+    dragGhost.style.setProperty('--gc', staff[k].dot);
+    dragGhost.textContent = staff[k].name + ' → bilik meeting';
+    dragGhost.style.left = e.clientX + 'px'; dragGhost.style.top = e.clientY + 'px';
+    document.body.appendChild(dragGhost);
+    roomzone.hidden = false;
+    e.preventDefault();
+  });
+  document.addEventListener('pointermove', e => {
+    if (!dragK2 || !dragGhost) return;
+    dragGhost.style.left = e.clientX + 'px'; dragGhost.style.top = e.clientY + 'px';
+    roomzone.classList.toggle('hot', inRoom(toGrid(e.clientX, e.clientY)));
+  });
+  document.addEventListener('pointerup', e => {
+    if (!dragK2) return;
+    const k = dragK2; dragK2 = null;
+    if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    roomzone.hidden = true; roomzone.classList.remove('hot');
+    const g = toGrid(e.clientX, e.clientY);
+    if (inRoom(g)) roomAdd(k);
+    else if (roomRoster.has(k)) roomRemove(k);
+  });
 
   // send flair: the message flies up from the composer into the office
   function flyToOffice(text) {
@@ -1817,7 +2264,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     i.value = '';
     flyToOffice(t);                    // whoosh the message up into the office
     addMsg('Kau', t, 'you');           // and log it in the shared chat
+    // "bubar" dissolves the drag-and-drop meeting room
+    if (BUBAR_RE.test(t)) { roomClear(); addMsg('', 'Bilik meeting dibubarkan — semua kembali bertugas.', 'meet'); return; }
     remember('user', 'Kau', t);
+    // a manned meeting room (≥2 staff dragged in) claims the next task as ITS project
+    if (roomRoster.size >= 2 && !BREAK_RE.test(t) && !WORK_RE.test(t)) { runRoomMeeting(t); return; }
     // "projek …" runs the whole team as a pipeline (research → analyse → write)
     if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
     // "meeting …" gathers the whole team at the table instead of summoning one staff
@@ -1839,10 +2290,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       return;
     }
     let k;
-    // an explicitly NAMED staff is the strongest signal — route straight to them
+    // an explicitly NAMED staff is the strongest signal — route straight to them,
+    // and NEVER let anyone else answer on their behalf (first named wins)
     const named = staffMentioned(t);
     const kw = routeKeyword(t);
-    if (named.length === 1) k = named[0];
+    if (named.length >= 1) k = named[0];
     // a clear keyword hit is routed for free — only spend a Gemini call on the
     // router when the message is ambiguous (keeps free-tier quota for replies)
     else if (kw.score > 0) k = kw.key;
@@ -1904,7 +2356,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
 
   // idle chatter: a resting staff occasionally mutters something office-y
   const ambient = document.getElementById('ambient');
-  const AMBIENT_LINES = ['nak kopi? ☕', 'sibuk sikit ni', 'dah lunch?', 'wifi laju hari ni', 'fokus mode 🎧', 'break kejap', 'almost siap', 'banyak keja', 'jom lunch nanti', 'penat mata', 'on track ✅', 'meeting bila?', 'refill kopi', 'ni last task'];
+  const AMBIENT_LINES = ['nak kopi?', 'sibuk sikit ni', 'dah lunch?', 'wifi laju hari ni', 'fokus mode', 'break kejap', 'almost siap', 'banyak keja', 'jom lunch nanti', 'penat mata', 'on track', 'meeting bila?', 'refill kopi', 'ni last task'];
   let ambientT = null, ambientHideT = null;
   function ambientOnce() {
     // never interrupt an actual conversation / meeting / project
@@ -1949,7 +2401,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }, { passive: false });
 
   // tiny debug handle for automated checks
-  window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase, getMode: () => officeMode, DESK };
+  window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase, getMode: () => officeMode, DESK,
+    roomAdd, roomRemove, roomRoster, toGrid, printerRun, pickFormat, makeFileBlob, liveSearch };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
