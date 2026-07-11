@@ -235,14 +235,28 @@
   .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
 
-  #input-row { display: flex; gap: 9px; margin-top: 13px; }
+  /* briefing card (replaces the generic grey intro) */
+  .brief { align-self: stretch; background: linear-gradient(135deg, #251b11, #1c1610); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 11px 13px; }
+  .brief-head { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+  .brief-ico { font-size: 11px; line-height: 1; }
+  .brief-body { margin: 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+  .brief-body b { color: var(--text); font-weight: 800; }
+
+  /* composer — the "dispatch to office" console */
+  .composer { margin-top: 13px; }
+  .composer-label { display: flex; align-items: center; gap: 6px; margin: 0 2px 7px; font-size: 9.5px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #8a7c6a; }
+  .composer-label svg { width: 12px; height: 12px; color: var(--accent); }
+  #input-row { display: flex; gap: 9px; }
+  .input-wrap { position: relative; flex: 1; display: flex; }
+  .input-glyph { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; font-size: 17px; line-height: 1; pointer-events: none; opacity: .85; }
   #user-input {
     flex: 1; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px;
-    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px;
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px 13px 29px;
     transition: border-color .18s ease, box-shadow .18s ease;
   }
   #user-input::placeholder { color: #8a7c6a; }
   #user-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #e0894e26; }
+  .input-wrap:focus-within .input-glyph { opacity: 1; }
   #send-btn {
     display: inline-flex; align-items: center; gap: 7px;
     font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .3px;
@@ -250,9 +264,23 @@
     padding: 0 20px; cursor: pointer; transition: transform .1s ease, filter .15s ease, box-shadow .18s ease;
     box-shadow: 0 10px 22px -12px var(--accent);
   }
-  #send-btn svg { width: 15px; height: 15px; display: block; }
+  #send-btn svg { width: 15px; height: 15px; display: block; transition: transform .15s ease; }
   #send-btn:hover { filter: brightness(1.06); box-shadow: 0 12px 26px -12px var(--accent); }
+  #send-btn:hover svg { transform: translateX(2px); }
   #send-btn:active { transform: translateY(1px) scale(.98); }
+  #send-btn.sending svg { animation: planeLaunch .5s cubic-bezier(.4,0,.2,1); }
+  @keyframes planeLaunch { 40% { transform: translate(6px,-4px) rotate(-12deg); } 100% { transform: none; } }
+
+  /* the sent message flies up into the office */
+  .fly-msg {
+    position: fixed; z-index: 200; pointer-events: none; display: inline-flex; align-items: center; gap: 6px;
+    max-width: 230px; padding: 7px 12px; border-radius: 13px 13px 13px 4px;
+    background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink);
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12.5px; white-space: nowrap;
+    box-shadow: 0 12px 26px -8px var(--accent); will-change: transform, opacity;
+  }
+  .fly-msg svg { width: 13px; height: 13px; flex: 0 0 auto; }
+  .fly-msg span { overflow: hidden; text-overflow: ellipsis; }
 
   .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
   .foot b { color: var(--muted); font-weight: 700; }
@@ -327,11 +355,23 @@
 
       <section class="convo">
         <div id="chat">
-          <div class="msg sys"><div class="bub">Suruh apa-apa kerja, atau sebut nama staff terus (contoh <b>“hafiz, …”</b>). Taip <b>“meeting …”</b> untuk kumpul semua, atau <b>“projek …”</b> untuk pasukan handoff kerja (plan→research→analisa→tulis).</div></div>
+          <div class="brief">
+            <div class="brief-head"><span class="brief-ico">▦</span> Panduan pantas</div>
+            <p class="brief-body">Suruh apa-apa kerja, atau sebut nama staff terus — contoh <b>“hafiz, …”</b>.<br><b>“meeting …”</b> kumpul semua di meja · <b>“projek …”</b> pasukan handoff kerja (plan → research → analisa → tulis).</p>
+          </div>
         </div>
-        <div id="input-row">
-          <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
-          <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
+        <div class="composer">
+          <div class="composer-label">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
+            Pesanan ke office
+          </div>
+          <div id="input-row">
+            <div class="input-wrap">
+              <span class="input-glyph">›</span>
+              <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
+            </div>
+            <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
+          </div>
         </div>
       </section>
 
@@ -1552,6 +1592,27 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     projectBusy = false;
   }
 
+  // send flair: the message flies up from the composer into the office
+  function flyToOffice(text) {
+    const btn = document.getElementById('send-btn'), stage = document.getElementById('stage');
+    if (!btn || !stage) return;
+    const sr = btn.getBoundingClientRect(), dr = stage.getBoundingClientRect();
+    const startX = sr.left + sr.width / 2, startY = sr.top + sr.height / 2;
+    const endX = dr.left + dr.width * 0.5, endY = dr.top + dr.height * 0.6;   // front-centre of the office
+    const dx = endX - startX, dy = endY - startY;
+    const fly = document.createElement('div'); fly.className = 'fly-msg';
+    const short = text.length > 26 ? text.slice(0, 26) + '…' : text;
+    fly.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg><span>${escHtml(short)}</span>`;
+    fly.style.left = startX + 'px'; fly.style.top = startY + 'px';
+    document.body.appendChild(fly);
+    fly.animate([
+      { transform: 'translate(-50%,-50%) translate(0,0) scale(1) rotate(0deg)', opacity: 1, offset: 0 },
+      { transform: `translate(-50%,-50%) translate(${dx * 0.55 + 24}px, ${dy * 0.5 - 46}px) scale(.9) rotate(-9deg)`, opacity: 1, offset: 0.5 },
+      { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(.28) rotate(8deg)`, opacity: 0, offset: 1 }
+    ], { duration: 740, easing: 'cubic-bezier(.45,0,.25,1)' }).onfinish = () => fly.remove();
+    btn.classList.add('sending'); setTimeout(() => btn.classList.remove('sending'), 520);
+  }
+
   async function handleSend() {
     const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
     const usingAI = !!AI.key;
@@ -1559,6 +1620,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     // balik sekali cooldown habis without retyping
     if (usingAI && secsLeft() > 0) { tickCooldown(); return; }
     i.value = '';
+    flyToOffice(t);                    // whoosh the message up into the office
     addMsg('Kau', t, 'you');
     remember('user', 'Kau', t);
     // "projek …" runs the whole team as a pipeline (research → analyse → write)
