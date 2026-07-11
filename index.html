@@ -273,6 +273,18 @@
   .tq.fail .tq-fill, .tq.fail .tq-dot { background: #c2563e; box-shadow: none; }
   .tq.fail .tq-pct { color: #d98b76; }
 
+  /* file attachment chip inside a chat message — the reply ARRIVES as a file */
+  .msg .att {
+    display: flex; align-items: center; gap: 9px; margin-top: 7px; padding: 9px 11px;
+    border-radius: 12px; background: #ffffff0a; border: 1px solid var(--line);
+  }
+  .msg .att svg { width: 17px; height: 17px; color: var(--dotc, var(--accent)); flex: 0 0 auto; }
+  .msg .att .att-info { flex: 1; min-width: 0; }
+  .msg .att .att-name { display: block; font-family: 'Nunito', sans-serif; font-size: 11.5px; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .msg .att .att-kind { display: block; font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
+  .msg .att button { flex: 0 0 auto; font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent-ink); background: linear-gradient(135deg, #efac6c, var(--accent)); border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: filter .15s ease; }
+  .msg .att button:hover { filter: brightness(1.07); }
+
   /* real-file chip + download on a deliverable card */
   .deliv-file { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
   .deliv-file svg { width: 13px; height: 13px; color: var(--dc, var(--accent)); }
@@ -767,16 +779,13 @@
     chic:     ["....JJJJ....","...JJJJJJ...","...JJJAJJ...","...JJAJJJ...","...JAJJJJ...","...AJJJJJ...","...JJJJJJ...","...JJJJJJ...","...jJJJJj...","...TTTTTT..."]
   };
   const LEGSET = { tailored:LEGS_T, knit:LEGS_T, chic:LEGS_T, robe:LEGS_R };
-  // seated-at-desk: BACK view — they face the monitor, so the viewer sees the
-  // back of the head (hair, no face) and the figure drops 4 rows onto the chair,
-  // legs hidden behind the seat. Reads unmistakably as "working at the computer".
+  // seated-at-desk: FRONT view (the boss wants to see their faces) — the figure
+  // drops 4 rows onto the chair seat, thighs folded forward, shoes tucked
   const BLANK = "............";
-  const HEAD_B = ["....KKKK....","...KKKKKK...","..KHHHHHHK..","..HHHHHHHH..","..HHHHHHHH..","..HHHHHHHH..","...sHHHHs..."];
-  const SIT_T = ["...TTTTTT...", BLANK];
-  const SIT_R = ["..JJJJJJJJ..", BLANK];
-  const backTorso = o => TORSO[o].map(r => r.replace(/[WA]/g, 'J'));   // no collar/shirt detail from behind
+  const SIT_T = ["...TTTTTT...","...oo..oo..."];
+  const SIT_R = ["..JJJJJJJJ..","....oo.oo..."];
   function outfitMap(outfit, frame) {
-    if (frame === 'sit') return [BLANK, BLANK, BLANK, BLANK].concat(HEAD_B, backTorso(outfit), LEGSET[outfit] === LEGS_R ? SIT_R : SIT_T);
+    if (frame === 'sit') return [BLANK, BLANK, BLANK, BLANK].concat(HEAD, TORSO[outfit], LEGSET[outfit] === LEGS_R ? SIT_R : SIT_T);
     return HEAD.concat(TORSO[outfit], LEGSET[outfit][frame]);
   }
 
@@ -1358,6 +1367,8 @@
     if (/\bcsv\b/i.test(t)) return 'csv';
     if (/\b(markdown|\.md)\b|\bfail md\b/i.test(t)) return 'md';
     if (/\bfail (txt|teks)\b|\btxt\b/i.test(t)) return 'txt';
+    // generic "make me a file/document" with no named format → default to PDF
+    if (/\b(fail|file|dokumen|document|lampir(kan)?|attach(ment)?)\b/i.test(t)) return 'pdf';
     if (/\b(laporan|report)\b/i.test(t)) return 'pdf';
     return null;
   }
@@ -1428,6 +1439,23 @@
     const url = URL.createObjectURL(blob); const a = document.createElement('a');
     a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  // attach a real, downloadable file chip UNDER a chat message — so when the boss
+  // asks for a file, the reply visibly ARRIVES as a file, not just text
+  function attachFile(msgBub, fmt, srcText, content) {
+    if (!msgBub || !msgBub.parentElement || !FMT_META[fmt]) return;
+    const meta = FMT_META[fmt];
+    const fname = fileSlug(srcText || '') + '.' + meta.ext;
+    const att = document.createElement('div'); att.className = 'att';
+    att.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 2.8h7.2L19 8.6V20a1.4 1.4 0 0 1-1.4 1.4H6A1.4 1.4 0 0 1 4.6 20V4.2A1.4 1.4 0 0 1 6 2.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13 3v6h6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`
+      + `<span class="att-info"><span class="att-name"></span><span class="att-kind"></span></span>`;
+    att.querySelector('.att-name').textContent = fname;
+    att.querySelector('.att-kind').textContent = 'Fail ' + meta.label + ' · sedia dimuat turun';
+    const btn = document.createElement('button'); btn.textContent = 'Muat turun';
+    btn.addEventListener('click', () => downloadFile(fmt, fname, (srcText || 'Dokumen').slice(0, 80), content));
+    att.appendChild(btn);
+    msgBub.parentElement.appendChild(att);
+    chat.scrollTop = chat.scrollHeight;
   }
 
   // ---- deliverables tray: capture every GENUINE staff output (not errors/demo),
@@ -1911,11 +1939,14 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       if (typingBub) { typingBub.parentElement.remove(); typingBub = null; }
       taskEnd(task, !failed);
       headCue(s, a.name, 'talk');                        // small "talking" cue over the head
-      addMsg(a.name, reply, 'staff', a.dot);             // the reply is read in the chat
+      const rb = addMsg(a.name, reply, 'staff', a.dot);  // the reply is read in the chat
       if (!ephemeral) {
         remember('model', a.name, reply);
         addDeliverable(k, reply, fmt, text);             // real files land in the tray, downloadable
-        if (fmt) setStatus(`${a.name} dah siapkan fail ${FMT_META[fmt].label} — muat turun di Hasil Kerja.`);
+        if (fmt) {
+          attachFile(rb, fmt, text, reply);              // …and arrive as a file IN the chat too
+          setStatus(`${a.name} dah lampirkan fail ${FMT_META[fmt].label} dalam chat — tekan Muat turun.`);
+        }
       }
       setStat(k, 'dengan kau'); setActive(k, true);
       if (!fmt || ephemeral) setStatus(`${a.name} tengah lapor kat kau.`);
@@ -2083,9 +2114,11 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       if (typing.parentElement) typing.parentElement.remove();
       taskEnd(task, true);
       headCue(s, a.name, 'talk');
-      addMsg(a.name, out, 'staff', a.dot);
+      const ob = addMsg(a.name, out, 'staff', a.dot);
       remember('model', a.name, out);
-      addDeliverable(k, out, i === PROJECT_PIPELINE.length - 1 ? fmt : null, topic);
+      const isFinal = i === PROJECT_PIPELINE.length - 1;
+      addDeliverable(k, out, isFinal ? fmt : null, topic);
+      if (isFinal && fmt) attachFile(ob, fmt, topic, out);
       ctx = (ctx === '(belum ada)' ? '' : ctx + '\n\n') + `[${a.role} — ${a.name}] ${out}`;
       if (ctx.length > 1400) ctx = ctx.slice(-1400);
       setStat(k, 'siap bahagian');
@@ -2232,10 +2265,10 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       if (typing.parentElement) typing.parentElement.remove();
       taskEnd(task, true);
       headCue(s, a.name, 'talk');
-      addMsg(a.name, out, 'staff', a.dot);
+      const ob = addMsg(a.name, out, 'staff', a.dot);
       remember('model', a.name, out);
       ctx += (ctx ? '\n\n' : '') + `[${a.role} — ${a.name}] ${out}`;
-      if (isLast) finalOut = out;
+      if (isLast) { finalOut = out; if (fmt) attachFile(ob, fmt, topic, out); }
       await sleep(Math.max(2200, Math.min(7000, out.length * 30)));
     }
     if (!failed && finalOut) {
