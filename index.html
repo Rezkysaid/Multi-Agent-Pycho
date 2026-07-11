@@ -87,6 +87,8 @@
   .main-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
   .stage-caption { font-size: 12px; color: var(--muted); margin: 0 2px 8px; }
   .stage-caption b { color: var(--text); font-weight: 700; }
+  #mood { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; }
+  #mood svg { width: 13px; height: 13px; display: block; }
 
   #stage { position: relative; }
   #office {
@@ -213,7 +215,7 @@
   #chat {
     background: linear-gradient(180deg, var(--surface), #1a130c);
     border: 1px solid var(--line); border-radius: 16px;
-    padding: 15px; max-height: 46vh; min-height: 110px; overflow-y: auto;
+    padding: 15px; max-height: 46vh; min-height: 64px; overflow-y: auto;
     display: flex; flex-direction: column; gap: 13px; scrollbar-width: thin; scroll-behavior: smooth;
     box-shadow: inset 0 1px 0 #ffffff0d, 0 14px 36px -24px #000;
   }
@@ -234,13 +236,6 @@
   .msg.meet { align-self: center; max-width: 94%; text-align: center; }
   .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
-
-  /* briefing card (replaces the generic grey intro) */
-  .brief { align-self: stretch; background: linear-gradient(135deg, #251b11, #1c1610); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 11px 13px; }
-  .brief-head { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
-  .brief-ico { font-size: 11px; line-height: 1; }
-  .brief-body { margin: 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
-  .brief-body b { color: var(--text); font-weight: 800; }
 
   /* composer — the "dispatch to office" console */
   .composer { margin-top: 13px; }
@@ -342,7 +337,7 @@
   <main class="app">
     <div class="main-col">
       <section class="stage-wrap">
-        <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b> · <span id="mood">☀️ siang</span></div>
+        <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b> · <span id="mood"></span></div>
         <div id="stage">
           <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
           <div id="tint"></div>
@@ -354,12 +349,7 @@
       </section>
 
       <section class="convo">
-        <div id="chat">
-          <div class="brief">
-            <div class="brief-head"><span class="brief-ico">▦</span> Panduan pantas</div>
-            <p class="brief-body">Suruh apa-apa kerja, atau sebut nama staff terus — contoh <b>“hafiz, …”</b>.<br><b>“meeting …”</b> kumpul semua di meja · <b>“projek …”</b> pasukan handoff kerja (plan → research → analisa → tulis).</p>
-          </div>
-        </div>
+        <div id="chat"></div>
         <div class="composer">
           <div class="composer-label">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
@@ -1671,17 +1661,24 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   // =====================================================================
   const tint = document.getElementById('tint');
   const moodEl = document.getElementById('mood');
+  // crisp inline SVG glyphs for the time-of-day (no default emoji)
+  const S = (c, b) => `<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:${c}">${b}</svg>`;
+  const SUN_RAYS = 'M12 3.2v1.6M12 19.2v1.6M3.2 12h1.6M19.2 12h1.6M5.6 5.6l1.15 1.15M17.25 17.25l1.15 1.15M18.4 5.6l-1.15 1.15M6.75 17.25l-1.15 1.15';
   const PHASES = {
-    pagi:  { icon: '🌅', label: 'pagi',       tint: 'linear-gradient(180deg, rgba(255,208,150,.13), rgba(255,170,110,.05) 60%, rgba(255,150,90,.03))' },
-    siang: { icon: '☀️', label: 'siang',      tint: 'linear-gradient(180deg, rgba(255,252,240,.04), rgba(255,255,255,0) 50%)' },
-    petang:{ icon: '🌇', label: 'petang',     tint: 'linear-gradient(180deg, rgba(244,150,66,.17), rgba(196,104,58,.11) 70%, rgba(150,80,60,.08))' },
-    malam: { icon: '🌙', label: 'malam',      tint: 'radial-gradient(120% 75% at 50% 96%, rgba(255,176,86,.13), rgba(255,176,86,0) 46%), linear-gradient(180deg, rgba(30,40,88,.42), rgba(12,18,44,.44))' }
+    pagi:  { label: 'pagi',   color: '#e6a24e', svg: S('#e6a24e', `<path d="M3 18.5h18"/><path d="M7.7 18.5a4.3 4.3 0 0 1 8.6 0"/><path d="M12 3.5v3.2M9.6 5.6 12 3.4l2.4 2.2"/>`),
+             tint: 'linear-gradient(180deg, rgba(255,208,150,.13), rgba(255,170,110,.05) 60%, rgba(255,150,90,.03))' },
+    siang: { label: 'siang',  color: '#e8b54a', svg: S('#e8b54a', `<circle cx="12" cy="12" r="4"/><path d="${SUN_RAYS}"/>`),
+             tint: 'linear-gradient(180deg, rgba(255,252,240,.04), rgba(255,255,255,0) 50%)' },
+    petang:{ label: 'petang', color: '#dd8143', svg: S('#dd8143', `<path d="M3 18.5h18"/><path d="M7.7 18.5a4.3 4.3 0 0 1 8.6 0"/><path d="M12 7V3.6M9.6 5.4 12 7.4l2.4-2"/>`),
+             tint: 'linear-gradient(180deg, rgba(244,150,66,.17), rgba(196,104,58,.11) 70%, rgba(150,80,60,.08))' },
+    malam: { label: 'malam',  color: '#8ba2d9', svg: `<svg viewBox="0 0 24 24" fill="#8ba2d9" style="color:#8ba2d9"><path d="M20.5 15.2A8 8 0 1 1 9.2 4.1a6.6 6.6 0 0 0 11.3 11.1Z"/></svg>`,
+             tint: 'radial-gradient(120% 75% at 50% 96%, rgba(255,176,86,.13), rgba(255,176,86,0) 46%), linear-gradient(180deg, rgba(30,40,88,.42), rgba(12,18,44,.44))' }
   };
   const dayPhase = h => (h >= 6 && h < 11) ? 'pagi' : (h >= 11 && h < 16) ? 'siang' : (h >= 16 && h < 19) ? 'petang' : 'malam';
   function applyDaylight() {
     const cfg = PHASES[dayPhase(new Date().getHours())];
     tint.style.background = cfg.tint;
-    if (moodEl) moodEl.textContent = cfg.icon + ' ' + cfg.label;
+    if (moodEl) moodEl.innerHTML = cfg.svg + '<span>' + cfg.label + '</span>';
   }
 
   // idle chatter: a resting staff occasionally mutters something office-y
