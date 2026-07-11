@@ -653,7 +653,9 @@
     office.appendChild(f);
   }
   function roundTable(gx, gy, rt, h, topCol, legCol) {
-    const c = project(gx, gy), w = rt * TILE_W, hh = rt * TILE_H, z = Math.round((gx + gy) * 10) + 100;
+    // z anchored on the FRONT rim (gy + rt*0.55), not the centre — otherwise a
+    // sprite standing BEHIND the table out-stacks it and looks like it climbed on top
+    const c = project(gx, gy), w = rt * TILE_W, hh = rt * TILE_H, z = Math.round((gx + gy + rt * 0.55) * 10) + 100;
     const mk = (bg, w2, h2, dy, zz) => { const e = document.createElement('div'); e.className='deco';
       Object.assign(e.style,{ width:w2+'px', height:h2+'px', borderRadius:'50%',
         left:(c.x - w2/2)+'px', top:(c.y - h - h2/2 + dy)+'px', background:bg, zIndex:zz }); office.appendChild(e); };
