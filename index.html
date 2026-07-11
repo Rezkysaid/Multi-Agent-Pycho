@@ -556,6 +556,8 @@
     box(gx + 0.52, gy + 0.34, 0.06, 0.06, 9, legC, false, TOP + TH);  // monitor stand
     box(gx + 0.32, gy + 0.28, 0.5, 0.05, 15, screenC, false, TOP + TH); // monitor (screen faces front)
     box(gx + 0.3,  gy + 0.44, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard
+    box(gx + 0.9,  gy + 0.1,  0.1, 0.1, 4, { top:'#d9694a', left:'#a84a34', right:'#c25a40' }, false, TOP + TH); // coffee mug
+    box(gx + 0.06, gy + 0.06, 0.22, 0.14, 1, { top:'#efe7d6', left:'#c9c2b2', right:'#ddd6c6' }, false, TOP + TH); // papers
     chair(gx + 0.4, gy + 0.82);
   }
   // sofa: seat base + backrest + two armrests + seam
@@ -626,6 +628,29 @@
   contactShadow(3.4, 7.3, 1.9, 1.05);
   box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, screenC, false, 30); // boss desk + monitor
   chair(4.15, 7.55);                                                                        // boss chair
+
+  // --- extra office nuance: rug, water cooler, coffee machine, greenery, whiteboard ---
+  function rug(gx, gy, w, d, col, border) {
+    const a = project(gx, gy), b = project(gx + w, gy), c = project(gx + w, gy + d), e = project(gx, gy + d);
+    face([a, b, c, e], border, 3);
+    const m = 0.14, a2 = project(gx + m, gy + m), b2 = project(gx + w - m, gy + m), c2 = project(gx + w - m, gy + d - m), e2 = project(gx + m, gy + d - m);
+    face([a2, b2, c2, e2], col, 3).style.zIndex = 4;
+  }
+  rug(11.05, 4.5, 3.0, 2.9, 'linear-gradient(150deg,#8a5346,#6f4238)', '#9c6a58');           // warm lounge rug
+  contactShadow(6.65, 0.18, 0.46, 0.46);
+  box(6.65, 0.2, 0.44, 0.44, 20, white);                                                     // water cooler base
+  box(6.72, 0.26, 0.3, 0.3, 15, { top:'#c4e4f0', left:'#93c3da', right:'#a9d2e4' }, false, 20); // blue water bottle
+  box(6.79, 0.32, 0.06, 0.06, 3, { top:'#3a6f99', left:'#2c5679', right:'#336288' }, false, 15);
+  box(10.4, 0.28, 0.42, 0.4, 16, { top:'#3a3f4c', left:'#22262f', right:'#2c3038' }, false, 30);  // coffee machine on pantry
+  box(10.48, 0.6, 0.26, 0.06, 4, { top:'#5a5f6c', left:'#42464f', right:'#4c5058' }, false, 30);
+  const cmL = project(10.6, 0.42); const cmDot = document.createElement('div'); cmDot.className = 'deco';
+  Object.assign(cmDot.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 5px #e0894e', left:cmL.x+'px', top:(cmL.y-44)+'px', zIndex:400 });
+  office.appendChild(cmDot);
+  plant(10.9, 8.5); plant(0.55, 0.45);                                                       // corner greenery
+  wallItem('L', 8.4, 58, 60, 34, { background:'#f4f2ec', border:'3px solid #cbc3b2', borderRadius:'3px' },
+    '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(0deg,transparent 0 9px,#3a8f8a33 9px 10px);opacity:.9"></div>'
+    + '<div style="position:absolute;left:8px;top:8px;width:38%;height:4px;background:#c9463a99;border-radius:2px"></div>'
+    + '<div style="position:absolute;left:8px;top:18px;width:55%;height:3px;background:#3a8f8a99;border-radius:2px"></div>');
 
   // --- floor target marker ---
   const spot = document.createElement('div'); spot.className = 'layer'; spot.id = 'spot'; spot.style.zIndex = 4; spot.style.opacity = 0;
@@ -966,9 +991,36 @@
     return total;
   }
 
-  // --- autonomous wandering ---
-  function scheduleWander(k) {
+  // =====================================================================
+  //  WORK vs BREAK — by default everyone sits at their desk working; they only
+  //  wander after a "rehat"/"stop" command, and go back on "kerja".
+  // =====================================================================
+  let officeMode = 'work';   // 'work' (at desks) | 'break' (wandering)
+  let breakTimer = null;
+  // each staff's own desk seat (in front of their monitor)
+  const DESK = {
+    aiman:  { gx: 5.6, gy: 3.2 }, meera:  { gx: 7.6, gy: 3.2 }, wei:    { gx: 9.6, gy: 3.2 },
+    danish: { gx: 5.6, gy: 5.7 }, hana:   { gx: 7.6, gy: 5.7 }, hafiz:  { gx: 9.6, gy: 5.7 }
+  };
+  const WORK_PHRASES = ['tengah kerja', 'fokus laptop', 'buat report', 'reply emel', 'siapkan tugas', 'kat laptop'];
+
+  // walk to own desk and stay there (working), facing the monitor
+  function goToDesk(k) {
     const s = sprites[k]; if (s.busy) return;
+    clearTimeout(s.wanderT); clearTimeout(s.arriveT);
+    const d = DESK[k] || staff[k].home;
+    setStat(k, 'ke meja →');
+    const dur = walk(s, d.gx, d.gy);
+    s.arriveT = setTimeout(() => {
+      if (s.busy || officeMode !== 'work') return;
+      s.facing.style.transform = 'scaleX(-1)';                 // face the desk
+      setStat(k, WORK_PHRASES[(Math.random() * WORK_PHRASES.length) | 0]);
+    }, dur * 1000 + 150);
+  }
+
+  // --- autonomous wandering (ONLY in break mode) ---
+  function scheduleWander(k) {
+    const s = sprites[k]; if (s.busy || officeMode !== 'break') return;
     s.wanderT = setTimeout(() => doWander(k), 900 + Math.random() * 3200);
   }
   function openTarget(k) {
@@ -980,7 +1032,7 @@
     return staff[k].home;
   }
   function doWander(k) {
-    const s = sprites[k]; if (s.busy) return;
+    const s = sprites[k]; if (s.busy || officeMode !== 'break') return;
     const t = openTarget(k);
     setStat(k, 'jalan-jalan');
     const dur = walk(s, t.gx, t.gy);
@@ -989,7 +1041,28 @@
       scheduleWander(k);
     }, dur * 1000 + 700 + Math.random() * 2800);
   }
-  for (const k in staff) setTimeout(() => scheduleWander(k), Math.random() * 1500);
+  // after a staff finishes reporting, send them back to work OR let them wander
+  function releaseStaff(k) {
+    if (officeMode === 'work') goToDesk(k); else scheduleWander(k);
+  }
+  // switch the whole office between work / break
+  function setOfficeMode(mode, mins) {
+    officeMode = mode; clearTimeout(breakTimer);
+    for (const k in staff) {
+      const s = sprites[k]; if (s.busy) continue;              // busy staff transition when they're released
+      clearTimeout(s.wanderT); clearTimeout(s.arriveT);
+      if (mode === 'work') goToDesk(k); else scheduleWander(k);
+    }
+    if (mode === 'break' && mins > 0) breakTimer = setTimeout(() => { setOfficeMode('work'); announceMode('work'); }, mins * 60000);
+  }
+  function announceMode(mode, mins) {
+    const a = staff.aiman, s = sprites.aiman;
+    const msg = mode === 'work' ? 'Ok bos, semua balik meja — sambung kerja! 💻'
+      : (mins ? `Rehat ${mins} minit semua, jom relax dulu!` : 'Ok bos, rehat dulu — korang boleh berkeliaran.');
+    if (!s.busy) speakComic(s, a.name, a.dot, msg);
+    setStatus(mode === 'work' ? 'Mod kerja — semua staff di meja masing-masing.' : 'Mod rehat — staff berkeliaran.');
+  }
+  for (const k in staff) setTimeout(() => goToDesk(k), 400 + Math.random() * 1200);   // start at desks (work mode)
 
   // =====================================================================
   //  LAYER AI / LOGIC — routing (mock keyword fallback + Gemini orchestrator)
@@ -1528,7 +1601,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       clearTimeout(s.releaseT);
       // hold the character in place long enough to read all the comic panels
       const readMs = Math.max(9000, Math.min(26000, String(reply).length * 62));
-      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); spot.style.opacity = 0; }, readMs);
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, readMs);
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
@@ -1544,13 +1617,16 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
         else deliver(a.reply, true);
       });
     }, dur * 1000 + 180);
-    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
   }
 
   // =====================================================================
   //  MEETING — "meeting …" gathers the whole team at the round table
   // =====================================================================
   const MEETING_RE = /\b(meeting|mesyuarat|mesywarat|town\s?hall|perbincangan|taklimat)\b|\bkumpul(kan)?\s+(semua|semua\s+staff|pasukan|korang)\b|\bbincang(kan)?\s+(sama|ramai|bersama)\b/i;
+  // office-mode commands (only these let staff leave their desks to wander / return)
+  const BREAK_RE = /\brehat\b|\bbreak\b|\bstop\b|\bberhenti\b|\brelax\b|\bcuti\b|\bsantai\b|jalan-?jalan/i;
+  const WORK_RE  = /\b(sambung|start|mula(?:kan)?|balik|semua|korang|jom)\s+kerja\b|\bkerja\s+(balik|semula)\b|\bbalik\s+meja\b|\bfokus\s+kerja\b|^\s*(kerja|work|fokus)\s*$/i;
   // six standing spots ringing the round table at (2.9, 2.2)
   const MEETING_SPOTS = [
     { gx: 2.9, gy: 0.7 }, { gx: 4.5, gy: 1.3 }, { gx: 4.5, gy: 3.1 },
@@ -1620,7 +1696,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     const keys = Object.keys(staff);
     keys.forEach((k, i) => {
       const s = sprites[k];
-      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); scheduleWander(k); }, 5000 + i * 250);
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); }, 5000 + i * 250);
     });
     setTimeout(() => { meetingBusy = false; }, 6500);
   }
@@ -1665,7 +1741,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
         noteRateLimit(e);
         const info = aiTrouble(e); speakComic(s, a.name, a.dot, info.msg);
         setStatus(`⚠️ Projek terhenti di ${a.name} — ${info.hint}`);
-        setActive(k, false); s.busy = false; scheduleWander(k); projectBusy = false;
+        setActive(k, false); s.busy = false; releaseStaff(k); projectBusy = false;
         return;
       }
       speakComic(s, a.name, a.dot, out);
@@ -1675,7 +1751,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       if (ctx.length > 1400) ctx = ctx.slice(-1400);
       setStat(k, 'siap bahagian');
       await sleep(Math.max(3600, Math.min(9000, out.length * 42)));
-      setActive(k, false); s.busy = false; scheduleWander(k);
+      setActive(k, false); s.busy = false; releaseStaff(k);
     }
     setStatus('✅ Projek siap — semua bahagian tersimpan di Dulang Hasil. 📥');
     projectBusy = false;
@@ -1715,6 +1791,13 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
     // "meeting …" gathers the whole team at the table instead of summoning one staff
     if (MEETING_RE.test(t)) { callMeeting(meetingTopic(t)); return; }
+    // BREAK / WORK commands — the only two things that let staff wander or send them
+    // back to their desks. Checked before routing so they aren't treated as tasks.
+    if (BREAK_RE.test(t)) {
+      const mins = parseInt((t.match(/(\d+)\s*(?:min|minit|minute)/i) || [])[1], 10) || 0;
+      setOfficeMode('break', mins); announceMode('break', mins); return;
+    }
+    if (WORK_RE.test(t)) { setOfficeMode('work'); announceMode('work'); return; }
     // date/time question? answer straight from the device clock — never ask the AI
     // (models hallucinate the date). Delivered by the named staff, or Aiman.
     const dt = localDateTimeAnswer(t);
@@ -1835,7 +1918,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }, { passive: false });
 
   // tiny debug handle for automated checks
-  window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase };
+  window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase, getMode: () => officeMode, DESK };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
