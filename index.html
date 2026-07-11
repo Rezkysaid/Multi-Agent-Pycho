@@ -160,6 +160,19 @@
   #comic .c-more { position: absolute; right: 9px; bottom: 5px; font-size: 9px; color: #211a1266; font-weight: 800; }
   @keyframes comicPop { from { opacity: 0; transform: translate(-50%, calc(-100% + 12px)) scale(.82); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
 
+  /* day/night ambient tint over the whole room (shifts with the real clock) */
+  #tint { position: absolute; inset: 0; z-index: 50; pointer-events: none; transition: background 2.5s ease; }
+  /* ambient idle chatter — a soft little bubble over a resting staff */
+  #ambient {
+    position: absolute; z-index: 58; transform: translate(-50%, -100%); transform-origin: 50% 100%;
+    padding: 4px 9px; background: rgba(253, 247, 234, .94); color: #3a2f22; white-space: nowrap;
+    border-radius: 11px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px;
+    box-shadow: 0 4px 11px #0007; pointer-events: none; animation: ambPop .28s ease;
+  }
+  #ambient[hidden] { display: none; }
+  #ambient::after { content: ''; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(253, 247, 234, .94); border-bottom: 0; }
+  @keyframes ambPop { from { opacity: 0; transform: translate(-50%, calc(-100% + 6px)) scale(.9); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
+
   .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
 
   /* team rail */
@@ -301,9 +314,11 @@
   <main class="app">
     <div class="main-col">
       <section class="stage-wrap">
-        <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b></div>
+        <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b> · <span id="mood">☀️ siang</span></div>
         <div id="stage">
           <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
+          <div id="tint"></div>
+          <div id="ambient" hidden></div>
           <div id="bubble" hidden></div>
           <div id="comic" hidden></div>
         </div>
@@ -1589,13 +1604,58 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }
   window.addEventListener('resize', fit); requestAnimationFrame(fit); fit();
 
+  // =====================================================================
+  //  LIVING OFFICE — day/night lighting + idle chatter
+  // =====================================================================
+  const tint = document.getElementById('tint');
+  const moodEl = document.getElementById('mood');
+  const PHASES = {
+    pagi:  { icon: '🌅', label: 'pagi',       tint: 'linear-gradient(180deg, rgba(255,208,150,.13), rgba(255,170,110,.05) 60%, rgba(255,150,90,.03))' },
+    siang: { icon: '☀️', label: 'siang',      tint: 'linear-gradient(180deg, rgba(255,252,240,.04), rgba(255,255,255,0) 50%)' },
+    petang:{ icon: '🌇', label: 'petang',     tint: 'linear-gradient(180deg, rgba(244,150,66,.17), rgba(196,104,58,.11) 70%, rgba(150,80,60,.08))' },
+    malam: { icon: '🌙', label: 'malam',      tint: 'radial-gradient(120% 75% at 50% 96%, rgba(255,176,86,.13), rgba(255,176,86,0) 46%), linear-gradient(180deg, rgba(30,40,88,.42), rgba(12,18,44,.44))' }
+  };
+  const dayPhase = h => (h >= 6 && h < 11) ? 'pagi' : (h >= 11 && h < 16) ? 'siang' : (h >= 16 && h < 19) ? 'petang' : 'malam';
+  function applyDaylight() {
+    const cfg = PHASES[dayPhase(new Date().getHours())];
+    tint.style.background = cfg.tint;
+    if (moodEl) moodEl.textContent = cfg.icon + ' ' + cfg.label;
+  }
+
+  // idle chatter: a resting staff occasionally mutters something office-y
+  const ambient = document.getElementById('ambient');
+  const AMBIENT_LINES = ['nak kopi? ☕', 'sibuk sikit ni', 'dah lunch?', 'wifi laju hari ni', 'fokus mode 🎧', 'break kejap', 'almost siap', 'banyak keja', 'jom lunch nanti', 'penat mata', 'on track ✅', 'meeting bila?', 'refill kopi', 'ni last task'];
+  let ambientT = null, ambientHideT = null;
+  function ambientOnce() {
+    // never interrupt an actual conversation / meeting / project
+    if (!comic.hidden || !bubble.hidden || meetingBusy || projectBusy) return false;
+    const idle = Object.keys(staff).filter(k => { const s = sprites[k]; return s && !s.busy && !s.isWalking; });
+    if (!idle.length) return false;
+    const k = idle[(Math.random() * idle.length) | 0], s = sprites[k];
+    ambient.textContent = AMBIENT_LINES[(Math.random() * AMBIENT_LINES.length) | 0];
+    ambient.hidden = false;
+    const p = project(s.gx, s.gy), stageW = BOARD_W * currentScale;
+    ambient.style.left = Math.max(38, Math.min(stageW - 38, p.x * currentScale)) + 'px';
+    ambient.style.top = Math.max(4, (p.y - SPR_H - 4) * currentScale) + 'px';
+    ambient.style.animation = 'none'; void ambient.offsetWidth; ambient.style.animation = '';
+    clearTimeout(ambientHideT); ambientHideT = setTimeout(() => { ambient.hidden = true; }, 2800);
+    return true;
+  }
+  function tickAmbient() {
+    ambientT = setTimeout(tickAmbient, 5000 + Math.random() * 6000);
+    if (Math.random() < 0.4) return;                       // keep it occasional, not chatty
+    ambientOnce();
+  }
+
   // ambient live clock (a small human detail)
   function tickClock() {
     const d = new Date();
     document.getElementById('clock').textContent =
       String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    applyDaylight();
   }
   tickClock(); setInterval(tickClock, 15000);
+  setTimeout(tickAmbient, 4000);
 
   // belt-and-suspenders: iOS Safari sometimes still fires pinch (gesturestart)
   // and double-tap zoom even with user-scalable=no; kill both explicitly.
@@ -1609,7 +1669,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }, { passive: false });
 
   // tiny debug handle for automated checks
-  window.__mo = { isBlocked, sprites, los };
+  window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
