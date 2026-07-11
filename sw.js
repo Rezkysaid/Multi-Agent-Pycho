@@ -1,7 +1,7 @@
 // Mind Office service worker — offline-capable app shell.
 // index.html is network-first (updates arrive as soon as you're online);
 // icons and fonts are cache-first (fast, offline-safe).
-const CACHE = 'mind-office-v1';
+const CACHE = 'mind-office-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
