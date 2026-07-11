@@ -648,10 +648,6 @@
   Object.assign(cmDot.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 5px #e0894e', left:cmL.x+'px', top:(cmL.y-44)+'px', zIndex:400 });
   office.appendChild(cmDot);
   plant(10.9, 8.5); plant(0.55, 0.45);                                                       // corner greenery
-  wallItem('L', 9.35, 54, 54, 32, { background:'#f4f2ec', border:'3px solid #cbc3b2', borderRadius:'3px' },
-    '<div style="position:absolute;inset:6px;background:repeating-linear-gradient(0deg,transparent 0 9px,#3a8f8a33 9px 10px);opacity:.9"></div>'
-    + '<div style="position:absolute;left:8px;top:8px;width:38%;height:4px;background:#c9463a99;border-radius:2px"></div>'
-    + '<div style="position:absolute;left:8px;top:18px;width:55%;height:3px;background:#3a8f8a99;border-radius:2px"></div>');
 
   // --- floor target marker ---
   const spot = document.createElement('div'); spot.className = 'layer'; spot.id = 'spot'; spot.style.zIndex = 4; spot.style.opacity = 0;
