@@ -177,38 +177,51 @@
 
   .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
 
-  /* team rail */
+  /* team rail — swipeable stacked staff-card deck (Tinder style) */
   .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
-  .rail-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px 2px; }
-  #roster { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
-  /* lanyard ID badge: ribbon + clip + card with a pixel-face photo */
-  .member { position: relative; display: flex; flex-direction: column; align-items: center; transition: transform .14s ease; cursor: default; }
-  .member:hover { transform: translateY(-2px); }
-  .strap {
-    width: 15px; height: 17px; border-radius: 3px 3px 0 0; margin-bottom: -3px; z-index: 1;
-    background: repeating-linear-gradient(45deg, var(--mc, var(--accent)) 0 4px, #ffffff44 4px 7px);
-    box-shadow: inset 0 0 0 1px #0003;
+  .rail-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px 2px; }
+  .deck-count { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 18px; padding: 0 7px; border-radius: 9px; background: var(--surface2); color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .5px; }
+  .deck { position: relative; height: 396px; margin: 4px auto 0; max-width: 320px; touch-action: pan-y; }
+  .staff-card {
+    position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 384px;
+    border-radius: 20px; padding: 18px; overflow: hidden;
+    display: flex; flex-direction: column;
+    background:
+      radial-gradient(130% 90% at 12% -8%, var(--mc, var(--accent)), transparent 52%),
+      linear-gradient(160deg, #2a2015, #16110c 70%);
+    border: 1px solid #ffffff1c;
+    box-shadow: 0 22px 44px -20px #000, inset 0 1px 0 #ffffff26;
+    color: var(--text); cursor: grab; will-change: transform;
+    -webkit-user-select: none; user-select: none;
   }
-  .clip { width: 22px; height: 7px; border-radius: 4px; margin-bottom: -3px; z-index: 2;
-    background: linear-gradient(180deg, #e3e5ea, #a7abb4); box-shadow: inset 0 1px 0 #fff9, 0 1px 2px #0006; }
-  .card {
-    position: relative; width: 100%; display: flex; align-items: center; gap: 10px;
-    background: linear-gradient(180deg, #f5f0e4, #e6ddca); border-radius: 11px; padding: 9px 11px;
-    border-top: 3px solid var(--mc, var(--accent));
-    box-shadow: 0 8px 18px -10px #000, inset 0 0 0 1px #ffffffaa;
-    transition: box-shadow .2s ease;
+  .staff-card::after { content: ''; position: absolute; inset: 0; border-radius: 20px; background: linear-gradient(120deg, #ffffff14, transparent 40%); pointer-events: none; }
+  .staff-card.front { cursor: grab; }
+  .staff-card.front:active { cursor: grabbing; }
+  .staff-card.active { box-shadow: 0 0 0 2px var(--mc, var(--accent)), 0 22px 46px -16px var(--mc, var(--accent)), inset 0 1px 0 #ffffff26; }
+  .staff-card.active .sc-status { color: #fff; font-style: normal; font-weight: 800; }
+  .sc-top { display: flex; align-items: center; justify-content: space-between; }
+  .sc-brand { font-size: 8.5px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #ffffffb0; }
+  .sc-chip { width: 30px; height: 22px; border-radius: 5px; background: linear-gradient(135deg, #f4d38a, #c99a4e); box-shadow: inset 0 0 0 1px #ffffff55, inset 0 -3px 5px -2px #0006; position: relative; }
+  .sc-chip::before { content: ''; position: absolute; inset: 5px 6px; border: 1px solid #00000030; border-radius: 2px; }
+  .sc-face {
+    width: 92px; height: 88px; margin: 14px auto 12px; position: relative; border-radius: 14px; overflow: hidden;
+    background: linear-gradient(165deg, #d3dde5, #aab8c5); box-shadow: inset 0 0 0 1px #0003, inset 0 -8px 14px -8px #0006, 0 6px 14px -8px #000;
   }
-  .member.active .card { box-shadow: 0 0 0 2px var(--mc, var(--accent)), 0 12px 24px -10px var(--mc, var(--accent)); }
-  .member.active .m-stat { color: var(--mc, var(--accent)); font-style: normal; font-weight: 800; }
-  .photo {
-    position: relative; width: 46px; height: 44px; flex: 0 0 auto; border-radius: 7px; overflow: hidden;
-    background: linear-gradient(165deg, #cdd8e1, #a7b6c3); box-shadow: inset 0 0 0 1px #0002, inset 0 -6px 10px -6px #0004;
-  }
-  .photo .px { position: absolute; left: 5px; top: 11px; width: 3px; height: 3px; image-rendering: pixelated; }
-  .m-info { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
-  .m-name { font-size: 12px; font-weight: 800; color: #241b12; letter-spacing: .3px; }
-  .m-role { font-size: 10px; font-weight: 700; color: #7a6748; }
-  .m-stat { font-size: 10px; color: #3c7a57; font-style: italic; transition: color .2s ease; }
+  .sc-face .px { position: absolute; left: 50%; top: 20px; margin-left: -24px; width: 4px; height: 4px; image-rendering: pixelated; }
+  .sc-name { text-align: center; font-size: 20px; font-weight: 800; letter-spacing: .4px; color: #fff; }
+  .sc-role { text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--mc, var(--accent)); margin-top: 2px; }
+  .sc-bio { margin: 11px 0 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.5; color: #d9cebd; text-align: center; }
+  .sc-skills { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+  .sc-skills span { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700; color: #efe6d6; background: #ffffff14; border: 1px solid #ffffff1f; border-radius: 999px; padding: 3px 9px; }
+  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #ffffff18; }
+  .sc-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'Nunito', sans-serif; font-size: 11px; font-style: italic; color: #b9d8c4; }
+  .sc-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 7px var(--mc, var(--accent)); }
+  .sc-id { font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #ffffff70; }
+  .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
+  .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
+  .deck-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .deck-btn:active { transform: scale(.92); }
+  .deck-hint { font-family: 'Nunito', sans-serif; font-size: 10.5px; color: var(--muted); }
 
   /* conversation — a real scrollable chat that holds long AI replies + history */
   .convo { width: 100%; }
@@ -305,10 +318,7 @@
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
     .rail { order: 2; }
-    #roster { flex-direction: row; flex-wrap: wrap; gap: 16px 10px; justify-content: center; }
-    .member { flex: 1 1 150px; max-width: 220px; }
     .topbar-right .clock { display: none; }
-    #chat { max-height: 34vh; }   /* keep office + chat + input within one glance */
   }
 </style>
 </head>
@@ -377,8 +387,13 @@
     </div>
 
     <aside class="rail">
-      <h2 class="rail-title">Pasukan kau</h2>
-      <div id="roster"></div>
+      <h2 class="rail-title">Pasukan kau <span class="deck-count" id="deck-count">1/6</span></h2>
+      <div class="deck" id="deck"></div>
+      <div class="deck-nav">
+        <button class="deck-btn" id="deck-prev" aria-label="Sebelum">‹</button>
+        <span class="deck-hint">Swipe untuk tukar staff</span>
+        <button class="deck-btn" id="deck-next" aria-label="Seterus">›</button>
+      </div>
     </aside>
   </main>
 
@@ -757,8 +772,6 @@
     for (const s of everyone) if (s.isWalking) s.px.style.boxShadow = walkPhase ? s.frames.walk2 : s.frames.walk1;
   }, 280);
 
-  // team rail
-  const roster = document.getElementById('roster');
   // a small pixel "passport photo": head + shoulders, rendered with the same
   // box-shadow technique as the walking sprite, coloured per staff skin
   function faceShadow(outfit, skinKey, sc) {
@@ -770,16 +783,85 @@
     }
     return sh.join(', ');
   }
-  for (const k in staff) {
-    const m = document.createElement('div'); m.className = 'member'; m.style.setProperty('--mc', staff[k].dot);
-    m.innerHTML = `<span class="strap"></span><span class="clip"></span>`
-      + `<div class="card"><div class="photo"><div class="px"></div></div>`
-      + `<div class="m-info"><span class="m-name">${staff[k].name}</span>`
-      + `<span class="m-role">${staff[k].role}</span><span class="m-stat" id="stat-${k}">kat meja</span></div></div>`;
-    roster.appendChild(m);
-    m.querySelector('.photo .px').style.boxShadow = faceShadow(staff[k].outfit, k, 3);
-    sprites[k].statEl = document.getElementById('stat-' + k); sprites[k].memberEl = m;
+  // per-staff bio + skills shown on the big swipeable card
+  const STAFF_INFO = {
+    aiman:  { bio: 'Orang pertama kau jumpa. Uruskan soalan am, koordinasi, dan agih kerja ke orang yang betul.', skills: ['koordinasi', 'basa-basi', 'agih tugas'] },
+    meera:  { bio: 'Cari maklumat, fakta & data — ringkaskan jadi point yang jelas dan tepat.', skills: ['research', 'fakta', 'ringkasan'] },
+    wei:    { bio: 'Draf emel, caption, artikel, skrip & headline yang kemas, terus boleh guna.', skills: ['copywriting', 'caption', 'artikel'] },
+    danish: { bio: 'Timbang pro/kontra, banding pilihan, dan bagi keputusan berasaskan angka.', skills: ['analisa', 'pro/kontra', 'angka'] },
+    hana:   { bio: 'Pecah matlamat besar jadi langkah kecil dengan timeline & keutamaan.', skills: ['strategi', 'pelan', 'timeline'] },
+    hafiz:  { bio: 'Hal teknikal — kod, debug, sistem, tools & automasi. Terangkan dengan mudah.', skills: ['kod', 'debug', 'automasi'] }
+  };
+  // ---- swipeable stacked card deck ----
+  const deck = document.getElementById('deck');
+  const deckCountEl = document.getElementById('deck-count');
+  const deckKeys = Object.keys(staff);
+  const cardEls = {};
+  let order = deckKeys.slice();     // order[0] = front card
+  deckKeys.forEach((k, idx) => {
+    const a = staff[k], info = STAFF_INFO[k] || { bio: '', skills: [] };
+    const card = document.createElement('div'); card.className = 'staff-card'; card.dataset.k = k;
+    card.style.setProperty('--mc', a.dot);
+    card.innerHTML =
+      `<div class="sc-top"><span class="sc-brand">Mind Office · Staff Pass</span><span class="sc-chip"></span></div>`
+      + `<div class="sc-face"><div class="px"></div></div>`
+      + `<div class="sc-name">${a.name}</div>`
+      + `<div class="sc-role">${a.role}</div>`
+      + `<div class="sc-bio">${info.bio}</div>`
+      + `<div class="sc-skills">${info.skills.map(s => `<span>${s}</span>`).join('')}</div>`
+      + `<div class="sc-foot"><span class="sc-status">kat meja</span><span class="sc-id">MO · ${String(idx + 1).padStart(2, '0')}/${String(deckKeys.length).padStart(2, '0')}</span></div>`;
+    deck.appendChild(card);
+    card.querySelector('.sc-face .px').style.boxShadow = faceShadow(a.outfit, k, 4);
+    cardEls[k] = card;
+    sprites[k].statEl = card.querySelector('.sc-status'); sprites[k].memberEl = card;
+  });
+  function renderDeck(snapKey) {
+    order.forEach((k, i) => {
+      const card = cardEls[k], depth = Math.min(i, 3);
+      if (k === snapKey) card.style.transition = 'none';
+      else card.style.transition = 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease';
+      card.classList.toggle('front', i === 0);
+      card.style.zIndex = 100 - i;
+      card.style.opacity = i < 4 ? '1' : '0';
+      card.style.transform = `translateY(${depth * 12}px) scale(${1 - depth * 0.045})`;
+      card.style.pointerEvents = i === 0 ? 'auto' : 'none';
+      if (k === snapKey) { void card.offsetWidth; card.style.transition = 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease'; }
+    });
+    deckCountEl.textContent = (deckKeys.indexOf(order[0]) + 1) + '/' + deckKeys.length;
   }
+  function cycle(dir) {                 // dir>0 next, dir<0 prev
+    const moved = order[0];
+    if (dir >= 0) order.push(order.shift());
+    else order.unshift(order.pop());
+    renderDeck(dir >= 0 ? moved : order[0]);
+  }
+  // drag / swipe on the front card
+  let dragK = null, sx = 0, sy = 0, drag = false;
+  deck.addEventListener('pointerdown', e => {
+    const c = e.target.closest('.staff-card.front'); if (!c) return;
+    dragK = c.dataset.k; drag = true; sx = e.clientX; sy = e.clientY;
+    c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {}
+  });
+  deck.addEventListener('pointermove', e => {
+    if (!drag || !dragK) return;
+    const dx = e.clientX - sx, dy = (e.clientY - sy) * 0.12;
+    cardEls[dragK].style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg)`;
+  });
+  function endDrag(e) {
+    if (!drag || !dragK) return; drag = false;
+    const c = cardEls[dragK], dx = (e.clientX || sx) - sx; dragK = null;
+    c.style.transition = 'transform .3s ease';
+    if (Math.abs(dx) > 64) {
+      const s = dx > 0 ? 1 : -1;
+      c.style.transform = `translate(${s * 460}px, 24px) rotate(${s * 16}deg)`;
+      setTimeout(() => cycle(s > 0 ? 1 : -1), 200);
+    } else { c.style.transform = ''; }
+  }
+  deck.addEventListener('pointerup', endDrag);
+  deck.addEventListener('pointercancel', () => { if (dragK) { cardEls[dragK].style.transition = 'transform .3s ease'; cardEls[dragK].style.transform = ''; } drag = false; dragK = null; });
+  document.getElementById('deck-next').addEventListener('click', () => cycle(1));
+  document.getElementById('deck-prev').addEventListener('click', () => cycle(-1));
+  renderDeck();
   function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
   function setActive(k, on) { if (sprites[k].memberEl) sprites[k].memberEl.classList.toggle('active', on); }
 
