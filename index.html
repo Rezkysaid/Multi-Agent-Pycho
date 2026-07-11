@@ -634,19 +634,24 @@
     box(gx + 1.0,  gy + 0.05, 0.1, 0.1, TOP, deskLeg, false);
     box(gx + 0.05, gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
     box(gx + 1.0,  gy + 0.5,  0.1, 0.1, TOP, deskLeg, false);
-    box(gx, gy, 1.15, 0.62, TH, wood, true, TOP);                     // tabletop slab (footprint)
-    box(gx + 0.53, gy + 0.40, 0.08, 0.08, 7, legC, false, TOP + TH);  // monitor stand (front edge)
-    const monBack = { top:'#14161b', left:'#1c2026', right:'#101318' };
-    const mz = box(gx + 0.26, gy + 0.40, 0.62, 0.07, 18, monBack, false, TOP + TH + 5); // monitor, back to the viewer
-    // small power LED on the monitor's back + a soft light-bleed over its top edge,
-    // so the machine still clearly reads as ON even from behind
-    const ledP = project(gx + 0.78, gy + 0.47);
+    const dz = box(gx, gy, 1.15, 0.62, TH, wood, true, TOP);          // tabletop slab (footprint)
+    box(gx + 0.53, gy + 0.30, 0.08, 0.08, 4, legC, false, TOP + TH);  // monitor stand, mid-desk
+    // monitor sits ON the middle of the tabletop (wood visible in front of it),
+    // back panel to the viewer, screen toward the sitter behind the desk. Its z is
+    // pinned just above the tabletop's, or this small panel loses the stacking
+    // race and the desk/sitter paint over it (it looked dumped on the floor).
+    const monBack = { top:'#464c58', left:'#252932', right:'#15181d' };
+    const mStart = office.children.length;
+    box(gx + 0.28, gy + 0.28, 0.58, 0.07, 15, monBack, false, TOP + TH + 3.5);
+    for (let i = mStart; i < office.children.length; i++) office.children[i].style.zIndex = dz + 2;
+    // power LED + a soft light-bleed above the top edge — the machine reads as ON
+    const ledP = project(gx + 0.74, gy + 0.35);
     const led = document.createElement('div'); led.className = 'deco';
-    Object.assign(led.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 4px #e0894e', left:ledP.x+'px', top:(ledP.y - TOP - TH - 5 - 8)+'px', zIndex: mz + 2 });
+    Object.assign(led.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 4px #e0894e', left:ledP.x+'px', top:(ledP.y - TOP - TH - 3.5 - 5)+'px', zIndex: dz + 3 });
     office.appendChild(led);
-    const glP = project(gx + 0.57, gy + 0.40);
+    const glP = project(gx + 0.57, gy + 0.28);
     const gl = document.createElement('div'); gl.className = 'deco';
-    Object.assign(gl.style, { width:'34px', height:'10px', borderRadius:'50%', background:'radial-gradient(closest-side, rgba(150,200,245,.4), transparent)', left:(glP.x - 17)+'px', top:(glP.y - TOP - TH - 5 - 18 - 8)+'px', zIndex: mz + 2 });
+    Object.assign(gl.style, { width:'34px', height:'10px', borderRadius:'50%', background:'radial-gradient(closest-side, rgba(150,200,245,.42), transparent)', left:(glP.x - 17)+'px', top:(glP.y - TOP - TH - 3.5 - 15 - 7)+'px', zIndex: dz + 3 });
     office.appendChild(gl);
     box(gx + 0.32, gy + 0.14, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard on the sitter's side
     box(gx + 0.9,  gy + 0.1,  0.1, 0.1, 4, { top:'#d9694a', left:'#a84a34', right:'#c25a40' }, false, TOP + TH); // coffee mug
