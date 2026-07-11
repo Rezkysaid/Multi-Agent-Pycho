@@ -1350,6 +1350,24 @@ REALITI (penting): Kau TIADA akses internet langsung — kau tak boleh melayari 
     const jj = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
     return `MAKLUMAT MASA SEBENAR (guna untuk sebarang soalan hari/tarikh/masa — JANGAN teka): Sekarang hari ${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}, pukul ${jj}:${mm} (waktu peranti bos).`;
   }
+  const MS_HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+  const MS_BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+  // AI models hallucinate dates/times — so a direct date/time question is answered
+  // LOCALLY from the device clock, bypassing the model entirely (can't be wrong)
+  function localDateTimeAnswer(t) {
+    const l = ' ' + t.toLowerCase() + ' ';
+    const askDay  = /\bhari\s*apa\b|\bapa\s*hari\b|what\s*day|hari\s*(ni|ini)\s*apa/.test(l);
+    const askDate = /\btarikh\b|hari\s*bulan|\bharibulan\b|berapa\s*(hb|hari\s*bulan)|what.*\bdate\b|\bdate\s*(today|now)\b/.test(l);
+    const askTime = /pukul\s*berapa|jam\s*berapa|what\s*time|masa\s*(sekarang|ni|sekrg)|waktu\s*sekarang/.test(l);
+    if (!askDay && !askDate && !askTime) return null;
+    const d = new Date();
+    const jj = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    const dateStr = `hari ${MS_HARI[d.getDay()]}, ${d.getDate()} ${MS_BULAN[d.getMonth()]} ${d.getFullYear()}`;
+    const timeStr = `pukul ${jj}:${mm}`;
+    if (askTime && !askDay && !askDate) return `Sekarang ${timeStr}, bos.`;
+    if (askDate && !askDay && !askTime) return `Hari ni ${dateStr}, bos.`;
+    return `Hari ni ${dateStr}, ${timeStr}, bos.`;
+  }
   const PERSONA = {
     aiman: `Kau Aiman, Pembantu Am (general assistant) di office ni — orang pertama yang bos jumpa. Kau uruskan soalan am, basa-basi, koordinasi, dan agihkan kerja kepada orang yang betul. Kalau permintaan bos lebih sesuai untuk specialist lain, cadangkan mereka, tapi tetap bantu apa yang boleh.\n${COMMON_RULES}`,
     meera: `Kau Meera, Penyelidik (research) di office ni. Kerja kau cari maklumat, fakta, data, dan ringkaskan jadi point yang jelas. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
@@ -1612,6 +1630,15 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
     // "meeting …" gathers the whole team at the table instead of summoning one staff
     if (MEETING_RE.test(t)) { callMeeting(meetingTopic(t)); return; }
+    // date/time question? answer straight from the device clock — never ask the AI
+    // (models hallucinate the date). Delivered by the named staff, or Aiman.
+    const dt = localDateTimeAnswer(t);
+    if (dt) {
+      const who = staffMentioned(t)[0] || 'aiman';
+      const p = Promise.resolve(dt); p.catch(() => {});
+      summon(who, t, p, false);        // ephemeral: shown over the head, always fresh
+      return;
+    }
     let k;
     // an explicitly NAMED staff is the strongest signal — route straight to them
     const named = staffMentioned(t);
