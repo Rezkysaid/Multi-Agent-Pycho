@@ -336,10 +336,10 @@
   /* photo shown inside a chat message */
   .msg .chat-img { margin-top: 7px; max-width: 220px; max-height: 260px; border-radius: 12px; border: 1px solid var(--line); display: block; }
   .msg.you .chat-img { margin-left: auto; }
-  .input-wrap { position: relative; flex: 1; display: flex; }
+  .input-wrap { position: relative; flex: 1; display: flex; min-width: 0; }   /* min-width:0 lets the field shrink so the send button never crops off-screen */
   .input-glyph { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; font-size: 17px; line-height: 1; pointer-events: none; opacity: .85; }
   #user-input {
-    flex: 1; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px;
+    flex: 1; min-width: 0; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px;
     color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px 13px 29px;
     transition: border-color .18s ease, box-shadow .18s ease;
   }
@@ -407,6 +407,12 @@
     .app { grid-template-columns: 1fr; }
     .rail { order: 2; }
     .topbar-right .clock { display: none; }
+  }
+  /* very narrow phones: drop the "Panggil" label — the arrow says it all */
+  @media (max-width: 420px) {
+    #send-btn { padding: 0 15px; }
+    #send-btn span { display: none; }
+    #send-btn svg { width: 18px; height: 18px; }
   }
 </style>
 </head>
