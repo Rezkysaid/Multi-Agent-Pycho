@@ -319,6 +319,23 @@
   .composer-label { display: flex; align-items: center; gap: 6px; margin: 0 2px 7px; font-size: 9.5px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #8a7c6a; }
   .composer-label svg { width: 12px; height: 12px; color: var(--accent); }
   #input-row { display: flex; gap: 9px; }
+  #img-btn {
+    flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+    width: 46px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+    color: var(--muted); cursor: pointer; transition: border-color .15s ease, color .15s ease;
+  }
+  #img-btn svg { width: 18px; height: 18px; display: block; }
+  #img-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* attached-photo preview chip above the input */
+  .img-chip { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; padding: 7px 9px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; }
+  .img-chip[hidden] { display: none; }
+  .img-chip img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; display: block; }
+  .img-chip span { flex: 1; min-width: 0; font-family: 'Nunito', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .img-chip button { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer; transition: color .15s ease, border-color .15s ease; }
+  .img-chip button:hover { color: var(--text); border-color: var(--accent); }
+  /* photo shown inside a chat message */
+  .msg .chat-img { margin-top: 7px; max-width: 220px; max-height: 260px; border-radius: 12px; border: 1px solid var(--line); display: block; }
+  .msg.you .chat-img { margin-left: auto; }
   .input-wrap { position: relative; flex: 1; display: flex; }
   .input-glyph { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; font-size: 17px; line-height: 1; pointer-events: none; opacity: .85; }
   #user-input {
@@ -451,7 +468,16 @@
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
             Pesanan ke office
           </div>
+          <div id="img-chip" class="img-chip" hidden>
+            <img id="img-thumb" alt="">
+            <span id="img-name"></span>
+            <button id="img-remove" aria-label="Buang gambar">×</button>
+          </div>
           <div id="input-row">
+            <button id="img-btn" title="Lampirkan gambar — bincang masalah sebenar dengan staff">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2.2" stroke="currentColor" stroke-width="1.9"/><circle cx="9" cy="10.5" r="1.6" fill="currentColor"/><path d="m5.5 17.5 4.2-4 3 2.7 3.3-3.4 2.5 2.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <input type="file" id="img-in" hidden accept="image/*">
             <div class="input-wrap">
               <span class="input-glyph">›</span>
               <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
@@ -1483,6 +1509,50 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
+  // ---- photo attachments — the boss snaps a real-life problem and the staff
+  //      look at it. Downscaled in-browser to ~1024px JPEG so uploads stay light. ----
+  let pendingImg = null;
+  const imgChip = document.getElementById('img-chip');
+  function readImage(file) {
+    return new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => {
+        const M = 1024, s = Math.min(1, M / Math.max(im.width, im.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(im.width * s)); c.height = Math.max(1, Math.round(im.height * s));
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        const dataUrl = c.toDataURL('image/jpeg', 0.85);
+        URL.revokeObjectURL(im.src);
+        resolve({ mime: 'image/jpeg', b64: dataUrl.split(',')[1], dataUrl, name: file.name || 'gambar.jpg' });
+      };
+      im.onerror = () => { URL.revokeObjectURL(im.src); reject(new Error('img-read')); };
+      im.src = URL.createObjectURL(file);
+    });
+  }
+  function clearImage() {
+    pendingImg = null; imgChip.hidden = true;
+    document.getElementById('img-in').value = '';
+  }
+  document.getElementById('img-btn').addEventListener('click', () => document.getElementById('img-in').click());
+  document.getElementById('img-in').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try {
+      pendingImg = await readImage(f);
+      document.getElementById('img-thumb').src = pendingImg.dataUrl;
+      document.getElementById('img-name').textContent = pendingImg.name + ' — sedia dihantar';
+      imgChip.hidden = false;
+      document.getElementById('user-input').focus();
+    } catch { setStatus('Tak dapat baca gambar tu, bos — cuba gambar lain.'); clearImage(); }
+  });
+  document.getElementById('img-remove').addEventListener('click', clearImage);
+  // show the photo inside a chat message (under the bubble)
+  function attachImage(msgBub, dataUrl) {
+    if (!msgBub || !msgBub.parentElement) return;
+    const im = document.createElement('img'); im.className = 'chat-img'; im.src = dataUrl; im.alt = 'gambar dilampirkan';
+    msgBub.parentElement.appendChild(im);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
   // ---- deliverables tray: capture every GENUINE staff output (not errors/demo),
   //      persist it, and let the boss copy any card or export the lot ----
   const trayList = document.getElementById('tray-list');
@@ -1666,13 +1736,17 @@
     } catch {}
     return null;
   }
+  // free OpenRouter models known to accept images — tried first when a photo is attached
+  const OR_VISION = ['google/gemini-2.0-flash-exp:free', 'qwen/qwen2.5-vl-72b-instruct:free', 'meta-llama/llama-3.2-11b-vision-instruct:free'];
   // resolve the model chain to actually try for this call
-  async function resolveModels(provider) {
+  async function resolveModels(provider, opts) {
     if (provider !== 'openrouter') return AI.models;                 // Gemini: fixed defaults
     const live = await openrouterFreeModels();                       // real, current free models
     const base = (live && live.length) ? live : AI.DEFAULT_MODELS.openrouter;
     // a user-set override is tried first, then the live/free list as fallback
-    return AI.model ? [AI.model, ...base.filter(m => m !== AI.model)].slice(0, 6) : base;
+    let chain = AI.model ? [AI.model, ...base.filter(m => m !== AI.model)].slice(0, 6) : base;
+    if (opts && opts.vision) chain = [...OR_VISION, ...chain.filter(m => !OR_VISION.includes(m))].slice(0, 6);
+    return chain;
   }
 
   // build the provider-specific request. Gemini speaks its own protocol; OpenRouter
@@ -1681,10 +1755,18 @@
   function buildRequest(provider, model, systemText, contents, maxTokens, opts) {
     if (OPENAI_COMPAT.has(provider)) {
       const messages = [{ role: 'system', content: systemText }].concat(
-        contents.map(c => ({
-          role: c.role === 'model' ? 'assistant' : 'user',
-          content: (c.parts || []).map(p => p.text).join('')
-        }))
+        contents.map(c => {
+          const role = c.role === 'model' ? 'assistant' : 'user';
+          const txt = (c.parts || []).filter(p => p.text != null).map(p => p.text).join('');
+          const imgs = (c.parts || []).filter(p => p.inline_data);
+          // OpenRouter speaks the OpenAI vision dialect; DeepSeek has no vision —
+          // its images are stripped here and the persona is told to be honest about it
+          if (imgs.length && provider === 'openrouter') {
+            return { role, content: [{ type: 'text', text: txt }].concat(
+              imgs.map(p => ({ type: 'image_url', image_url: { url: `data:${p.inline_data.mime_type};base64,${p.inline_data.data}` } }))) };
+          }
+          return { role, content: txt };
+        })
       );
       const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key };
       if (provider === 'openrouter') { headers['HTTP-Referer'] = location.origin; headers['X-Title'] = 'Mind Office'; }
@@ -1717,7 +1799,7 @@
     if (!AI.key) throw new Error('no-key');
     opts = opts || {};
     const provider = AI.provider;
-    const models = await resolveModels(provider);
+    const models = await resolveModels(provider, opts);
     let lastErr;
     for (const model of models) {
       const ctl = new AbortController();
@@ -1917,16 +1999,26 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
       return `HASIL CARIAN LANGSUNG (OpenStreetMap, masa nyata) untuk "${q}":\n${rows}\nGuna senarai ini sebagai data live — pilih yang paling relevan, susun elok, dan sebut ia dari carian OpenStreetMap. Kalau bos minta ciri yang tiada dalam data (contoh harga), jujur cakap data tu perlu disemak terus.`;
     } catch { return null; } finally { clearTimeout(killT); }
   }
-  async function specialistLLM(k, text) {
+  async function specialistLLM(k, text, img) {
     const a = staff[k];
     const wantsLive = LIVE_RE.test(text);
     const fmt = pickFormat(text);
     let userText = text;
     if (wantsLive) { const live = await liveSearch(text); if (live) userText += '\n\n' + live; }
     if (fmt) userText += `\n\n[ARAHAN OUTPUT] Bos mahu hasil ini sebagai FAIL ${FMT_META[fmt].label.toUpperCase()}. Tulis KANDUNGAN penuh dokumen sahaja — tajuk, seksyen/point tersusun — TANPA ayat pembuka/penutup chat.${fmt === 'xls' || fmt === 'csv' ? ' Susun data sebagai jadual: satu baris satu rekod, kolum dipisah dengan " | ".' : ''}`;
-    const sys = nowContext() + `\nPERINGATAN IDENTITI: Kau ${a.name} (${a.role}). Jawab HANYA sebagai ${a.name}.\n` + PERSONA[k];
-    const contents = [...historyContents(), { role: 'user', parts: [{ text: userText }] }];
-    return gemini(sys, contents, fmt ? 900 : 500, fmt ? 24000 : 16000, { search: wantsLive && AI.provider === 'gemini' });
+    let sys = nowContext() + `\nPERINGATAN IDENTITI: Kau ${a.name} (${a.role}). Jawab HANYA sebagai ${a.name}.\n` + PERSONA[k];
+    const userParts = [{ text: userText }];
+    if (img) {
+      if (AI.provider === 'deepseek') {
+        // DeepSeek has no vision — never pretend to see; be honest and helpful
+        sys += '\nNOTA GAMBAR: Bos lampirkan GAMBAR, tetapi otak semasa (DeepSeek) TAK BOLEH melihat gambar. JANGAN berpura-pura nampak. Jujur beritahu bos kau tak dapat tengok gambar dengan model ni, minta dia terangkan apa dalam gambar tu dalam teks, dan (sekali sahaja, ringkas) sebut yang key Gemini percuma boleh membolehkan staff melihat gambar.';
+      } else {
+        userParts.push({ inline_data: { mime_type: img.mime, data: img.b64 } });
+        sys += '\nNOTA GAMBAR: Bos lampirkan gambar sebenar bersama mesej ni. Perhati gambar tu betul-betul dan jawab berdasarkan apa yang kau NAMPAK — praktikal dan spesifik.';
+      }
+    }
+    const contents = [...historyContents(), { role: 'user', parts: userParts }];
+    return gemini(sys, contents, fmt ? 900 : 600, (fmt || img) ? 24000 : 16000, { search: wantsLive && AI.provider === 'gemini', vision: !!img && AI.provider !== 'deepseek' });
   }
 
   // ---- free-tier rate-limit cooldown ----
@@ -2369,17 +2461,22 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }
 
   async function handleSend() {
-    const i = document.getElementById('user-input'); const t = i.value.trim(); if (!t) return;
+    const i = document.getElementById('user-input');
+    let t = i.value.trim();
+    const img = pendingImg;            // photo attached? capture it for this send
+    if (!t && !img) return;
+    if (!t) t = 'Tolong tengok gambar ni dan bagi pandangan kau.';
     const usingAI = !!AI.key;
     // still cooling down? don't fire — and don't eat the message, so kau boleh hantar
     // balik sekali cooldown habis without retyping
     if (usingAI && secsLeft() > 0) { tickCooldown(); return; }
     i.value = '';
     flyToOffice(t);                    // whoosh the message up into the office
-    addMsg('Kau', t, 'you');           // and log it in the shared chat
+    const yb = addMsg('Kau', t, 'you');           // and log it in the shared chat
+    if (img) { attachImage(yb, img.dataUrl); clearImage(); }
     // "bubar" dissolves the drag-and-drop meeting room
     if (BUBAR_RE.test(t)) { roomClear(); addMsg('', 'Bilik meeting dibubarkan — semua kembali bertugas.', 'meet'); return; }
-    remember('user', 'Kau', t);
+    remember('user', 'Kau', t + (img ? ' (bos lampirkan gambar — kau dah tengok)' : ''));
     // a manned meeting room (≥2 staff dragged in) claims the next task as ITS project
     if (roomRoster.size >= 2 && !BREAK_RE.test(t) && !WORK_RE.test(t)) { runRoomMeeting(t); return; }
     // "projek …" runs the whole team as a pipeline (research → analyse → write)
@@ -2395,7 +2492,8 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     if (WORK_RE.test(t)) { setOfficeMode('work'); announceMode('work'); return; }
     // date/time question? answer straight from the device clock — never ask the AI
     // (models hallucinate the date). Delivered by the named staff, or Aiman.
-    const dt = localDateTimeAnswer(t);
+    // (skipped when a photo is attached — the photo is the point, let the AI see it)
+    const dt = img ? null : localDateTimeAnswer(t);
     if (dt) {
       const who = staffMentioned(t)[0] || 'aiman';
       const p = Promise.resolve(dt); p.catch(() => {});
@@ -2423,7 +2521,7 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     }
     else k = kw.key;
     const replyPromise = usingAI
-      ? specialistLLM(k, t)
+      ? specialistLLM(k, t, img)
       : new Promise(r => setTimeout(() => r(staff[k].reply), 400));
     replyPromise.catch(() => {});   // mark handled now — summon() attaches the real .then/.catch later, after the walk finishes
     summon(k, t, replyPromise, usingAI);
