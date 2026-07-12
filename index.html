@@ -244,13 +244,13 @@
     position: relative; align-self: stretch; margin: auto 0; padding: 26px 0; text-align: center; pointer-events: none;
     transition: opacity .7s ease, transform .7s cubic-bezier(.4,0,.2,1);
   }
-  .chat-empty span {
-    position: relative; z-index: 2; display: inline-block;
-    font-family: 'Caveat', 'Snell Roundhand', 'Segoe Script', cursive; font-size: 31px; font-weight: 600; letter-spacing: .5px;
-    color: #9b8a70;
+  .chat-logo {
+    position: relative; z-index: 2; width: 80px; height: 65px; margin: 0 auto;
+    image-rendering: pixelated;
     animation: chatSway 4.6s ease-in-out infinite; transform-origin: 50% 120%;
   }
-  @keyframes chatSway { 0%,100% { transform: rotate(-1.4deg) translateY(0); } 50% { transform: rotate(1.4deg) translateY(-2px); } }
+  .chat-logo .logo-px { position: absolute; left: 0; top: 0; width: 5px; height: 5px; }
+  @keyframes chatSway { 0%,100% { transform: rotate(-1.4deg) translateY(0); } 50% { transform: rotate(1.4deg) translateY(-3px); } }
   .chat-empty .pt {
     position: absolute; border-radius: 50%; z-index: 1; opacity: 0;
     background: currentColor;
@@ -472,7 +472,7 @@
       </section>
 
       <section class="convo">
-        <div id="chat"><div class="chat-empty" id="chat-empty"><span>Room Chat</span></div></div>
+        <div id="chat"><div class="chat-empty" id="chat-empty"><div class="chat-logo" aria-hidden="true"><i class="logo-px" id="logo-px"></i></div></div></div>
         <div class="composer">
           <div id="img-chip" class="img-chip" hidden>
             <img id="img-thumb" alt="">
@@ -1369,8 +1369,34 @@
     if (!chatEmpty || chatEmpty.hidden) return;
     chatEmpty.classList.toggle('bye', !!e.target.value.trim());
   });
-  // drifting colour particles around the wordmark — staff colours, random drift;
-  // they live inside the watermark so they fade away together with it
+  // the empty-chat mark: a hand-drawn pixel office (accent orange), built with the
+  // same box-shadow pixel technique as the walking sprites — swaying gently
+  {
+    const LOGO_MAP = [
+      '..CCCCCCCCCCCC..',
+      '.CAAAAAAAAAAAAB.',
+      '.AAAAAAAAAAAAAB.',
+      '.AWWAAWWAAWWAAB.',
+      '.AWWAAWWAAWWAAB.',
+      '.AAAAAAAAAAAAAB.',
+      '.AWWAAWWAAWWAAB.',
+      '.AWWAAWWAAWWAAB.',
+      '.AAAAAAAAAAAAAB.',
+      '.AWWAAADDAWWAAB.',
+      '.AWWAAADDAWWAAB.',
+      '.AAAAAADDAAAAAB.',
+      'BBBBBBBBBBBBBBBB'
+    ];
+    const LOGO_PAL = { A: '#e0894e', B: '#a8592f', C: '#efac6c', W: '#f7e3bd', D: '#2c1a0e' };
+    const lpx = document.getElementById('logo-px');
+    if (lpx) {
+      const sh = [];
+      LOGO_MAP.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = LOGO_PAL[row[x]]; if (c) sh.push(`${x * 5}px ${y * 5}px 0 0 ${c}`); } });
+      lpx.style.boxShadow = sh.join(', ');
+    }
+  }
+  // drifting colour particles around the mark — they live inside the watermark
+  // so they fade away together with it
   if (chatEmpty) {
     const PT_COLS = ['#e0894e', '#93ad86', '#c9a35a'];
     for (let i = 0; i < 10; i++) {
