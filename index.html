@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Mind Office">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Caveat:wght@600;700&display=swap">
 <style>
   :root {
     --ink: #17120d;        /* warm near-black page */
@@ -241,17 +241,32 @@
   .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
 
-  /* empty room-chat watermark — sways gently, slips aside when the boss types */
+  /* empty room-chat watermark — handwritten wordmark + drifting colour particles;
+     the whole thing (particles included) slips aside when the boss types */
   .chat-empty {
-    margin: auto; padding: 18px 0; text-align: center; pointer-events: none;
+    position: relative; align-self: stretch; margin: auto 0; padding: 26px 0; text-align: center; pointer-events: none;
     transition: opacity .7s ease, transform .7s cubic-bezier(.4,0,.2,1);
   }
   .chat-empty span {
-    display: inline-block; font-family: 'Fraunces', Georgia, serif; font-style: italic;
-    font-size: 21px; font-weight: 500; letter-spacing: .5px; color: #6e604e;
+    position: relative; z-index: 2; display: inline-block;
+    font-family: 'Caveat', 'Snell Roundhand', 'Segoe Script', cursive; font-size: 38px; font-weight: 700; letter-spacing: 1px;
+    background: linear-gradient(100deg, #e0894e 10%, #e6b45a 45%, #93ad86 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 10px rgba(224,137,78,.22));
     animation: chatSway 4.2s ease-in-out infinite; transform-origin: 50% 120%;
   }
-  @keyframes chatSway { 0%,100% { transform: rotate(-1.6deg) translateY(0); } 50% { transform: rotate(1.6deg) translateY(-3px); } }
+  @keyframes chatSway { 0%,100% { transform: rotate(-1.8deg) translateY(0); } 50% { transform: rotate(1.8deg) translateY(-3px); } }
+  .chat-empty .pt {
+    position: absolute; border-radius: 50%; z-index: 1; opacity: 0;
+    box-shadow: 0 0 6px currentColor; background: currentColor;
+    animation: ptFloat 4.5s ease-in-out infinite;
+  }
+  @keyframes ptFloat {
+    0%   { opacity: 0; transform: translateY(6px) scale(.5); }
+    30%  { opacity: .85; }
+    60%  { opacity: .5; }
+    100% { opacity: 0; transform: translateY(-16px) scale(1.05); }
+  }
   .chat-empty.bye { opacity: 0; transform: translateX(72px); }
   .chat-empty[hidden] { display: none; }
 
@@ -1370,6 +1385,22 @@
     if (!chatEmpty || chatEmpty.hidden) return;
     chatEmpty.classList.toggle('bye', !!e.target.value.trim());
   });
+  // drifting colour particles around the wordmark — staff colours, random drift;
+  // they live inside the watermark so they fade away together with it
+  if (chatEmpty) {
+    const PT_COLS = ['#e0894e', '#93ad86', '#e6b45a', '#9c5a86', '#3a8f8a', '#5b8bd0'];
+    for (let i = 0; i < 16; i++) {
+      const pt = document.createElement('i'); pt.className = 'pt';
+      const s = 3 + Math.random() * 3.5;
+      pt.style.width = s + 'px'; pt.style.height = s + 'px';
+      pt.style.left = (5 + Math.random() * 90) + '%';
+      pt.style.top = (10 + Math.random() * 74) + '%';
+      pt.style.color = PT_COLS[i % PT_COLS.length];
+      pt.style.animationDelay = (Math.random() * 4.5) + 's';
+      pt.style.animationDuration = (3.4 + Math.random() * 2.8) + 's';
+      chatEmpty.appendChild(pt);
+    }
+  }
 
   // ---- task queue — a live progress board of what the office is working on ----
   const taskqWrap = document.getElementById('taskq');
