@@ -70,12 +70,9 @@
   #ai-btn:hover { border-color: var(--accent); color: var(--text); }
   .api-dot { width: 7px; height: 7px; border-radius: 50%; background: #6b5f4e; transition: background .2s ease, box-shadow .2s ease; }
   #ai-btn.on { color: var(--text); border-color: #4d5c44; }
-  #ai-btn.on .api-dot { background: var(--sage); box-shadow: 0 0 7px var(--sage); }
-  .live { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: 1px; color: var(--sage); }
-  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 6px var(--sage); animation: pulse 1.8s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
-  .clock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
-  .rule { width: min(1000px, 94vw); height: 1px; margin: 0 auto 14px; background: linear-gradient(90deg, var(--accent) 0%, transparent 42%); }
+  #ai-btn.on .api-dot { background: var(--sage); }
+  .clock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); }
+  .rule { width: min(1000px, 94vw); height: 1px; margin: 0 auto 14px; background: var(--line); }
 
   /* ---- main: office hero + team rail (asymmetric two-column) ---- */
   .app {
@@ -85,8 +82,8 @@
   /* office + chat live together in one column, so the chat is always right
      under the room — no roster panel wedged between them */
   .main-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-  .stage-caption { font-size: 12px; color: var(--muted); margin: 0 2px 8px; }
-  .stage-caption b { color: var(--text); font-weight: 700; }
+  .stage-caption { font-size: 11.5px; color: #8a7c6a; margin: 0 2px 8px; }
+  .stage-caption b { color: var(--muted); font-weight: 700; }
   #mood { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; }
   #mood svg { width: 13px; height: 13px; display: block; }
 
@@ -179,21 +176,21 @@
 
   /* team rail — swipeable stacked staff-card deck (Tinder style), minimal badge look */
   .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
-  .rail-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px 2px; }
-  .deck-count { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 18px; padding: 0 7px; border-radius: 9px; background: var(--surface2); color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .5px; }
+  .rail-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .2px; color: var(--text); margin: 0 0 12px 2px; }
+  .deck-count { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 18px; padding: 0 7px; border-radius: 9px; background: var(--surface2); color: var(--muted); font-size: 10.5px; font-weight: 700; }
   .deck { position: relative; height: 252px; margin: 4px auto 0; max-width: 300px; touch-action: pan-y; }
   .staff-card {
     position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 224px;
     border-radius: 16px; padding: 15px 16px 13px; overflow: hidden;
     display: flex; flex-direction: column;
     background: linear-gradient(172deg, var(--surface2), #1d160e 78%);
-    border: 1px solid var(--line); border-top: 3px solid var(--mc, var(--accent));
+    border: 1px solid var(--line); border-top: 2px solid var(--mc, var(--accent));
     box-shadow: 0 18px 34px -18px #000;
     color: var(--text); cursor: grab; will-change: transform;
     -webkit-user-select: none; user-select: none;
   }
   .staff-card.front:active { cursor: grabbing; }
-  .staff-card.active { box-shadow: 0 0 0 1.5px var(--mc, var(--accent)), 0 18px 36px -14px var(--mc, var(--accent)); }
+  .staff-card.active { box-shadow: 0 0 0 1.5px var(--mc, var(--accent)), 0 18px 34px -18px #000; }
   .staff-card.active .sc-status { color: #fff; font-style: normal; font-weight: 800; }
   .sc-head { display: flex; align-items: center; gap: 12px; }
   .sc-face {
@@ -202,11 +199,11 @@
   }
   .sc-face .px { position: absolute; left: 4px; top: 8px; width: 4px; height: 4px; image-rendering: pixelated; }
   .sc-name { font-size: 17px; font-weight: 800; letter-spacing: .3px; color: #fff; line-height: 1.15; }
-  .sc-role { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--mc, var(--accent)); margin-top: 3px; }
+  .sc-role { font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--mc, var(--accent)); margin-top: 3px; }
   .sc-bio { margin: 12px 0 0; font-family: 'Nunito', sans-serif; font-size: 12px; line-height: 1.55; color: var(--muted); }
   .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid #ffffff10; }
   .sc-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'Nunito', sans-serif; font-size: 11px; font-style: italic; color: #b9d8c4; }
-  .sc-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 7px var(--mc, var(--accent)); }
+  .sc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
   .sc-id { font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #ffffff55; }
   .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
@@ -225,16 +222,16 @@
   }
   .msg { display: flex; flex-direction: column; max-width: 84%; animation: msgIn .34s cubic-bezier(.2,.9,.3,1) both; }
   @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  .msg .who { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0 3px 5px; display: flex; align-items: center; gap: 5px; }
-  .msg.staff .who::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--dotc, var(--accent)); box-shadow: 0 0 8px var(--dotc, var(--accent)); }
+  .msg .who { font-size: 10px; font-weight: 700; letter-spacing: .4px; color: var(--muted); margin: 0 3px 5px; display: flex; align-items: center; gap: 6px; }
+  .msg.staff .who::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--dotc, var(--accent)); }
   .msg .bub {
-    padding: 11px 14px; border-radius: 15px; font-size: 14.5px; line-height: 1.55;
+    padding: 10px 13px; border-radius: 13px; font-size: 14px; line-height: 1.55;
     font-family: 'Fraunces', Georgia, serif; white-space: pre-wrap; word-wrap: break-word;
   }
   .msg.you { align-self: flex-end; align-items: flex-end; animation: none; }   /* your sent message appears instantly, no send animation */
-  .msg.you .bub { background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink); border-bottom-right-radius: 5px; font-family: 'Nunito', sans-serif; font-weight: 600; box-shadow: 0 10px 22px -12px var(--accent); }
+  .msg.you .bub { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; font-family: 'Nunito', sans-serif; font-weight: 600; }
   .msg.staff { align-self: flex-start; }
-  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 5px; border-left: 3px solid var(--dotc, var(--accent)); box-shadow: 0 8px 18px -14px #000; }
+  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border-left: 2px solid var(--dotc, var(--accent)); }
   .msg.sys { align-self: center; max-width: 94%; text-align: center; }
   .msg.sys .bub { background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 12.5px; padding: 3px 8px; line-height: 1.5; }
   .msg.meet { align-self: center; max-width: 94%; text-align: center; }
@@ -249,23 +246,21 @@
   }
   .chat-empty span {
     position: relative; z-index: 2; display: inline-block;
-    font-family: 'Caveat', 'Snell Roundhand', 'Segoe Script', cursive; font-size: 38px; font-weight: 700; letter-spacing: 1px;
-    background: linear-gradient(100deg, #e0894e 10%, #e6b45a 45%, #93ad86 90%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 3px 10px rgba(224,137,78,.22));
-    animation: chatSway 4.2s ease-in-out infinite; transform-origin: 50% 120%;
+    font-family: 'Caveat', 'Snell Roundhand', 'Segoe Script', cursive; font-size: 31px; font-weight: 600; letter-spacing: .5px;
+    color: #9b8a70;
+    animation: chatSway 4.6s ease-in-out infinite; transform-origin: 50% 120%;
   }
-  @keyframes chatSway { 0%,100% { transform: rotate(-1.8deg) translateY(0); } 50% { transform: rotate(1.8deg) translateY(-3px); } }
+  @keyframes chatSway { 0%,100% { transform: rotate(-1.4deg) translateY(0); } 50% { transform: rotate(1.4deg) translateY(-2px); } }
   .chat-empty .pt {
     position: absolute; border-radius: 50%; z-index: 1; opacity: 0;
-    box-shadow: 0 0 6px currentColor; background: currentColor;
+    background: currentColor;
     animation: ptFloat 4.5s ease-in-out infinite;
   }
   @keyframes ptFloat {
-    0%   { opacity: 0; transform: translateY(6px) scale(.5); }
-    30%  { opacity: .85; }
-    60%  { opacity: .5; }
-    100% { opacity: 0; transform: translateY(-16px) scale(1.05); }
+    0%   { opacity: 0; transform: translateY(5px) scale(.6); }
+    30%  { opacity: .55; }
+    60%  { opacity: .3; }
+    100% { opacity: 0; transform: translateY(-13px) scale(1); }
   }
   .chat-empty.bye { opacity: 0; transform: translateX(72px); }
   .chat-empty[hidden] { display: none; }
@@ -273,19 +268,19 @@
   /* task queue — live progress of what the office is working on */
   .taskq { background: linear-gradient(180deg, var(--surface), #1a130c); border: 1px solid var(--line); border-radius: 14px; padding: 12px 15px 8px; box-shadow: 0 12px 30px -22px #000; }
   .taskq[hidden] { display: none; }
-  .taskq-title { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
-  .taskq-title svg { width: 12px; height: 12px; color: var(--accent); }
+  .taskq-title { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .2px; color: var(--muted); }
+  .taskq-title svg { width: 13px; height: 13px; color: var(--accent); }
   .tq { display: flex; align-items: center; gap: 10px; padding: 8px 0; transition: opacity .6s ease; }
   .tq + .tq { border-top: 1px dashed #ffffff0e; }
   .tq.gone { opacity: 0; }
-  .tq-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--tqc, var(--accent)); box-shadow: 0 0 7px var(--tqc, var(--accent)); }
+  .tq-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--tqc, var(--accent)); }
   .tq-label { flex: 1; min-width: 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tq-bar { flex: 0 0 88px; height: 5px; border-radius: 3px; background: #ffffff12; overflow: hidden; }
   .tq-fill { height: 100%; width: 0%; border-radius: 3px; background: var(--tqc, var(--accent)); transition: width .55s ease; }
   .tq-pct { flex: 0 0 58px; text-align: right; font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .tq.done .tq-fill, .tq.done .tq-dot { background: var(--sage); box-shadow: none; }
+  .tq.done .tq-fill, .tq.done .tq-dot { background: var(--sage); }
   .tq.done .tq-pct { color: var(--sage); }
-  .tq.fail .tq-fill, .tq.fail .tq-dot { background: #c2563e; box-shadow: none; }
+  .tq.fail .tq-fill, .tq.fail .tq-dot { background: #c2563e; }
   .tq.fail .tq-pct { color: #d98b76; }
 
   /* file attachment chip inside a chat message — the reply ARRIVES as a file */
@@ -297,13 +292,13 @@
   .msg .att .att-info { flex: 1; min-width: 0; }
   .msg .att .att-name { display: block; font-family: 'Nunito', sans-serif; font-size: 11.5px; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .msg .att .att-kind { display: block; font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
-  .msg .att button { flex: 0 0 auto; font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent-ink); background: linear-gradient(135deg, #efac6c, var(--accent)); border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: filter .15s ease; }
+  .msg .att button { flex: 0 0 auto; font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent-ink); background: var(--accent); border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: filter .15s ease; }
   .msg .att button:hover { filter: brightness(1.07); }
 
   /* real-file chip + download on a deliverable card */
   .deliv-file { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
   .deliv-file svg { width: 13px; height: 13px; color: var(--dc, var(--accent)); }
-  .deliv-dl { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent-ink); background: linear-gradient(135deg, #efac6c, var(--accent)); border: none; border-radius: 8px; padding: 5px 12px; margin-right: 6px; cursor: pointer; transition: filter .15s ease; }
+  .deliv-dl { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent-ink); background: var(--accent); border: none; border-radius: 8px; padding: 5px 12px; margin-right: 6px; cursor: pointer; transition: filter .15s ease; }
   .deliv-dl:hover { filter: brightness(1.07); }
 
   /* dragging a staff into the meeting room */
@@ -329,10 +324,8 @@
   .paper.land { animation: paperLand .45s cubic-bezier(.2,1.4,.4,1) both; }
   @keyframes paperLand { from { transform: scale(1.7) translateY(-14px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
-  /* composer — the "dispatch to office" console */
-  .composer { margin-top: 13px; }
-  .composer-label { display: flex; align-items: center; gap: 6px; margin: 0 2px 7px; font-size: 9.5px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #8a7c6a; }
-  .composer-label svg { width: 12px; height: 12px; color: var(--accent); }
+  /* composer */
+  .composer { margin-top: 12px; }
   #input-row { display: flex; gap: 9px; }
   #img-btn {
     flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
@@ -352,24 +345,21 @@
   .msg .chat-img { margin-top: 7px; max-width: 220px; max-height: 260px; border-radius: 12px; border: 1px solid var(--line); display: block; }
   .msg.you .chat-img { margin-left: auto; }
   .input-wrap { position: relative; flex: 1; display: flex; min-width: 0; }   /* min-width:0 lets the field shrink so the send button never crops off-screen */
-  .input-glyph { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; font-size: 17px; line-height: 1; pointer-events: none; opacity: .85; }
   #user-input {
-    flex: 1; min-width: 0; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px;
-    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px 13px 29px;
-    transition: border-color .18s ease, box-shadow .18s ease;
+    flex: 1; min-width: 0; background: var(--ink2); border: 1px solid var(--line); border-radius: 11px;
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px;
+    transition: border-color .18s ease;
   }
   #user-input::placeholder { color: #8a7c6a; }
-  #user-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #e0894e26; }
-  .input-wrap:focus-within .input-glyph { opacity: 1; }
+  #user-input:focus { outline: none; border-color: #6b5a45; }
   #send-btn {
     display: inline-flex; align-items: center; gap: 7px;
-    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .3px;
-    background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink); border: none; border-radius: 12px;
-    padding: 0 20px; cursor: pointer; transition: transform .1s ease, filter .15s ease, box-shadow .18s ease;
-    box-shadow: 0 10px 22px -12px var(--accent);
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .2px;
+    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 11px;
+    padding: 0 19px; cursor: pointer; transition: transform .1s ease, filter .15s ease;
   }
   #send-btn svg { width: 15px; height: 15px; display: block; transition: transform .15s ease; }
-  #send-btn:hover { filter: brightness(1.06); box-shadow: 0 12px 26px -12px var(--accent); }
+  #send-btn:hover { filter: brightness(1.05); }
   #send-btn:hover svg { transform: translateX(2px); }
   #send-btn:active { transform: translateY(1px) scale(.98); }
   #send-btn.sending svg { animation: planeLaunch .5s cubic-bezier(.4,0,.2,1); }
@@ -379,9 +369,9 @@
   .fly-msg {
     position: fixed; z-index: 200; pointer-events: none; display: inline-flex; align-items: center; gap: 6px;
     max-width: 230px; padding: 7px 12px; border-radius: 13px 13px 13px 4px;
-    background: linear-gradient(135deg, #efac6c, var(--accent)); color: var(--accent-ink);
+    background: var(--accent); color: var(--accent-ink);
     font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12.5px; white-space: nowrap;
-    box-shadow: 0 12px 26px -8px var(--accent); will-change: transform, opacity;
+    box-shadow: 0 10px 20px -10px #000; will-change: transform, opacity;
   }
   .fly-msg svg { width: 13px; height: 13px; flex: 0 0 auto; }
   .fly-msg span { overflow: hidden; text-overflow: ellipsis; }
@@ -399,17 +389,17 @@
   .tray:not(.open) .tray-actions, .tray:not(.open) .tray-list { display: none; }
   .tray-count.tick { animation: countPop .5s cubic-bezier(.2,1.5,.4,1); }
   @keyframes countPop { 30% { transform: scale(1.35); } 100% { transform: scale(1); } }
-  .tray-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .tray-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .2px; color: var(--text); }
   .tray-count { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 10px; font-weight: 800; letter-spacing: 0; }
   .tray-actions { display: flex; gap: 6px; }
   .tray-actions button { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--muted); background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; padding: 6px 11px; cursor: pointer; transition: color .15s ease, border-color .15s ease; }
   .tray-actions button:hover { color: var(--text); border-color: var(--accent); }
   .tray-list { display: flex; flex-direction: column; gap: 10px; max-height: 46vh; overflow-y: auto; scrollbar-width: thin; }
   .tray-empty { color: var(--muted); font-size: 12.5px; font-family: 'Nunito', sans-serif; text-align: center; padding: 20px 10px; line-height: 1.55; }
-  .deliv { background: var(--surface2); border: 1px solid #ffffff08; border-left: 3px solid var(--dc, var(--accent)); border-radius: 12px; padding: 11px 13px; animation: msgIn .3s cubic-bezier(.2,.9,.3,1) both; }
+  .deliv { background: var(--surface2); border: 1px solid #ffffff08; border-left: 2px solid var(--dc, var(--accent)); border-radius: 12px; padding: 11px 13px; animation: msgIn .3s cubic-bezier(.2,.9,.3,1) both; }
   .deliv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
   .deliv-who { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--dc, var(--accent)); }
-  .deliv-who::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--dc, var(--accent)); box-shadow: 0 0 7px var(--dc, var(--accent)); }
+  .deliv-who::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--dc, var(--accent)); }
   .deliv-time { font-size: 10px; color: var(--muted); font-family: 'Nunito', sans-serif; }
   .deliv-body { font-family: 'Fraunces', Georgia, serif; font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
   .deliv-foot { margin-top: 8px; display: flex; justify-content: flex-end; }
@@ -454,7 +444,6 @@
         <span>API</span>
         <i class="api-dot" id="api-dot"></i>
       </button>
-      <span class="live"><i class="live-dot"></i> LIVE</span>
       <span class="clock" id="clock">--:--</span>
     </div>
   </header>
@@ -471,13 +460,13 @@
           <div id="bubble" hidden></div>
           <div id="comic" hidden></div>
         </div>
-        <p class="hint" id="status">Taip mesej di bawah — staff yang berkenaan akan berjalan ke depan dan lapor kat kau</p>
+        <p class="hint" id="status">Taip arahan di bawah — staff yang berkenaan akan datang lapor.</p>
       </section>
 
       <section class="taskq" id="taskq" hidden>
         <h2 class="taskq-title">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 6h9M4 12h9M4 18h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 6 2 2 3.5-4M16 12l2 2 3.5-4M16 18l2 2 3.5-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Tugasan berjalan
+          Tugasan
         </h2>
         <div id="taskq-list"></div>
       </section>
@@ -485,10 +474,6 @@
       <section class="convo">
         <div id="chat"><div class="chat-empty" id="chat-empty"><span>Room Chat</span></div></div>
         <div class="composer">
-          <div class="composer-label">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg>
-            Pesanan ke office
-          </div>
           <div id="img-chip" class="img-chip" hidden>
             <img id="img-thumb" alt="">
             <span id="img-name"></span>
@@ -500,7 +485,6 @@
             </button>
             <input type="file" id="img-in" hidden accept="image/*">
             <div class="input-wrap">
-              <span class="input-glyph">›</span>
               <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
             </div>
             <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
@@ -511,7 +495,7 @@
       <section class="tray" id="tray">
         <div class="tray-head" id="tray-head" role="button" aria-expanded="false" title="Tekan untuk buka / tutup">
           <h2 class="tray-title">
-            Hasil Kerja <span class="tray-count" id="tray-count">0</span>
+            Hasil kerja <span class="tray-count" id="tray-count">0</span>
             <svg class="tray-chev" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </h2>
           <div class="tray-actions">
@@ -524,7 +508,7 @@
     </div>
 
     <aside class="rail">
-      <h2 class="rail-title">Pasukan kau <span class="deck-count" id="deck-count">1/6</span></h2>
+      <h2 class="rail-title">Pasukan <span class="deck-count" id="deck-count">1/6</span></h2>
       <div class="deck" id="deck"></div>
       <div class="deck-nav">
         <button class="deck-btn" id="deck-prev" aria-label="Sebelum">‹</button>
@@ -1388,10 +1372,10 @@
   // drifting colour particles around the wordmark — staff colours, random drift;
   // they live inside the watermark so they fade away together with it
   if (chatEmpty) {
-    const PT_COLS = ['#e0894e', '#93ad86', '#e6b45a', '#9c5a86', '#3a8f8a', '#5b8bd0'];
-    for (let i = 0; i < 16; i++) {
+    const PT_COLS = ['#e0894e', '#93ad86', '#c9a35a'];
+    for (let i = 0; i < 10; i++) {
       const pt = document.createElement('i'); pt.className = 'pt';
-      const s = 3 + Math.random() * 3.5;
+      const s = 2.5 + Math.random() * 2.5;
       pt.style.width = s + 'px'; pt.style.height = s + 'px';
       pt.style.left = (5 + Math.random() * 90) + '%';
       pt.style.top = (10 + Math.random() * 74) + '%';
