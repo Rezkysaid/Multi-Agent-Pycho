@@ -357,9 +357,16 @@
   .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
   .foot b { color: var(--muted); font-weight: 700; }
 
-  /* deliverables tray — captured staff output you can copy / export */
+  /* deliverables tray — collapsed by default so the page stays calm; the boss
+     taps the header to open it and read/copy/export the captured output */
   .tray { margin-top: 14px; background: linear-gradient(180deg, var(--surface), #19120b); border: 1px solid var(--line); border-radius: 16px; padding: 14px; box-shadow: 0 14px 36px -24px #000; }
-  .tray-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .tray-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; -webkit-user-select: none; user-select: none; }
+  .tray.open .tray-head { margin-bottom: 12px; }
+  .tray-chev { width: 14px; height: 14px; color: var(--muted); transition: transform .25s ease; }
+  .tray.open .tray-chev { transform: rotate(180deg); }
+  .tray:not(.open) .tray-actions, .tray:not(.open) .tray-list { display: none; }
+  .tray-count.tick { animation: countPop .5s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes countPop { 30% { transform: scale(1.35); } 100% { transform: scale(1); } }
   .tray-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
   .tray-count { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 10px; font-weight: 800; letter-spacing: 0; }
   .tray-actions { display: flex; gap: 6px; }
@@ -455,8 +462,11 @@
       </section>
 
       <section class="tray" id="tray">
-        <div class="tray-head">
-          <h2 class="tray-title">Hasil Kerja <span class="tray-count" id="tray-count">0</span></h2>
+        <div class="tray-head" id="tray-head" role="button" aria-expanded="false" title="Tekan untuk buka / tutup">
+          <h2 class="tray-title">
+            Hasil Kerja <span class="tray-count" id="tray-count">0</span>
+            <svg class="tray-chev" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </h2>
           <div class="tray-actions">
             <button id="tray-export" title="Muat turun semua sebagai fail .md">Export</button>
             <button id="tray-clear" title="Kosongkan semua hasil">Kosong</button>
@@ -1531,7 +1541,16 @@
     deliverables.push(d);
     if (deliverables.length > 80) deliverables = deliverables.slice(-80);
     saveDeliverables(); renderTray(); trayList.scrollTop = 0;
+    // the tray stays closed — just nudge the counter so the boss knows it landed
+    trayCount.classList.remove('tick'); void trayCount.offsetWidth; trayCount.classList.add('tick');
   }
+  // collapsed by default; the whole header is the toggle (Export/Kosong stay live)
+  const trayEl = document.getElementById('tray');
+  document.getElementById('tray-head').addEventListener('click', e => {
+    if (e.target.closest('.tray-actions')) return;
+    const open = trayEl.classList.toggle('open');
+    document.getElementById('tray-head').setAttribute('aria-expanded', open);
+  });
   function exportTray() {
     if (!deliverables.length) { setStatus('Belum ada hasil untuk di-export, bos.'); return; }
     const body = deliverables.map(d => `## ${d.name} · ${d.role}  (${fmtTime(d.ts)})\n\n${d.text}\n`).join('\n---\n\n');
