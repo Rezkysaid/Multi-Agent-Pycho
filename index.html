@@ -894,7 +894,7 @@
   //  WORKERS
   // =====================================================================
   const staff = {
-    aiman:   { name:'AIMAN', role:'Pembantu Am', outfit:'chic', kind:'specialist', dot:'#d0743a', home:{gx:6.35,gy:3.1},
+    aiman:   { name:'AIMAN', role:'Ketua', outfit:'chic', kind:'specialist', dot:'#d0743a', home:{gx:6.35,gy:3.1},
                keywords:['hello','helo','hai','hey','salam','apa khabar','apa cerita','korang','uruskan','agih','susun','set up','book'],
                reply:'Siap bos. Bagi aku detail sikit — kau nak aku uruskan terus, atau susun dulu jadi senarai kerja?' },
     meera:   { name:'MEERA', role:'Penyelidik', outfit:'knit', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
@@ -947,7 +947,7 @@
   }
   // per-staff one-liner shown on the swipeable badge
   const STAFF_INFO = {
-    aiman:  { bio: 'Orang pertama kau jumpa — uruskan soalan am, koordinasi, dan agih kerja ke orang yang betul.' },
+    aiman:  { bio: 'Ketua yang kau cakap terus. Faham niat kau, agih kerja ke specialist di belakang tabir, dan gabung hasil jadi satu jawapan.' },
     meera:  { bio: 'Cari maklumat, fakta & data, dan ringkaskan jadi point yang jelas dan tepat.' },
     wei:    { bio: 'Draf emel, caption, artikel, skrip & headline yang kemas, terus boleh guna.' },
     danish: { bio: 'Timbang pro/kontra, banding pilihan, dan bagi keputusan berasaskan angka.' },
@@ -1954,7 +1954,7 @@ REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem
     return `Hari ni ${dateStr}, ${timeStr}, bos.`;
   }
   const PERSONA = {
-    aiman: `Kau Aiman, Pembantu Am (general assistant) di office ni — orang pertama yang bos jumpa. Kau uruskan soalan am, basa-basi, koordinasi, dan agihkan kerja kepada orang yang betul. Kalau permintaan bos lebih sesuai untuk specialist lain, cadangkan mereka, tapi tetap bantu apa yang boleh.\n${COMMON_RULES}`,
+    aiman: `Kau Aiman, KETUA (Chief Coordinator) office ni — orang utama yang bos cakap terus, macam Jarvis. Kau faham niat bos, jawab sendiri untuk soalan am/basa-basi/koordinasi/nasihat ringkas, dan bila kerja melibatkan specialist kau uruskan mereka di belakang tabir lepas tu gabungkan hasil jadi SATU jawapan kemas. Bersikap proaktif — bila sesuai, akhiri dengan satu cadangan langkah seterusnya yang berguna (ringkas). Team kau: Meera (research), Wei (tulisan), Danish (analisa), Kak Sumi (perancang), Hafiz (teknikal).\n${COMMON_RULES}`,
     meera: `Kau Meera, Penyelidik (research) di office ni. Kerja kau cari maklumat, fakta, data, dan ringkaskan jadi point yang jelas. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
     wei: `Kau Wei, Penulis (copywriter) di office ni. Kerja kau draf emel, caption, artikel, skrip, headline. Tanya nada atau audience kalau perlu, dan bagi draf yang kemas yang terus boleh pakai.\n${COMMON_RULES}`,
     danish: `Kau Danish, Penganalisis (analyst) di office ni. Kerja kau timbang pro/kontra, banding pilihan, dan bagi cadangan berasaskan logik dan angka. Kalau ada data guna data; kalau tak ada, nyatakan andaian kau dengan jelas.\n${COMMON_RULES}`,
@@ -1962,21 +1962,31 @@ REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem
     hafiz: `Kau Hafiz, Jurutera/Tekno (tech) di office ni. Kerja kau hal teknikal — kod, debug, sistem, tools, automasi. Terangkan dengan mudah, dan bila sesuai bagi contoh kod atau langkah teknikal yang tepat.\n${COMMON_RULES}`
   };
 
-  // orchestrator: one small Gemini call to classify; keyword routing as fallback
-  async function routeLLM(text) {
-    const sys = `Kau router untuk sebuah office. Pilih SEORANG pekerja untuk balas mesej bos:
-- aiman: soalan am, basa-basi, sapaan, urus/agih kerja, apa-apa yang tak jelas masuk bidang lain (DEFAULT)
-- meera: cari maklumat, research, fakta, data, kaji sesuatu
-- wei: tulis atau draf apa-apa — emel, caption, artikel, copy, skrip
-- danish: analisa, banding pilihan, pro/kontra, angka, keputusan berasaskan data
-- hana: rancang, strategi, pecah matlamat jadi langkah, jadual, timeline (nama dia Kak Sumi)
-- hafiz: teknikal — kod, debug, app, web, sistem, automasi
-Kalau ragu-ragu atau mesej tu am/basa-basi, pilih aiman.
-Jawab JSON sahaja, contoh: {"agent":"meera"}`;
-    const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 24, 6000);   // route must be snappy
-    const m = out.match(/aiman|meera|wei|danish|hana|hafiz/i);
-    if (!m) throw new Error('route-parse');
-    return m[0].toLowerCase();
+  // keyword scores per SPECIALIST (Chief/aiman excluded — he coordinates, not contributes).
+  // Two-or-more distinct hits = a multi-domain request the Chief should fan out.
+  const SPECIALISTS = ['meera', 'wei', 'danish', 'hana', 'hafiz'];
+  function routeScores(text) {
+    const l = text.toLowerCase();
+    return SPECIALISTS
+      .map(k => ({ k, s: staff[k].keywords.filter(w => l.includes(w)).length }))
+      .filter(x => x.s > 0)
+      .sort((a, b) => b.s - a.s);
+  }
+  // the Chief's plan: one small LLM call → answer directly, hand to one specialist,
+  // or fan out to a team. Only called when keywords are inconclusive (saves quota).
+  async function chiefPlan(text) {
+    const sys = `Kau Aiman, KETUA sebuah office. Tentukan macam mana nak kendali mesej bos:
+- "direct": kau (Ketua) jawab sendiri — soalan am, basa-basi, sapaan, koordinasi, nasihat ringkas.
+- "one": satu specialist patut buat. agent salah satu: meera (research/fakta/data), wei (tulis/draf/emel/caption), danish (analisa/banding/angka), hana (rancang/strategi/jadual), hafiz (teknikal/kod).
+- "team": tugasan melibatkan LEBIH SATU bidang — senaraikan 2-3 agents yang perlu.
+Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","agents":["meera","danish","wei"]} atau {"mode":"direct"}`;
+    const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 40, 6000);   // must be snappy
+    let j = null; try { j = JSON.parse((out.match(/\{[\s\S]*\}/) || [''])[0]); } catch {}
+    if (!j || !j.mode) throw new Error('route-parse');
+    const valid = a => SPECIALISTS.includes(a);
+    if (j.mode === 'team') { const ags = (j.agents || []).filter(valid); return ags.length >= 2 ? { mode: 'team', agents: ags.slice(0, 3) } : { mode: 'one', agent: ags[0] || 'aiman' }; }
+    if (j.mode === 'one') return { mode: 'one', agent: valid(j.agent) ? j.agent : 'aiman' };
+    return { mode: 'direct', agent: 'aiman' };
   }
   // ---- live research — a real web lookup the browser can do itself ----
   // Place/POI queries go to OpenStreetMap's Nominatim (free, CORS-friendly, keyless),
@@ -2258,6 +2268,78 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
   }
 
   // =====================================================================
+  //  CHIEF TEAM — the Jarvis flow: the Chief (Aiman) silently delegates a
+  //  multi-domain request to the right specialists, then SYNTHESISES their
+  //  contributions into ONE combined answer. The boss never picks anyone.
+  // =====================================================================
+  async function runChiefTeam(topic, agents, img) {
+    if (projectBusy || meetingBusy || roomBusy) { setStatus('Ketua tengah uruskan kerja lain, bos.'); return; }
+    if (secsLeft() > 0) { tickCooldown(); return; }
+    projectBusy = true;
+    const chiefA = staff.aiman, cs = sprites.aiman;
+    const fmt = pickFormat(topic);
+    addMsg('', `Ketua agih kerja kepada ${agents.map(k => staff[k].name).join(', ')}…`, 'meet');
+    setStatus('Ketua sedang koordinasi pasukan…');
+    const parts = []; let failed = false;
+    for (const k of agents) {
+      const a = staff[k], s = sprites[k];
+      s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
+      setStat(k, 'diagih Ketua →'); setActive(k, true);
+      const task = addTask(`${a.role} — ${topic}`, k);
+      const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
+      await sleep(dur * 1000 + 150);
+      setStat(k, 'berfikir…'); headCue(s, a.name, 'think'); taskStart(task);
+      const typing = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typing.classList.add('typing');
+      let out;
+      try {
+        out = await gemini(nowContext() + '\n' + PERSONA[k] + `\n[KERJA PASUKAN] Ketua agih bahagian ni pada kau untuk tugasan bos: "${topic}". Bagi sumbangan bahagian kau SAHAJA — ringkas & padat (2-4 ayat atau beberapa point). Jangan buat pembukaan/penutup, Ketua yang akan gabungkan.`, [{ role: 'user', parts: [{ text: topic }] }], 320, 16000);
+      } catch (e) {
+        if (typing.parentElement) typing.parentElement.remove(); taskEnd(task, false);
+        noteRateLimit(e); const info = aiTrouble(e);
+        addMsg('', `Ketua terpaksa berhenti — ${info.hint}`, 'meet');
+        setActive(k, false); s.busy = false; releaseStaff(k); failed = true; break;
+      }
+      if (typing.parentElement) typing.parentElement.remove(); taskEnd(task, true);
+      headCue(s, a.name, 'talk');
+      addMsg(a.name, out, 'staff', a.dot);
+      remember('model', a.name, out);
+      parts.push(`[${a.role} — ${a.name}] ${out}`);
+      setStat(k, 'siap bahagian');
+      await sleep(1100);
+      setActive(k, false); s.busy = false; releaseStaff(k);
+    }
+    if (!failed) {
+      cs.busy = true; clearTimeout(cs.wanderT); clearTimeout(cs.arriveT); clearTimeout(cs.releaseT); clearTimeout(cs.talkT);
+      setStat('aiman', 'gabung jawapan →'); setActive('aiman', true);
+      const dur = walk(cs, MEET.gx, MEET.gy);
+      await sleep(dur * 1000 + 120);
+      headCue(cs, chiefA.name, 'think');
+      const task = addTask('Ketua gabung jawapan', 'aiman'); taskStart(task);
+      const typing = addMsg(chiefA.name, 'sedang menaip…', 'staff', chiefA.dot); typing.classList.add('typing');
+      let final;
+      try {
+        final = await gemini(nowContext() + '\n' + PERSONA.aiman + `\n[GABUNG HASIL] Bos minta: "${topic}". Ni sumbangan pasukan kau:\n${parts.join('\n\n').slice(-1600)}\nGabungkan jadi SATU jawapan padu untuk bos — kemas, tersusun, buang ulangan, terus berguna. ${fmt ? `Bos nak hasil sebagai FAIL ${FMT_META[fmt].label.toUpperCase()} — tulis kandungan dokumen penuh sahaja.` : 'Akhiri dengan SATU cadangan langkah seterusnya yang ringkas kalau sesuai.'}`, [{ role: 'user', parts: [{ text: topic }] }], fmt ? 900 : 600, fmt ? 24000 : 18000);
+      } catch (e) {
+        if (typing.parentElement) typing.parentElement.remove(); taskEnd(task, false);
+        noteRateLimit(e); addMsg(chiefA.name, aiTrouble(e).msg, 'staff', chiefA.dot);
+        setActive('aiman', false); cs.busy = false; releaseStaff('aiman'); projectBusy = false; return;
+      }
+      if (typing.parentElement) typing.parentElement.remove(); taskEnd(task, true);
+      headCue(cs, chiefA.name, 'talk');
+      const rb = addMsg(chiefA.name, final, 'staff', chiefA.dot);
+      remember('model', chiefA.name, final);
+      addDeliverable('aiman', final, fmt, topic);
+      if (fmt) attachFile(rb, fmt, topic, final);
+      setStatus('Ketua dah siapkan jawapan gabungan.');
+      setStat('aiman', 'dengan kau');
+      const readMs = Math.max(9000, Math.min(26000, final.length * 55));
+      cs.releaseT = setTimeout(() => { cs.busy = false; setStat('aiman', 'kat meja'); setActive('aiman', false); releaseStaff('aiman'); }, readMs);
+      if (fmt) printerRun('aiman');
+    }
+    projectBusy = false;
+  }
+
+  // =====================================================================
   //  PRINTER RUN — after a big piece of work, the closer walks to the office
   //  printer, collects the printout, and hand-delivers it to the boss desk.
   // =====================================================================
@@ -2502,24 +2584,30 @@ Jawab JSON sahaja, contoh: {"agent":"meera"}`;
     }
     let k;
     // an explicitly NAMED staff is the strongest signal — route straight to them,
-    // and NEVER let anyone else answer on their behalf (first named wins)
+    // and NEVER let anyone else answer on their behalf (first named wins). The boss
+    // CAN still call someone by name, but never HAS to — the Chief handles the rest.
     const named = staffMentioned(t);
-    const kw = routeKeyword(t);
     if (named.length >= 1) k = named[0];
-    // a clear keyword hit is routed for free — only spend a Gemini call on the
-    // router when the message is ambiguous (keeps free-tier quota for replies)
-    else if (kw.score > 0) k = kw.key;
     else if (usingAI) {
-      try { k = await routeLLM(t); }
-      catch (e) {
-        // if the ROUTER already hit the rate limit, don't also fire the specialist —
-        // that just doubles the request storm. Report the cooldown (via the error path
-        // so the line stays ephemeral / unremembered) and stop here.
-        if (noteRateLimit(e)) { const p = Promise.reject(e); p.catch(() => {}); summon('aiman', t, p, true); return; }
-        k = kw.key;
+      // Chief coordination: 2+ distinct specialist domains hit by keywords → fan out
+      // to a team and combine (free to detect). One clear domain → that specialist.
+      // Otherwise ask the Chief's plan (one LLM call) — direct / one / team.
+      const scores = routeScores(t);
+      if (scores.length >= 2 && !img) { runChiefTeam(t, scores.slice(0, 3).map(x => x.k), img); return; }
+      if (scores.length === 1) k = scores[0].k;
+      else {
+        try {
+          const plan = await chiefPlan(t);
+          if (plan.mode === 'team' && !img) { runChiefTeam(t, plan.agents, img); return; }
+          k = plan.mode === 'one' ? plan.agent : 'aiman';   // 'direct' → the Chief answers himself
+        } catch (e) {
+          // router itself hit the rate limit — don't also fire a specialist (doubles the storm)
+          if (noteRateLimit(e)) { const p = Promise.reject(e); p.catch(() => {}); summon('aiman', t, p, true); return; }
+          k = (routeScores(t)[0] || { k: 'aiman' }).k;
+        }
       }
     }
-    else k = kw.key;
+    else k = routeKeyword(t).key;
     const replyPromise = usingAI
       ? specialistLLM(k, t, img)
       : new Promise(r => setTimeout(() => r(staff[k].reply), 400));
