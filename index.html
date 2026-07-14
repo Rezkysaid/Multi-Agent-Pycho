@@ -1961,6 +1961,38 @@
     return chain;
   }
 
+  // =====================================================================
+  //  OUTPUT FORMATTER — the app does NOT render Markdown, so every model
+  //  reply passes through here before the UI. Model-agnostic: whichever brain
+  //  (DeepSeek/Gemini/OpenRouter/…) wrote it, the boss sees clean plain text.
+  //  Strips **bold**, __, #, >, `code`, ``` fences, ---, and Markdown tables/
+  //  links, converts bullets to "• ", preserves URLs, numbering and content.
+  // =====================================================================
+  function toPlainText(input) {
+    let s = String(input == null ? '' : input).replace(/\r\n/g, '\n');
+    s = s.replace(/```[a-zA-Z0-9]*\n?/g, '').replace(/```/g, '');          // code fences
+    s = s.replace(/`([^`]+)`/g, '$1').replace(/`/g, '');                   // inline code
+    s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, a, u) => (a ? a + ' ' : '') + u);  // images
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, u) => t + ' (' + u + ')');       // links → text (url)
+    s = s.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1'); // bold
+    s = s.replace(/\*(\S(?:[^*\n]*\S)?)\*/g, '$1');                        // *italic* (hugs text, skips "3 * 4")
+    s = s.replace(/(^|[^\w_])_(\S(?:[^_\n]*\S)?)_(?![\w_])/g, '$1$2');     // _italic_ (not snake_case/URLs)
+    s = s.replace(/\*\*/g, '').replace(/__/g, '');                         // any stragglers
+    const out = [];
+    for (let line of s.split('\n')) {
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) continue;               // horizontal rule --- *** ___
+      if (/\|/.test(line) && /^\s*\|?[\s:|-]*-[-\s:|]*\|?\s*$/.test(line)) continue;   // table separator |---|
+      let l = line.replace(/^\s{0,3}#{1,6}\s+/, '');                       // heading ## Title → Title
+      l = l.replace(/^\s{0,3}>\s?/, '');                                   // blockquote
+      if (/^\s*\|.*\|\s*$/.test(l)) {                                      // table row | a | b |
+        l = l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim()).filter(c => c !== '').join('   ');
+      }
+      l = l.replace(/^(\s*)[-*+]\s+/, '$1• ');                             // bullet → •
+      out.push(l);
+    }
+    return out.join('\n').replace(/\n{3,}/g, '\n\n').split('\n').map(x => x.replace(/[ \t]+$/, '')).join('\n').trim();
+  }
+
   // build the provider-specific request. Gemini speaks its own protocol; OpenRouter
   // and DeepSeek both speak the OpenAI chat/completions dialect, so the shared
   // `contents` array (in Gemini's {role,parts[]} form) is translated for them.
@@ -2042,7 +2074,10 @@
           .replace(/^(aiman|meera|wei|danish|hana|kak\s*sumi|sumi|hafiz)\s*[:\-]\s*/i, '')   // "Meera: " without parens
           .trim();
         if (!out) throw new Error('empty');
-        return out;
+        // single model-agnostic choke point: strip Markdown → clean plain text
+        // (skipped for raw classification/JSON calls). Works the same whichever
+        // brain (DeepSeek/Gemini/OpenRouter/…) produced the text.
+        return (opts && opts.raw) ? out : toPlainText(out);
       } catch (e) {
         lastErr = e.name === 'AbortError' ? new Error('AbortError') : e;
         // model-404 (wrong model name) and http-429 (per-model quota) both mean
@@ -2137,7 +2172,8 @@ PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan,
 IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Kak Sumi (Perancang), Hafiz (Jurutera/Tekno).
 Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.
 SEJARAH PERBUALAN: balasan colleague lain dalam sejarah bermula dengan "(Nama)". Itu cakap MEREKA, bukan kau — jangan sambung watak mereka, dan jangan letak "(Nama)" di depan jawapan kau sendiri.
-REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem sertakan HASIL CARIAN LANGSUNG (data masa nyata) di dalam mesej — bila ada, GUNAKANNYA sebagai fakta terkini dan sebut sumbernya sekali. Kalau tiada hasil carian disertakan dan soalan perlukan data terkini (harga, berita, ketersediaan), jujur beritahu jawapan kau berdasarkan pengetahuan am dan cadangkan bos sahkan. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.`;
+REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem sertakan HASIL CARIAN LANGSUNG (data masa nyata) di dalam mesej — bila ada, GUNAKANNYA sebagai fakta terkini dan sebut sumbernya sekali. Kalau tiada hasil carian disertakan dan soalan perlukan data terkini (harga, berita, ketersediaan), jujur beritahu jawapan kau berdasarkan pengetahuan am dan cadangkan bos sahkan. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.
+FORMAT OUTPUT (WAJIB): Kau pekerja dalam Mind Office — tulis laporan macam pekerja lapor pada bos, bukan macam ChatGPT. Sentiasa keluarkan TEKS BIASA sahaja. JANGAN guna Markdown langsung: tiada **tebal**, tiada __, tiada tajuk # , tiada blok kod \`\`\`, tiada backtick, tiada jadual Markdown, tiada > petikan, tiada garis --- . Untuk senarai guna "• " atau "1. 2. 3.". Struktur laporan biasa: Tajuk ringkas, penerangan pendek, point-point, kesimpulan, dan "Sumber:" kalau ada. Tulis natural dan kemas.`;
   // real device date/time, injected into every persona call so staff answer
   // "hari ni hari apa / pukul berapa" correctly instead of hallucinating
   function nowContext() {
@@ -2192,7 +2228,7 @@ REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem
 - "one": satu specialist patut buat. agent salah satu: meera (research/fakta/data), wei (tulis/draf/emel/caption), danish (analisa/banding/angka), hana (rancang/strategi/jadual), hafiz (teknikal/kod).
 - "team": tugasan melibatkan LEBIH SATU bidang — senaraikan 2-3 agents yang perlu.
 Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","agents":["meera","danish","wei"]} atau {"mode":"direct"}`;
-    const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 40, 6000);   // must be snappy
+    const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 40, 6000, { raw: true });   // JSON — skip the plain-text formatter
     let j = null; try { j = JSON.parse((out.match(/\{[\s\S]*\}/) || [''])[0]); } catch {}
     if (!j || !j.mode) throw new Error('route-parse');
     const valid = a => SPECIALISTS.includes(a);
@@ -2365,7 +2401,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
         continue;   // let the model read the results
       }
       const finalText = (msg.content || '').trim();
-      if (finalText) return finalText;
+      if (finalText) return toPlainText(finalText);   // same plain-text choke point as gemini()
       // model wanted more tools but we hit the cap → force a final answer without tools
       messages.push({ role: 'user', content: 'Cukup carian. Bagi jawapan akhir sekarang berdasarkan apa yang kau ada.' });
     }
@@ -3113,7 +3149,8 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase, getMode: () => officeMode, DESK,
     roomAdd, roomRemove, roomRoster, toGrid, printerRun, pickFormat, makeFileBlob, liveSearch,
     parseWhen, reminderLabel, addReminder, getReminders: () => reminders, tickReminders,
-    tavilySearch, testTavily, doResearch, canUseTool, wantsWebSearch, newResearch, renderSources, getResearch: () => research };
+    tavilySearch, testTavily, doResearch, canUseTool, wantsWebSearch, newResearch, renderSources, getResearch: () => research,
+    toPlainText };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
