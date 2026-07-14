@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Mind Office — HQ</title>
+<title>Mind Crew — AI</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#17120d">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mind Office">
+<meta name="apple-mobile-web-app-title" content="Mind Crew">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap">
@@ -244,9 +244,11 @@
     position: relative; align-self: stretch; margin: auto 0; padding: 26px 0; text-align: center; pointer-events: none;
     transition: opacity .7s ease, transform .7s cubic-bezier(.4,0,.2,1);
   }
-  .chat-live { display: inline-flex; align-items: center; gap: 8px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #8a7c6a; }
-  .chat-live .cl-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); animation: clPulse 2.4s ease-in-out infinite; }
-  @keyframes clPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .chat-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 14px; }
+  .ce-hi { font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 500; color: #b3a690; text-align: center; line-height: 1.4; max-width: 320px; }
+  .ce-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 420px; }
+  .ce-chip { font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: #cdbfa9; background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+  .ce-chip:hover { color: var(--text); border-color: var(--accent); background: #2f2618; }
   .chat-empty.bye { opacity: 0; transform: translateX(72px); }
   .chat-empty[hidden] { display: none; }
 
@@ -438,8 +440,8 @@
           <circle cx="14.5" cy="14.5" r="1.3" fill="currentColor"/>
         </svg>
       </span>
-      <span class="wordmark">Office</span>
-      <span class="brand-sub">HQ</span>
+      <span class="wordmark">Crew</span>
+      <span class="brand-sub">AI</span>
     </div>
     <div class="topbar-right">
       <button id="ai-btn" title="Tetapan API key">
@@ -458,7 +460,7 @@
   <main class="app">
     <div class="main-col">
       <section class="stage-wrap">
-        <div class="stage-caption">Ruang operasi · <b id="here">6 orang tengah bertugas</b> · <span id="mood"></span></div>
+        <div class="stage-caption">Hub kau · <b id="here">6 crew aktif</b> · <span id="mood"></span></div>
         <div id="stage">
           <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
           <div id="tint"></div>
@@ -466,19 +468,22 @@
           <div id="bubble" hidden></div>
           <div id="comic" hidden></div>
         </div>
-        <p class="hint" id="status">Taip arahan di bawah — staff yang berkenaan akan datang lapor.</p>
+        <p class="hint" id="status">Taip apa kau nak — crew yang sesuai akan datang bantu.</p>
       </section>
 
       <section class="taskq" id="taskq" hidden>
         <h2 class="taskq-title">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 6h9M4 12h9M4 18h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 6 2 2 3.5-4M16 12l2 2 3.5-4M16 18l2 2 3.5-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Tugasan
+          Misi berjalan
         </h2>
         <div id="taskq-list"></div>
       </section>
 
       <section class="convo">
-        <div id="chat"><div class="chat-empty" id="chat-empty"><span class="chat-live"><i class="cl-dot"></i><span id="chat-live-text">6 staf bertugas</span></span></div></div>
+        <div id="chat"><div class="chat-empty" id="chat-empty">
+          <div class="ce-hi">Apa kau nak crew AI tolong hari ni?</div>
+          <div class="ce-chips" id="ce-chips"></div>
+        </div></div>
         <div class="composer">
           <div id="img-chip" class="img-chip" hidden>
             <img id="img-thumb" alt="">
@@ -491,7 +496,7 @@
             </button>
             <input type="file" id="img-in" hidden accept="image/*">
             <div class="input-wrap">
-              <input id="user-input" type="text" placeholder="Suruh apa-apa kerja — research, tulis, analisa…" autocomplete="off">
+              <input id="user-input" type="text" placeholder="Apa kau nak crew AI tolong hari ni?" autocomplete="off">
             </div>
             <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
           </div>
@@ -527,7 +532,7 @@
       <section class="tray" id="tray">
         <div class="tray-head" id="tray-head" role="button" aria-expanded="false" title="Tekan untuk buka / tutup">
           <h2 class="tray-title">
-            Hasil kerja <span class="tray-count" id="tray-count">0</span>
+            Hasil <span class="tray-count" id="tray-count">0</span>
             <svg class="tray-chev" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </h2>
           <div class="tray-actions">
@@ -540,18 +545,18 @@
     </div>
 
     <aside class="rail">
-      <h2 class="rail-title">Pasukan <span class="deck-count" id="deck-count">1/6</span></h2>
+      <h2 class="rail-title">Crew kau <span class="deck-count" id="deck-count">1/6</span></h2>
       <div class="deck" id="deck"></div>
       <div class="deck-nav">
         <button class="deck-btn" id="deck-prev" aria-label="Sebelum">‹</button>
-        <span class="deck-hint">Swipe untuk tukar staff</span>
+        <span class="deck-hint">Swipe untuk tukar crew</span>
         <button class="deck-btn" id="deck-next" aria-label="Seterus">›</button>
       </div>
     </aside>
   </main>
 
   <footer class="foot">
-    <b>Mind Office</b> — dibina tangan. Tarik staff ke meja bulat untuk buka bilik meeting.
+    <b>Mind Crew</b> — dibina tangan. Tarik crew ke meja bulat untuk buka perbincangan pasukan.
   </footer>
 
 <script>
@@ -960,7 +965,7 @@
                keywords:['kod','code','bug','debug','teknikal','app','web','api','error','sistem','automate','automasi','skrip','script','integrasi','review'],
                reply:'Aku pegang bahagian teknikal ni bos. Bagitau apa yang error atau apa kau nak buat — aku terangkan atau terus kodkan.' }
   };
-  const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
+  const IDLE_PHRASES = ['standby', 'santai kejap', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas nota'];
 
   const waypoints = [
     {gx:3.2,gy:4.1}, {gx:6.5,gy:3.6}, {gx:9.0,gy:3.6}, {gx:10.8,gy:4.5},
@@ -1191,7 +1196,7 @@
     danish: { gx: 5.61, gy: 4.15 }, hana:   { gx: 7.61, gy: 4.15 }, hafiz:  { gx: 9.61, gy: 4.15 }
   };
   const CHAIR_LIFT = 12;     // seat-cushion height: sitting sprites ride this many px up
-  const WORK_PHRASES = ['tengah kerja', 'fokus skrin', 'buat report', 'reply emel', 'siapkan tugas', 'kat komputer'];
+  const WORK_PHRASES = ['tengah fokus', 'fokus skrin', 'buat kerja', 'balas mesej', 'siapkan misi', 'kat laptop'];
 
   // ease onto the chair: short slide from the approach spot, swap to the seated
   // frame, face the monitor — they now LOOK like they're working, not loitering
@@ -1219,7 +1224,7 @@
     const s = sprites[k]; if (s.busy) return;
     clearTimeout(s.wanderT); clearTimeout(s.arriveT);
     const d = DESK[k] || staff[k].home;
-    setStat(k, 'ke meja →');
+    setStat(k, 'ke tempat →');
     const dur = walk(s, d.gx, d.gy);
     s.arriveT = setTimeout(() => {
       if (s.busy || officeMode !== 'work') return;
@@ -1268,10 +1273,10 @@
   }
   function announceMode(mode, mins) {
     const a = staff.aiman;
-    const msg = mode === 'work' ? 'Ok bos, semua balik meja — sambung kerja!'
-      : (mins ? `Rehat ${mins} minit semua, jom relax dulu!` : 'Ok bos, rehat dulu — korang boleh berkeliaran.');
+    const msg = mode === 'work' ? 'Okay, semua dah standby balik — jom sambung!'
+      : (mins ? `Rehat ${mins} minit dulu, jom relax!` : 'Okay, rehat dulu — korang bebas berkeliaran.');
     addMsg(a.name, msg, 'staff', a.dot);
-    setStatus(mode === 'work' ? 'Mod kerja — semua staff di meja masing-masing.' : 'Mod rehat — staff berkeliaran.');
+    setStatus(mode === 'work' ? 'Mod aktif — semua crew standby.' : 'Mod rehat — crew berkeliaran.');
   }
   for (const k in staff) setTimeout(() => goToDesk(k), 400 + Math.random() * 1200);   // start at desks (work mode)
 
@@ -1396,19 +1401,33 @@
     chat.scrollTop = chat.scrollHeight;
     return bub;
   }
-  // the "Room Chat" watermark slides aside while the boss is typing, drifts back if
-  // the field is cleared before anything was ever sent
+  // the empty state slides aside while you're typing, drifts back if the field is
+  // cleared before anything was ever sent
   document.getElementById('user-input').addEventListener('input', e => {
     if (!chatEmpty || chatEmpty.hidden) return;
     chatEmpty.classList.toggle('bye', !!e.target.value.trim());
   });
-  // the empty-chat mark is a LIVE status line — a real reading of the office,
-  // not decoration: staff count + whether they're working or on a break
+  // tappable example missions — everyday life, learning, decisions, side projects…
+  const EXAMPLE_PROMPTS = [
+    'Rancang minggu aku',
+    'Tolong pilih telefon nak beli',
+    'Cari punca masalah aku',
+    'Buat pelan 30 hari belajar English',
+    'Research berita AI terkini',
+    'Tukar matlamat aku jadi misi'
+  ];
+  const ceChips = document.getElementById('ce-chips');
+  if (ceChips) EXAMPLE_PROMPTS.forEach(p => {
+    const c = document.createElement('button'); c.className = 'ce-chip'; c.type = 'button'; c.textContent = p;
+    c.addEventListener('click', () => { const inp = document.getElementById('user-input'); inp.value = p; inp.focus(); if (chatEmpty && !chatEmpty.hidden) chatEmpty.classList.add('bye'); });
+    ceChips.appendChild(c);
+  });
+  // live crew count shown in the stage caption (reflects active / on a break)
   function updateChatLive() {
-    const el = document.getElementById('chat-live-text');
+    const el = document.getElementById('here');
     if (!el) return;
     const n = Object.keys(staff).length;
-    el.textContent = officeMode === 'break' ? n + ' staf tengah rehat' : n + ' staf bertugas';
+    el.textContent = officeMode === 'break' ? n + ' crew tengah rehat' : n + ' crew aktif';
   }
   updateChatLive();
 
@@ -1589,7 +1608,7 @@
       document.getElementById('img-name').textContent = pendingImg.name + ' — sedia dihantar';
       imgChip.hidden = false;
       document.getElementById('user-input').focus();
-    } catch { setStatus('Tak dapat baca gambar tu, bos — cuba gambar lain.'); clearImage(); }
+    } catch { setStatus('Tak dapat baca gambar tu — cuba gambar lain.'); clearImage(); }
   });
   document.getElementById('img-remove').addEventListener('click', clearImage);
   // show the photo inside a chat message (under the bubble)
@@ -1646,7 +1665,7 @@
   }
   function renderTray() {
     trayCount.textContent = deliverables.length;
-    if (!deliverables.length) { trayList.innerHTML = '<div class="tray-empty">Belum ada hasil lagi. Suruh staff buat kerja — output mereka tersimpan di sini, boleh salin & export.</div>'; return; }
+    if (!deliverables.length) { trayList.innerHTML = '<div class="tray-empty">Belum ada hasil. Bagi crew kau sesuatu untuk buat — hasil mereka tersimpan di sini, boleh salin & kongsi.</div>'; return; }
     trayList.innerHTML = '';
     for (let i = deliverables.length - 1; i >= 0; i--) trayList.appendChild(delivCard(deliverables[i]));   // newest on top
   }
@@ -1672,14 +1691,14 @@
     document.getElementById('tray-head').setAttribute('aria-expanded', open);
   });
   function exportTray() {
-    if (!deliverables.length) { setStatus('Belum ada hasil untuk di-export, bos.'); return; }
+    if (!deliverables.length) { setStatus('Belum ada hasil untuk di-export lagi.'); return; }
     const body = deliverables.map(d => `## ${d.name} · ${d.role}  (${fmtTime(d.ts)})\n\n${d.text}\n`).join('\n---\n\n');
-    const md = `# Hasil Kerja — Mind Office\n_Dijana ${new Date().toLocaleString()}_\n\n${body}`;
+    const md = `# Hasil — Mind Crew\n_Dijana ${new Date().toLocaleString()}_\n\n${body}`;
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob); const a = document.createElement('a');
-    a.href = url; a.download = 'mind-office-hasil.md'; document.body.appendChild(a); a.click(); a.remove();
+    a.href = url; a.download = 'mind-crew-hasil.md'; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setStatus('Hasil kerja di-export sebagai mind-office-hasil.md');
+    setStatus('Hasil di-export sebagai mind-crew-hasil.md');
   }
   document.getElementById('tray-export').addEventListener('click', exportTray);
   document.getElementById('tray-clear').addEventListener('click', () => {
@@ -1791,7 +1810,7 @@
       r.notified = true; fired = true;
       addMsg(staff.hana.name, `⏰ Peringatan: ${r.text}`, 'staff', staff.hana.dot);
       setStatus(`Peringatan dari Kak Sumi: ${r.text}`);
-      if ('Notification' in window && Notification.permission === 'granted') { try { new Notification('Mind Office — peringatan', { body: r.text }); } catch {} }
+      if ('Notification' in window && Notification.permission === 'granted') { try { new Notification('Mind Crew — peringatan', { body: r.text }); } catch {} }
     }
     if (fired) { saveReminders(); renderReminders(); }
   }
@@ -1894,7 +1913,7 @@
       AI.model = '';   // Gemini uses its own default chain; clear any override
     }
     refreshAiBadge();
-    setStatus(AI.key ? ('Otak ' + PROVIDER_LABEL[AI.provider] + ' dipasang. Staff kau kini berfikir sendiri.') : 'Mod demo — jawapan contoh sahaja.');
+    setStatus(AI.key ? ('Otak ' + PROVIDER_LABEL[AI.provider] + ' dipasang. Crew kau kini berfikir sendiri.') : 'Mod demo — jawapan contoh sahaja.');
     // BYOK: offer Tavily web-search key management (only the Research Agent uses it)
     manageTavilyKey();
   });
@@ -2165,15 +2184,15 @@
     parts: [{ text: h.role === 'model' && h.name ? `(${h.name}) ${h.text}` : h.text }]
   }));
 
-  const COMMON_RULES = `User yang bercakap dengan kau ni ialah BOS kau di office ni — panggil dia "bos" sekali-sekala dalam ayat, tapi jangan letak di setiap ayat, biar natural.
-Kau seorang pekerja office yang buat kerja betul (research, tulisan, analisa, perancangan, teknikal). Layan bos macam rakan sekerja yang cekap dan boleh diharap — BUKAN macam pesakit, dan ini BUKAN sesi terapi atau kaunseling.
+  const COMMON_RULES = `User ni kapten crew kau — orang yang kau bantu. Layan dia mesra dan santai. Panggil dia "kau"; sesekali boleh selit "bos" atau "kapten" tapi JANGAN letak di setiap ayat.
+Kau ahli crew AI yang bantu dalam macam-macam benda hidup harian: belajar, buat keputusan, side income, bisnes, kandungan, research, rancang minggu, selesai masalah, hal teknikal. Layan user macam kawan yang cekap dan boleh diharap — BUKAN macam pesakit, dan ini BUKAN sesi terapi.
 Balas dalam Bahasa Melayu santai (aku/kau), ringkas — 2 hingga 4 ayat sahaja, terus ke point dan berguna.
 PENTING: JANGAN sekali-kali kaitkan mesej bos dengan psikologi, emosi, perasaan, atau "masalah tersembunyi" melainkan bos sendiri yang minta. Kalau bos tanya soalan biasa atau basa-basi, jawab terus macam colleague biasa. Fokus pada menyiapkan kerja, bukan menganalisis bos.
-IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Nama pasukan: Aiman (Pembantu Am), Meera (Penyelidik), Wei (Penulis), Danish (Penganalisis), Kak Sumi (Perancang), Hafiz (Jurutera/Tekno).
+IDENTITI (SANGAT PENTING): Kau ada SATU nama dan SATU peranan sahaja — yang dinyatakan di atas. JANGAN sekali-kali mengaku atau berlakon sebagai staff lain, walaupun bos tersilap sebut nama orang lain. Kalau bos panggil nama colleague lain, betulkan dengan sopan (contoh: "Eh bos, aku Aiman — kalau nak Hafiz, aku panggil dia"). Sentiasa jujur tentang siapa kau. Crew: Aiman (Ketua), Meera (Penyelidik), Wei (Komunikasi), Danish (Penasihat Strategi), Kak Sumi (Perancang & Jadual), Hafiz (Jurutera). Guna frasa harian yang mesra bila sesuai — contoh "Okay, ni update untuk kau.", "Aku dah semak.", "Ni pilihan paling masuk akal.", "Sebelum teruskan, aku perlukan sikit info.", "Nak aku teruskan ke langkah seterusnya?"
 Kalau permintaan tu bukan bidang kau, boleh cadangkan siapa yang lebih sesuai (contoh: "ni lebih kepada kerja Meera, dia yang research") — tapi tetap tolong sekadar yang kau boleh.
 SEJARAH PERBUALAN: balasan colleague lain dalam sejarah bermula dengan "(Nama)". Itu cakap MEREKA, bukan kau — jangan sambung watak mereka, dan jangan letak "(Nama)" di depan jawapan kau sendiri.
 REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem sertakan HASIL CARIAN LANGSUNG (data masa nyata) di dalam mesej — bila ada, GUNAKANNYA sebagai fakta terkini dan sebut sumbernya sekali. Kalau tiada hasil carian disertakan dan soalan perlukan data terkini (harga, berita, ketersediaan), jujur beritahu jawapan kau berdasarkan pengetahuan am dan cadangkan bos sahkan. JANGAN teka tarikh, hari, atau masa — guna MAKLUMAT MASA yang diberi di atas prompt kalau ada.
-FORMAT OUTPUT (WAJIB): Kau pekerja dalam Mind Office — tulis laporan macam pekerja lapor pada bos, bukan macam ChatGPT. Sentiasa keluarkan TEKS BIASA sahaja. JANGAN guna Markdown langsung: tiada **tebal**, tiada __, tiada tajuk # , tiada blok kod \`\`\`, tiada backtick, tiada jadual Markdown, tiada > petikan, tiada garis --- . Untuk senarai guna "• " atau "1. 2. 3.". Struktur laporan biasa: Tajuk ringkas, penerangan pendek, point-point, kesimpulan, dan "Sumber:" kalau ada. Tulis natural dan kemas.`;
+FORMAT OUTPUT (WAJIB): Kau sebahagian daripada crew AI user — tulis ringkas dan mesra macam kawan yang bantu, bukan macam pekerja korporat atau ChatGPT. Sentiasa keluarkan TEKS BIASA sahaja. JANGAN guna Markdown langsung: tiada **tebal**, tiada __, tiada tajuk # , tiada blok kod \`\`\`, tiada backtick, tiada jadual Markdown, tiada > petikan, tiada garis --- . Untuk senarai guna "• " atau "1. 2. 3.". Struktur laporan biasa: Tajuk ringkas, penerangan pendek, point-point, kesimpulan, dan "Sumber:" kalau ada. Tulis natural dan kemas.`;
   // real device date/time, injected into every persona call so staff answer
   // "hari ni hari apa / pukul berapa" correctly instead of hallucinating
   function nowContext() {
@@ -2474,7 +2493,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       setStatus(`Kuota ${PROVIDER_LABEL[AI.provider] || 'AI'} percuma cooldown — ${s} saat lagi sebelum boleh hantar.`);
       cooldownT = setTimeout(tickCooldown, 1000);
     } else {
-      setStatus('Dah boleh hantar balik, bos.');
+      setStatus('Dah boleh hantar balik.');
     }
   }
 
@@ -2482,10 +2501,10 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   function summon(k, text, replyPromise, usingAI) {
     const s = sprites[k], a = staff[k];
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
-    setStat(k, 'menuju kau →');
+    setStat(k, 'datang →');
     moveSpot(MEET.gx, MEET.gy);
     const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
-    setStatus(`${a.name} tengah berjalan datang…`);
+    setStatus(`${a.name} tengah datang…`);
     const task = addTask(text, k);                       // shows up on the task board
     const fmt = pickFormat(text);                        // did the boss ask for a real file?
     let typingBub = null;
@@ -2506,10 +2525,10 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
         }
       }
       setStat(k, 'dengan kau'); setActive(k, true);
-      if (!fmt || ephemeral) setStatus(`${a.name} tengah lapor kat kau.`);
+      if (!fmt || ephemeral) setStatus(`${a.name} tengah update kat kau.`);
       clearTimeout(s.releaseT);
       const readMs = Math.max(9000, Math.min(26000, String(reply).length * 55));
-      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, readMs);
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'standby'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, readMs);
     };
     s.talkT = setTimeout(() => {
       setStat(k, 'berfikir…');
@@ -2527,7 +2546,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
         else deliver(a.reply, true);
       });
     }, dur * 1000 + 180);
-    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
+    s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'standby'); setActive(k, false); releaseStaff(k); spot.style.opacity = 0; }, dur * 1000 + 22000);
   }
 
   // =====================================================================
@@ -2550,22 +2569,22 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   }
   let meetingBusy = false;
   async function callMeeting(topic) {
-    if (meetingBusy) { setStatus('Mesyuarat tengah berjalan, bos.'); return; }
+    if (meetingBusy) { setStatus('Perbincangan tengah berjalan.'); return; }
     meetingBusy = true;
     hideBubble();
-    addMsg('', `Mesyuarat dipanggil${topic ? ' — “' + topic + '”' : ''}. Semua staff berkumpul di meja…`, 'meet');
-    setStatus('Semua staff berkumpul di meja mesyuarat…');
-    const task = addTask('Mesyuarat' + (topic ? ': ' + topic : ''), 'aiman');
+    addMsg('', `Perbincangan pasukan dimulakan${topic ? ' — “' + topic + '”' : ''}. Semua crew berkumpul…`, 'meet');
+    setStatus('Semua crew berkumpul untuk berbincang…');
+    const task = addTask('Perbincangan' + (topic ? ': ' + topic : ''), 'aiman');
     const keys = Object.keys(staff);
     keys.forEach((k, i) => {
       const s = sprites[k];
       s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
-      setStat(k, 'ke mesyuarat →'); setActive(k, true);
+      setStat(k, 'ke perbincangan →'); setActive(k, true);
       const spot = MEETING_SPOTS[i % MEETING_SPOTS.length];
       // stagger departures so they file in, not teleport together
       setTimeout(() => {
         const d = walk(s, spot.gx, spot.gy);
-        setTimeout(() => { if (meetingBusy) { setStat(k, 'dalam mesyuarat'); headCue(s, staff[k].name, 'think'); } }, d * 1000 + 60);
+        setTimeout(() => { if (meetingBusy) { setStat(k, 'tengah bincang'); headCue(s, staff[k].name, 'think'); } }, d * 1000 + 60);
       }, i * 260);
     });
 
@@ -2583,11 +2602,11 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
         headCue(chair, ca.name, 'talk');
         addMsg(ca.name, reply, 'staff', ca.dot);          // chair reports in the chat
         if (!ephemeral) { remember('model', ca.name, reply); addDeliverable('aiman', reply); }
-        setStatus('Mesyuarat tamat — semua kembali bertugas.');
+        setStatus('Perbincangan tamat — semua kembali standby.');
         endMeeting();
       };
       if (AI.key) {
-        const prompt = `[MESYUARAT PASUKAN] Kau Aiman, pengerusi. Topik: ${topic || '(bos tak nyatakan topik — tanya apa agenda)'}. `
+        const prompt = `[PERBINCANGAN PASUKAN] Kau Aiman, pengerusi. Topik: ${topic || '(user tak nyatakan topik — tanya apa fokus)'}. `
           + `Sebagai pengerusi, bagi ringkasan SANGAT pendek (2-3 ayat): apa pasukan akan buat dan siapa buat apa (sebut nama staff yang relevan: Meera research, Wei tulis, Danish analisa, Kak Sumi plan, Hafiz tekno). Santai, macam habis mesyuarat betul.`;
         try {
           const out = await gemini(nowContext() + '\n' + PERSONA.aiman + '\n' + prompt, [{ role: 'user', parts: [{ text: topic || 'Apa agenda kita hari ni?' }] }], 300, 16000);
@@ -2598,7 +2617,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       } else {
         finish(topic
           ? `Ok semua, pasal “${topic}” — Meera cari data dulu, Danish timbang pro/kontra, Kak Sumi susun langkah, Wei siapkan draf. Aku selaras. Jom gerak!`
-          : `Semua dah kumpul bos. Apa agenda kita? Bagi tajuk, aku agih tugas terus.`, true);
+          : `Semua dah kumpul. Nak fokus apa? Bagi tajuk, aku agih tugas terus.`, true);
       }
     };
     // poll: fire the chair once all have stopped walking (min gather, hard 13s cap)
@@ -2614,7 +2633,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     const keys = Object.keys(staff);
     keys.forEach((k, i) => {
       const s = sprites[k];
-      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k); }, 5000 + i * 250);
+      s.releaseT = setTimeout(() => { s.busy = false; setStat(k, 'standby'); setActive(k, false); releaseStaff(k); }, 5000 + i * 250);
     });
     setTimeout(() => { meetingBusy = false; }, 6500);
   }
@@ -2624,34 +2643,34 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   //  where the last left off (plan → research → analyse → write), so the
   //  multi-agent office actually does something one chatbot can't.
   // =====================================================================
-  const PROJECT_RE = /\bprojek\b|\bproject\b/i;
-  const projectTopic = t => t.replace(/^\s*(buat\s+)?(projek|project)\b[\s:,\-–]*/i, '').trim();
+  const PROJECT_RE = /\bprojek\b|\bproject\b|\bmisi\b|\bmission\b/i;
+  const projectTopic = t => t.replace(/^\s*(buat\s+)?(projek|project|misi|mission)\b[\s:,\-–]*/i, '').trim();
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   // each stage: who works, and how to brief them given the work so far
   const PROJECT_PIPELINE = [
-    { k: 'hana',   brief: (topic, ctx) => `PROJEK: "${topic}". Sebagai Perancang, pecahkan projek ni jadi 3-4 langkah ringkas + apa yang paling perlu difokus. Ringkas & padat.` },
-    { k: 'meera',  brief: (topic, ctx) => `PROJEK: "${topic}".\nPelan pasukan setakat ni:\n${ctx}\nSebagai Penyelidik, senaraikan 3-5 fakta/point penting yang relevan untuk projek ni. Ringkas.` },
-    { k: 'danish', brief: (topic, ctx) => `PROJEK: "${topic}".\nKerja setakat ni:\n${ctx}\nSebagai Penganalisis, bagi analisa ringkas + satu cadangan/keputusan yang jelas. Ringkas.` },
-    { k: 'wei',    brief: (topic, ctx) => `PROJEK: "${topic}".\nKerja setakat ni:\n${ctx}\nSebagai Penulis, siapkan HASIL AKHIR yang kemas dan terus boleh guna (ikut konteks projek — ringkasan/emel/caption/pelan). Ini output akhir projek.` }
+    { k: 'hana',   brief: (topic, ctx) => `MISI: "${topic}". Sebagai Perancang, pecahkan misi ni jadi 3-4 langkah ringkas + apa yang paling perlu difokus. Ringkas & padat.` },
+    { k: 'meera',  brief: (topic, ctx) => `MISI: "${topic}".\nPelan crew setakat ni:\n${ctx}\nSebagai Penyelidik, senaraikan 3-5 fakta/point penting yang relevan untuk misi ni. Ringkas.` },
+    { k: 'danish', brief: (topic, ctx) => `MISI: "${topic}".\nKerja setakat ni:\n${ctx}\nSebagai Penganalisis, bagi analisa ringkas + satu cadangan/keputusan yang jelas. Ringkas.` },
+    { k: 'wei',    brief: (topic, ctx) => `MISI: "${topic}".\nKerja setakat ni:\n${ctx}\nSebagai Penulis, siapkan HASIL AKHIR yang kemas dan terus boleh guna (ikut konteks misi — ringkasan/emel/caption/pelan). Ini output akhir misi.` }
   ];
   let projectBusy = false;
   async function runProject(topic) {
-    if (projectBusy) { setStatus('Projek tengah berjalan, bos.'); return; }
-    if (meetingBusy) { setStatus('Tunggu mesyuarat habis dulu, bos.'); return; }
-    if (!AI.key) { setStatus('Mod Projek perlukan otak AI — tampal API key di butang API dulu.'); return; }
+    if (projectBusy) { setStatus('Misi tengah berjalan.'); return; }
+    if (meetingBusy) { setStatus('Tunggu perbincangan habis dulu.'); return; }
+    if (!AI.key) { setStatus('Mod Misi perlukan otak AI — tampal API key di butang API dulu.'); return; }
     if (secsLeft() > 0) { tickCooldown(); return; }
     projectBusy = true;
-    addMsg('', `Projek dimulakan${topic ? ' — “' + topic + '”' : ''}. Pasukan handoff satu-satu…`, 'meet');
-    setStatus('Projek bermula — pasukan handoff kerja.');
+    addMsg('', `Misi dimulakan${topic ? ' — “' + topic + '”' : ''}. Crew handoff satu-satu…`, 'meet');
+    setStatus('Misi bermula — crew handoff.');
     const fmt = pickFormat(topic || '');
     let ctx = '(belum ada)', lastK = 'wei';
     for (let i = 0; i < PROJECT_PIPELINE.length; i++) {
       const stage = PROJECT_PIPELINE[i], k = stage.k, a = staff[k], s = sprites[k];
       lastK = k;
       s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
-      setStat(k, `projek ${i + 1}/${PROJECT_PIPELINE.length} →`); setActive(k, true);
+      setStat(k, `misi ${i + 1}/${PROJECT_PIPELINE.length} →`); setActive(k, true);
       setStatus(`${a.name} tengah buat bahagian dia… (${i + 1}/${PROJECT_PIPELINE.length})`);
-      const task = addTask(`${a.role} — ${topic || 'projek'}`, k);
+      const task = addTask(`${a.role} — ${topic || 'misi'}`, k);
       const dur = walk(s, MEET.gx + (Math.random() * 0.6 - 0.3), MEET.gy);
       await sleep(dur * 1000 + 150);
       setStat(k, 'berfikir…'); headCue(s, a.name, 'think');
@@ -2665,7 +2684,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
         taskEnd(task, false);
         noteRateLimit(e);
         const info = aiTrouble(e); addMsg(a.name, info.msg, 'staff', a.dot);
-        addMsg('', `Projek terhenti di ${a.name} — ${info.hint}`, 'meet');
+        addMsg('', `Misi terhenti di ${a.name} — ${info.hint}`, 'meet');
         setActive(k, false); s.busy = false; releaseStaff(k); projectBusy = false;
         return;
       }
@@ -2683,8 +2702,8 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       await sleep(Math.max(3600, Math.min(9000, out.length * 42)));
       setActive(k, false); s.busy = false; releaseStaff(k);
     }
-    addMsg('', 'Projek siap — semua bahagian tersimpan di Hasil Kerja.', 'meet');
-    setStatus('Projek tamat. Hasil di bahagian Hasil Kerja.');
+    addMsg('', 'Misi siap — semua bahagian tersimpan di Hasil.', 'meet');
+    setStatus('Misi tamat. Semua di bahagian Hasil.');
     printerRun(lastK);                  // the closer collects the printout for the boss
     projectBusy = false;
   }
@@ -2695,13 +2714,13 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   //  contributions into ONE combined answer. The boss never picks anyone.
   // =====================================================================
   async function runChiefTeam(topic, agents, img) {
-    if (projectBusy || meetingBusy || roomBusy) { setStatus('Ketua tengah uruskan kerja lain, bos.'); return; }
+    if (projectBusy || meetingBusy || roomBusy) { setStatus('Ketua tengah uruskan benda lain.'); return; }
     if (secsLeft() > 0) { tickCooldown(); return; }
     projectBusy = true;
     const chiefA = staff.aiman, cs = sprites.aiman;
     const fmt = pickFormat(topic);
-    addMsg('', `Ketua agih kerja kepada ${agents.map(k => staff[k].name).join(', ')}…`, 'meet');
-    setStatus('Ketua sedang koordinasi pasukan…');
+    addMsg('', `Ketua agih tugas kepada ${agents.map(k => staff[k].name).join(', ')}…`, 'meet');
+    setStatus('Ketua sedang koordinasi crew…');
     // shared research: only the Research Agent (Meera) searches, ONCE, and every
     // member reuses it — never let each agent search independently (spec §7/§10)
     let researchCtx = '';
@@ -2722,7 +2741,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       const typing = addMsg(a.name, 'sedang menaip…', 'staff', a.dot); typing.classList.add('typing');
       let out;
       try {
-        out = await gemini(nowContext() + '\n' + PERSONA[k] + `\n[KERJA PASUKAN] Ketua agih bahagian ni pada kau untuk tugasan bos: "${topic}". Bagi sumbangan bahagian kau SAHAJA — ringkas & padat (2-4 ayat atau beberapa point). Jangan buat pembukaan/penutup, Ketua yang akan gabungkan.` + researchCtx, [{ role: 'user', parts: [{ text: topic }] }], 320, 16000);
+        out = await gemini(nowContext() + '\n' + PERSONA[k] + `\n[KERJA CREW] Ketua agih bahagian ni pada kau untuk permintaan user: "${topic}". Bagi sumbangan bahagian kau SAHAJA — ringkas & padat (2-4 ayat atau beberapa point). Jangan buat pembukaan/penutup, Ketua yang akan gabungkan.` + researchCtx, [{ role: 'user', parts: [{ text: topic }] }], 320, 16000);
       } catch (e) {
         if (typing.parentElement) typing.parentElement.remove(); taskEnd(task, false);
         noteRateLimit(e); const info = aiTrouble(e);
@@ -2763,7 +2782,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       setStatus('Ketua dah siapkan jawapan gabungan.');
       setStat('aiman', 'dengan kau');
       const readMs = Math.max(9000, Math.min(26000, final.length * 55));
-      cs.releaseT = setTimeout(() => { cs.busy = false; setStat('aiman', 'kat meja'); setActive('aiman', false); releaseStaff('aiman'); }, readMs);
+      cs.releaseT = setTimeout(() => { cs.busy = false; setStat('aiman', 'standby'); setActive('aiman', false); releaseStaff('aiman'); }, readMs);
       if (fmt) printerRun('aiman');
     }
     projectBusy = false;
@@ -2808,7 +2827,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
           addMsg('', `${a.name} dah letak laporan bercetak atas meja kau.`, 'meet');
           setStat(k, 'siap hantar');
           s.busy = false;
-          s.releaseT = setTimeout(() => { setStat(k, 'kat meja'); releaseStaff(k); }, 2500);
+          s.releaseT = setTimeout(() => { setStat(k, 'standby'); releaseStaff(k); }, 2500);
           onDone && onDone();
         }, d2 * 1000 + 200);
       }, 1150);
@@ -2824,7 +2843,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   const roomRoster = new Set();
   // dashed drop-zone ellipse over the meeting corner (shown while dragging)
   const roomzone = document.createElement('div'); roomzone.id = 'roomzone'; roomzone.hidden = true;
-  roomzone.innerHTML = '<span class="rz-label">Bilik meeting</span>';
+  roomzone.innerHTML = '<span class="rz-label">Bilik bincang</span>';
   {
     const c = project(ROOM_C.gx, ROOM_C.gy), rw = 2.6 * TILE_W, rh = 2.6 * TILE_H;
     Object.assign(roomzone.style, { width: rw + 'px', height: rh + 'px', left: (c.x - rw / 2) + 'px', top: (c.y - rh / 2) + 'px' });
@@ -2844,16 +2863,16 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     s.busy = true; clearTimeout(s.wanderT); clearTimeout(s.arriveT); clearTimeout(s.releaseT); clearTimeout(s.talkT);
     const spotIdx = (roomRoster.size - 1) % MEETING_SPOTS.length, sp = MEETING_SPOTS[spotIdx];
     walk(s, sp.gx, sp.gy);
-    setStat(k, 'dalam bilik meeting'); setActive(k, true);
-    if (roomRoster.size === 1) addMsg('', `${staff[k].name} masuk bilik meeting. Tarik lagi seorang dua, lepas tu hantar topik — mereka siapkan SATU laporan bersama. Taip “bubar” untuk lepaskan.`, 'meet');
-    setStatus('Bilik meeting: ' + [...roomRoster].map(x => staff[x].name).join(', '));
+    setStat(k, 'dalam bilik bincang'); setActive(k, true);
+    if (roomRoster.size === 1) addMsg('', `${staff[k].name} masuk bilik bincang. Tarik lagi seorang dua, lepas tu hantar topik — mereka siapkan SATU hasil bersama. Taip “bubar” untuk lepaskan.`, 'meet');
+    setStatus('Bilik bincang: ' + [...roomRoster].map(x => staff[x].name).join(', '));
   }
   function roomRemove(k) {
     if (!roomRoster.has(k)) return;
     roomRoster.delete(k);
     const s = sprites[k]; s.busy = false;
-    setStat(k, 'kat meja'); setActive(k, false); releaseStaff(k);
-    setStatus(roomRoster.size ? ('Bilik meeting: ' + [...roomRoster].map(x => staff[x].name).join(', ')) : 'Bilik meeting kosong.');
+    setStat(k, 'standby'); setActive(k, false); releaseStaff(k);
+    setStatus(roomRoster.size ? ('Bilik bincang: ' + [...roomRoster].map(x => staff[x].name).join(', ')) : 'Bilik bincang kosong.');
   }
   function roomClear() { [...roomRoster].forEach(roomRemove); }
   const BUBAR_RE = /^\s*(bubar|selesai|habis)\s*(meeting|mesyuarat|bilik)?\s*$|\bkeluar bilik\b/i;
@@ -2869,14 +2888,14 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   };
   let roomBusy = false;
   async function runRoomMeeting(topic) {
-    if (roomBusy) { setStatus('Bilik meeting tengah bekerja, bos.'); return; }
-    if (!AI.key) { setStatus('Bilik meeting perlukan otak AI — tampal API key di butang API dulu.'); return; }
+    if (roomBusy) { setStatus('Bilik bincang tengah bekerja.'); return; }
+    if (!AI.key) { setStatus('Bilik bincang perlukan otak AI — tampal API key di butang API dulu.'); return; }
     if (secsLeft() > 0) { tickCooldown(); return; }
     roomBusy = true;
     const members = ROOM_ORDER.filter(k => roomRoster.has(k));
     // the final write-up always closes the meeting — wei if present, else the last member
     if (members.includes('wei')) { members.splice(members.indexOf('wei'), 1); members.push('wei'); }
-    addMsg('', `Bilik meeting mula bekerja — “${topic}” (${members.map(k => staff[k].name).join(' + ')})`, 'meet');
+    addMsg('', `Bilik bincang mula bekerja — “${topic}” (${members.map(k => staff[k].name).join(' + ')})`, 'meet');
     const fmt = pickFormat(topic);
     let ctx = '', finalOut = '', failed = false;
     for (let i = 0; i < members.length; i++) {
@@ -2897,7 +2916,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
         taskEnd(task, false);
         noteRateLimit(e);
         const info = aiTrouble(e);
-        addMsg('', `Bilik meeting terhenti di ${a.name} — ${info.hint}`, 'meet');
+        addMsg('', `Bilik bincang terhenti di ${a.name} — ${info.hint}`, 'meet');
         failed = true; break;
       }
       if (typing.parentElement) typing.parentElement.remove();
@@ -2912,7 +2931,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     if (!failed && finalOut) {
       const lead = members[members.length - 1];
       addDeliverable(lead, finalOut, fmt, topic);
-      addMsg('', 'Laporan bersama siap — tersimpan di Hasil Kerja.', 'meet');
+      addMsg('', 'Hasil bersama siap — tersimpan di Hasil.', 'meet');
       const printK = lead;
       roomBusy = false; roomClear();
       printerRun(printK);
@@ -2930,7 +2949,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     dragK2 = k;
     dragGhost = document.createElement('div'); dragGhost.className = 'drag-ghost';
     dragGhost.style.setProperty('--gc', staff[k].dot);
-    dragGhost.textContent = staff[k].name + ' → bilik meeting';
+    dragGhost.textContent = staff[k].name + ' → bilik bincang';
     dragGhost.style.left = e.clientX + 'px'; dragGhost.style.top = e.clientY + 'px';
     document.body.appendChild(dragGhost);
     roomzone.hidden = false;
@@ -2987,7 +3006,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     const yb = addMsg('Kau', t, 'you');           // and log it in the shared chat
     if (img) { attachImage(yb, img.dataUrl); clearImage(); }
     // "bubar" dissolves the drag-and-drop meeting room
-    if (BUBAR_RE.test(t)) { roomClear(); addMsg('', 'Bilik meeting dibubarkan — semua kembali bertugas.', 'meet'); return; }
+    if (BUBAR_RE.test(t)) { roomClear(); addMsg('', 'Bilik bincang dibubarkan — semua kembali standby.', 'meet'); return; }
     remember('user', 'Kau', t + (img ? ' (bos lampirkan gambar — kau dah tengok)' : ''));
     newResearch();   // fresh shared research context per task (quota + cache reset)
     // a manned meeting room (≥2 staff dragged in) claims the next task as ITS project
