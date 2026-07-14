@@ -1,15 +1,17 @@
-# Mind Office
+# Mind Crew
 
-A single-file, isometric pixel-art **AI office** you run in the browser. You talk to
-one Chief (Aiman / "Ketua") and a team of specialist agents handle the work behind
-the scenes. Deployed as static hosting on GitHub Pages — the whole app is
-`index.html` (HTML + CSS + JS, no build step, no backend).
+A single-file, isometric pixel-art **personal AI crew** you run in the browser — a
+team that helps with everyday missions: daily life, learning, decisions, side
+projects, business, content, research and problem solving. You talk to one Chief
+(Aiman / "Ketua") and a crew of specialist agents handle the rest behind the scenes.
+Deployed as static hosting on GitHub Pages — the whole app is `index.html` (HTML +
+CSS + JS, no build step, no backend).
 
 ## The team
 
 | Agent | Role | Does |
 |-------|------|------|
-| Aiman | **Ketua** (Chief Coordinator) | Understands intent, auto-delegates, combines results into one answer |
+| Aiman | **Ketua** (Chief Coordinator) | Understands intent, auto-delegates, combines results into one update |
 | Meera | Penyelidik (Research Analyst) | Research, fact-check, summaries, comparisons — **the only agent allowed to web-search** |
 | Wei | Komunikasi | Email / WhatsApp / Telegram drafts, social captions & hashtags |
 | Danish | Penasihat Strategi | Analysis, brainstorming, decisions |
