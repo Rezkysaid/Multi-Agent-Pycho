@@ -945,7 +945,7 @@
                keywords:['hello','helo','hai','hey','salam','apa khabar','apa cerita','korang','uruskan','agih','susun','set up','book'],
                reply:'Siap bos. Bagi aku detail sikit — kau nak aku uruskan terus, atau susun dulu jadi senarai kerja?' },
     meera:   { name:'MEERA', role:'Penyelidik', outfit:'knit', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1}, capabilities:['web_search'],
-               keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info','ringkas','ringkaskan','summary','banding','semak','sahkan','fact'],
+               keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info','ringkas','ringkaskan','summary','banding','semak','sahkan','fact','berita','news','terkini','terbaru','semasa'],
                reply:'Ok bos, aku gali dulu. Aku carikan fakta utama, sumber dan ringkasan point penting — kau nak aku fokus bahagian mana?' },
     wei:     { name:'WEI', role:'Komunikasi', outfit:'tailored', kind:'specialist', dot:'#9c5a86', home:{gx:10.35,gy:3.1},
                keywords:['tulis','draf','caption','artikel','emel','email','copy','ayat','skrip','post','headline','tagline','whatsapp','wasap','telegram','mesej','message','tiktok','facebook','fb','instagram','ig','social','hashtag','reply','balas'],
@@ -2233,7 +2233,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   const MAX_WEB_SEARCHES_PER_TASK = 3;
   const WEB_CMD_RE = /(^|\s)[\/!](web|search|live|cari)\b/i;   // manual override
   // orchestrator trigger: needs live/changing data → should search
-  const WEB_TRIGGER_RE = /\b(terkini|semasa|latest|recent|current|today|hari\s*ni|sekarang|harga|price|kadar|trend|berita|news|dokumentasi\s*rasmi|official|laman\s*web|website|statistik)\b/i;
+  const WEB_TRIGGER_RE = /\b(terkini|terbaru|baharu|semasa|latest|recent|current|today|hari\s*(ni|ini)|sekarang|harga|price|kadar|trend|berita|news|dokumentasi\s*rasmi|official|laman\s*web|website|statistik)\b|apa\s+yang\s+baru/i;
   // clearly does NOT need the web → never search
   const WEB_SKIP_RE = /\b(terjemah|translate|tulis\s*semula|rewrite|grammar|tatabahasa|brainstorm|karang|kira|math|matematik|debug|kod|code)\b/i;
   function wantsWebSearch(text) {
@@ -2269,6 +2269,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       });
     } catch (e) { clearTimeout(killT); throw new Error(e.name === 'AbortError' ? 'tavily-timeout' : 'tavily-network'); }
     clearTimeout(killT);
+    console.debug('[web] tavilyResponseStatus=' + res.status);   // safe: never logs the key
     if (res.status === 401 || res.status === 403) throw new Error('tavily-401');
     if (res.status === 429) throw new Error('tavily-429');
     if (!res.ok) throw new Error('tavily-http-' + res.status);
@@ -2280,6 +2281,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       snippet: String(r.content || '').slice(0, 500),
       publishedDate: r.published_date || null, score: typeof r.score === 'number' ? r.score : null
     }));
+    console.debug('[web] resultCount=' + results.length);
     if (!results.length) throw new Error('tavily-no-results');
     return { query: q, searchedAt: new Date().toISOString(), results };
   }
@@ -2328,10 +2330,14 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       const url = provider === 'deepseek' ? 'https://api.deepseek.com/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions';
       const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key };
       if (provider === 'openrouter') { headers['HTTP-Referer'] = location.origin; headers['X-Title'] = 'Mind Office'; }
-      const body = JSON.stringify({ model, messages, tools: [WEB_TOOL], temperature: 0.7, max_tokens: 900 });
+      const payload = { model, messages, tools: [WEB_TOOL], temperature: 0.7, max_tokens: 900 };
+      // when the Orchestrator has decided live data IS required, force the first call
+      // to invoke web_search (tool_choice) — don't leave it to the model's discretion
+      if (force && loop === 0 && research && research.searchCount === 0) payload.tool_choice = { type: 'function', function: { name: 'web_search' } };
+      else payload.tool_choice = 'auto';
       const ctl = new AbortController(); const killT = setTimeout(() => ctl.abort(), 20000);
       let j;
-      try { const r = await fetch(url, { method: 'POST', headers, signal: ctl.signal, body }); clearTimeout(killT);
+      try { const r = await fetch(url, { method: 'POST', headers, signal: ctl.signal, body: JSON.stringify(payload) }); clearTimeout(killT);
         if (r.status === 429) { const e = new Error('http-429'); throw e; }
         if (!r.ok) throw new Error('http-' + r.status);
         j = await r.json();
@@ -2345,10 +2351,13 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
           let content;
           try {
             const args = JSON.parse((tc.function && tc.function.arguments) || '{}');
+            console.debug('[web] toolCallName=' + (tc.function && tc.function.name) + ' searchCount=' + (research ? research.searchCount : 0));
             const out = await doResearch(agentKey, args.query || userText);
+            console.debug('[web] resultCount=' + out.results.length + ' cached=' + !!out.cached + ' searchCount=' + (research ? research.searchCount : 0));
             content = JSON.stringify({ results: out.results.map(r => ({ title: r.title, url: r.url, snippet: r.snippet, publishedDate: r.publishedDate })), cached: !!out.cached });
           } catch (e) {
             const m = String(e.message);
+            console.debug('[web] tool execution failed: ' + m);
             content = 'RESEARCH_TIDAK_TERSEDIA (' + m + '). Guna pengetahuan am kau atau research yang dikongsi; jangan cuba cari lagi.';
           }
           messages.push({ role: 'tool', tool_call_id: tc.id, content });
@@ -2368,15 +2377,18 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     // manual /web override or the orchestrator's trigger, gated by permission + key
     const web = wantsWebSearch(text);
     const canWeb = !img && AI.tavilyKey && canUseTool(k, 'web_search') && (web.search || web.force);
+    // safe debug (no key ever): why did/didn't we search?
+    console.debug('[web] tavilyConfigured=' + !!AI.tavilyKey + ' requiresLiveData=' + !!(web.search || web.force) + ' selectedAgent=' + k + ' canWeb=' + canWeb + ' provider=' + AI.provider);
     let cleanText = stripWebCmd(text);
-    // Research Agent on an OpenAI-compat brain → real DeepSeek tool-calling loop
+    // Research Agent on an OpenAI-compat brain → real DeepSeek tool-calling loop.
+    // The Orchestrator has already decided live data is needed, so force the search.
     if (canWeb && OPENAI_COMPAT.has(AI.provider)) {
       setStatus('Menentukan jika data langsung diperlukan…');
       const fmt0 = pickFormat(text);
       let sys0 = nowContext() + `\nPERINGATAN IDENTITI: Kau ${a.name} (${a.role}). Jawab HANYA sebagai ${a.name}.\n` + PERSONA[k];
       if (fmt0) sys0 += `\n[ARAHAN OUTPUT] Hasil sebagai FAIL ${FMT_META[fmt0].label.toUpperCase()} — kandungan dokumen penuh sahaja.`;
-      try { return await researchToolLoop(k, sys0, cleanText, web.force); }
-      catch (e) { if (String(e.message) !== 'http-429') { /* fall through to normal path */ } else throw e; }
+      try { return await researchToolLoop(k, sys0, cleanText, true); }
+      catch (e) { console.debug('[web] tool loop failed, falling back: ' + String(e.message)); if (String(e.message) === 'http-429') throw e; /* else fall through */ }
     }
     const wantsLive = LIVE_RE.test(text);
     const fmt = pickFormat(text);
@@ -2969,8 +2981,11 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     if (WORK_RE.test(t)) { setOfficeMode('work'); announceMode('work'); return; }
     // date/time question? answer straight from the device clock — never ask the AI
     // (models hallucinate the date). Delivered by the named staff, or Aiman.
-    // (skipped when a photo is attached — the photo is the point, let the AI see it)
-    const dt = img ? null : localDateTimeAnswer(t);
+    // Skipped when a photo is attached, OR when this is clearly a research/web
+    // request — otherwise "research pasal berita HARINI apa yang baru" gets hijacked
+    // by the "hari ni apa" date pattern instead of triggering live search.
+    const isResearchIntent = wantsWebSearch(t).search || /\b(research|kaji|cari|berita|maklumat)\b/i.test(t);
+    const dt = (img || isResearchIntent) ? null : localDateTimeAnswer(t);
     if (dt) {
       const who = staffMentioned(t)[0] || 'aiman';
       const p = Promise.resolve(dt); p.catch(() => {});
