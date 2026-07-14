@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Mind Office">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Caveat:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap">
 <style>
   :root {
     --ink: #17120d;        /* warm near-black page */
@@ -244,24 +244,9 @@
     position: relative; align-self: stretch; margin: auto 0; padding: 26px 0; text-align: center; pointer-events: none;
     transition: opacity .7s ease, transform .7s cubic-bezier(.4,0,.2,1);
   }
-  .chat-logo {
-    position: relative; z-index: 2; width: 80px; height: 65px; margin: 0 auto;
-    image-rendering: pixelated;
-    animation: chatSway 4.6s ease-in-out infinite; transform-origin: 50% 120%;
-  }
-  .chat-logo .logo-px { position: absolute; left: 0; top: 0; width: 5px; height: 5px; }
-  @keyframes chatSway { 0%,100% { transform: rotate(-1.4deg) translateY(0); } 50% { transform: rotate(1.4deg) translateY(-3px); } }
-  .chat-empty .pt {
-    position: absolute; border-radius: 50%; z-index: 1; opacity: 0;
-    background: currentColor;
-    animation: ptFloat 4.5s ease-in-out infinite;
-  }
-  @keyframes ptFloat {
-    0%   { opacity: 0; transform: translateY(5px) scale(.6); }
-    30%  { opacity: .55; }
-    60%  { opacity: .3; }
-    100% { opacity: 0; transform: translateY(-13px) scale(1); }
-  }
+  .chat-live { display: inline-flex; align-items: center; gap: 8px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #8a7c6a; }
+  .chat-live .cl-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); animation: clPulse 2.4s ease-in-out infinite; }
+  @keyframes clPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
   .chat-empty.bye { opacity: 0; transform: translateX(72px); }
   .chat-empty[hidden] { display: none; }
 
@@ -472,7 +457,7 @@
       </section>
 
       <section class="convo">
-        <div id="chat"><div class="chat-empty" id="chat-empty"><div class="chat-logo" aria-hidden="true"><i class="logo-px" id="logo-px"></i></div></div></div>
+        <div id="chat"><div class="chat-empty" id="chat-empty"><span class="chat-live"><i class="cl-dot"></i><span id="chat-live-text">6 staf bertugas</span></span></div></div>
         <div class="composer">
           <div id="img-chip" class="img-chip" hidden>
             <img id="img-thumb" alt="">
@@ -1232,6 +1217,7 @@
       if (mode === 'work') goToDesk(k); else scheduleWander(k);
     }
     if (mode === 'break' && mins > 0) breakTimer = setTimeout(() => { setOfficeMode('work'); announceMode('work'); }, mins * 60000);
+    updateChatLive();   // the empty-chat status line mirrors the office mode
   }
   function announceMode(mode, mins) {
     const a = staff.aiman;
@@ -1369,48 +1355,15 @@
     if (!chatEmpty || chatEmpty.hidden) return;
     chatEmpty.classList.toggle('bye', !!e.target.value.trim());
   });
-  // the empty-chat mark: a hand-drawn pixel office (accent orange), built with the
-  // same box-shadow pixel technique as the walking sprites — swaying gently
-  {
-    const LOGO_MAP = [
-      '..CCCCCCCCCCCC..',
-      '.CAAAAAAAAAAAAB.',
-      '.AAAAAAAAAAAAAB.',
-      '.AWWAAWWAAWWAAB.',
-      '.AWWAAWWAAWWAAB.',
-      '.AAAAAAAAAAAAAB.',
-      '.AWWAAWWAAWWAAB.',
-      '.AWWAAWWAAWWAAB.',
-      '.AAAAAAAAAAAAAB.',
-      '.AWWAAADDAWWAAB.',
-      '.AWWAAADDAWWAAB.',
-      '.AAAAAADDAAAAAB.',
-      'BBBBBBBBBBBBBBBB'
-    ];
-    const LOGO_PAL = { A: '#e0894e', B: '#a8592f', C: '#efac6c', W: '#f7e3bd', D: '#2c1a0e' };
-    const lpx = document.getElementById('logo-px');
-    if (lpx) {
-      const sh = [];
-      LOGO_MAP.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = LOGO_PAL[row[x]]; if (c) sh.push(`${x * 5}px ${y * 5}px 0 0 ${c}`); } });
-      lpx.style.boxShadow = sh.join(', ');
-    }
+  // the empty-chat mark is a LIVE status line — a real reading of the office,
+  // not decoration: staff count + whether they're working or on a break
+  function updateChatLive() {
+    const el = document.getElementById('chat-live-text');
+    if (!el) return;
+    const n = Object.keys(staff).length;
+    el.textContent = officeMode === 'break' ? n + ' staf tengah rehat' : n + ' staf bertugas';
   }
-  // drifting colour particles around the mark — they live inside the watermark
-  // so they fade away together with it
-  if (chatEmpty) {
-    const PT_COLS = ['#e0894e', '#93ad86', '#c9a35a'];
-    for (let i = 0; i < 10; i++) {
-      const pt = document.createElement('i'); pt.className = 'pt';
-      const s = 2.5 + Math.random() * 2.5;
-      pt.style.width = s + 'px'; pt.style.height = s + 'px';
-      pt.style.left = (5 + Math.random() * 90) + '%';
-      pt.style.top = (10 + Math.random() * 74) + '%';
-      pt.style.color = PT_COLS[i % PT_COLS.length];
-      pt.style.animationDelay = (Math.random() * 4.5) + 's';
-      pt.style.animationDuration = (3.4 + Math.random() * 2.8) + 's';
-      chatEmpty.appendChild(pt);
-    }
-  }
+  updateChatLive();
 
   // ---- task queue — a live progress board of what the office is working on ----
   const taskqWrap = document.getElementById('taskq');
