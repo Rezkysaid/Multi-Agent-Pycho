@@ -391,6 +391,18 @@
   .deliv-copy { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px; cursor: pointer; transition: color .15s ease, background .15s ease, border-color .15s ease; }
   .deliv-copy:hover { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
   .deliv-copy.done { color: var(--sage); border-color: var(--sage); }
+  .deliv-share { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px; margin-right: 6px; cursor: pointer; transition: color .15s ease, background .15s ease, border-color .15s ease; }
+  .deliv-share:hover { color: var(--accent-ink); background: var(--sage); border-color: var(--sage); }
+
+  /* reminders */
+  .rem-item { background: var(--surface2); border: 1px solid #ffffff08; border-left: 2px solid var(--accent); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; animation: msgIn .3s cubic-bezier(.2,.9,.3,1) both; }
+  .rem-item.due { border-left-color: var(--sage); }
+  .rem-body { flex: 1; min-width: 0; }
+  .rem-text { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+  .rem-when { font-family: 'Nunito', sans-serif; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rem-item.due .rem-when { color: var(--sage); }
+  .rem-x { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer; transition: color .15s ease, border-color .15s ease; }
+  .rem-x:hover { color: var(--text); border-color: var(--accent); }
 
   /* stack on narrow screens: office + chat first (order 0, default), roster after */
   @media (max-width: 720px) {
@@ -475,6 +487,20 @@
             <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
           </div>
         </div>
+      </section>
+
+      <section class="tray" id="rem" hidden>
+        <div class="tray-head" id="rem-head" role="button" aria-expanded="false" title="Tekan untuk buka / tutup">
+          <h2 class="tray-title">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:13px;height:13px;color:var(--accent)"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.9"/><path d="M12 9.5V13l2.2 1.4M9 3 6 5.2M15 3l3 2.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Peringatan <span class="tray-count" id="rem-count">0</span>
+            <svg class="tray-chev" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </h2>
+          <div class="tray-actions">
+            <button id="rem-clear" title="Kosongkan semua peringatan">Kosong</button>
+          </div>
+        </div>
+        <div id="rem-list" class="tray-list"></div>
       </section>
 
       <section class="tray" id="tray">
@@ -898,19 +924,19 @@
                keywords:['hello','helo','hai','hey','salam','apa khabar','apa cerita','korang','uruskan','agih','susun','set up','book'],
                reply:'Siap bos. Bagi aku detail sikit — kau nak aku uruskan terus, atau susun dulu jadi senarai kerja?' },
     meera:   { name:'MEERA', role:'Penyelidik', outfit:'knit', kind:'specialist', dot:'#3a8f8a', home:{gx:8.35,gy:3.1},
-               keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info'],
+               keywords:['research','cari','kaji','maklumat','fakta','data','sumber','statistik','trend','pasaran','competitor','info','ringkas','ringkaskan','summary','banding','semak','sahkan','fact'],
                reply:'Ok bos, aku gali dulu. Aku carikan fakta utama, sumber dan ringkasan point penting — kau nak aku fokus bahagian mana?' },
-    wei:     { name:'WEI', role:'Penulis', outfit:'tailored', kind:'specialist', dot:'#9c5a86', home:{gx:10.35,gy:3.1},
-               keywords:['tulis','draf','caption','artikel','emel','copy','ayat','skrip','post','headline','tagline','email'],
+    wei:     { name:'WEI', role:'Komunikasi', outfit:'tailored', kind:'specialist', dot:'#9c5a86', home:{gx:10.35,gy:3.1},
+               keywords:['tulis','draf','caption','artikel','emel','email','copy','ayat','skrip','post','headline','tagline','whatsapp','wasap','telegram','mesej','message','tiktok','facebook','fb','instagram','ig','social','hashtag','reply','balas'],
                reply:'Boleh bos. Nak nada macam mana — formal, santai, atau punchy? Aku draf dua tiga versi untuk kau pilih.' },
-    danish:  { name:'DANISH', role:'Penganalisis', outfit:'tailored', kind:'specialist', dot:'#3a5a9c', home:{gx:6.35,gy:5.6},
-               keywords:['analisa','analisis','pro','kontra','banding','pilihan','keputusan','angka','kos','untung','risiko','roi','nombor'],
+    danish:  { name:'DANISH', role:'Penasihat Strategi', outfit:'tailored', kind:'specialist', dot:'#3a5a9c', home:{gx:6.35,gy:5.6},
+               keywords:['analisa','analisis','pro','kontra','banding','pilihan','keputusan','angka','kos','untung','risiko','roi','nombor','bajet','strategi','brainstorm','idea','saran','nasihat','opsyen'],
                reply:'Aku tengok datanya dulu bos. Aku boleh bagi pro/kontra dengan cadangan berasaskan angka — hantar je nombornya.' },
-    hana:    { name:'KAK SUMI', role:'Perancang', outfit:'knit', kind:'specialist', dot:'#7a5aa0', home:{gx:8.35,gy:5.6}, aka:['sumi','kak sumi'],
-               keywords:['plan','rancang','strategi','langkah','matlamat','jadual','timeline','projek','fasa','roadmap','sasaran'],
+    hana:    { name:'KAK SUMI', role:'Perancang & Jadual', outfit:'knit', kind:'specialist', dot:'#7a5aa0', home:{gx:8.35,gy:5.6}, aka:['sumi','kak sumi'],
+               keywords:['plan','rancang','langkah','matlamat','jadual','timeline','fasa','roadmap','sasaran','reminder','ingatkan','ingat','alarm','kalendar','calendar','cuti','holiday','temujanji','appointment','esok','deadline'],
                reply:'Jom pecahkan bos. Kita set matlamat, pecah jadi langkah kecil, letak timeline — kau target siap bila?' },
-    hafiz:   { name:'HAFIZ', role:'Jurutera / Tekno', outfit:'chic', kind:'specialist', dot:'#4a8f88', home:{gx:10.35,gy:5.6},
-               keywords:['kod','code','bug','debug','teknikal','app','web','api','error','sistem','automate','automasi','skrip'],
+    hafiz:   { name:'HAFIZ', role:'Jurutera', outfit:'chic', kind:'specialist', dot:'#4a8f88', home:{gx:10.35,gy:5.6},
+               keywords:['kod','code','bug','debug','teknikal','app','web','api','error','sistem','automate','automasi','skrip','script','integrasi','review'],
                reply:'Aku pegang bahagian teknikal ni bos. Bagitau apa yang error atau apa kau nak buat — aku terangkan atau terus kodkan.' }
   };
   const IDLE_PHRASES = ['kat meja', 'fokus kerja', 'rehat sekejap', 'buat kopi', 'baca-baca', 'kemas fail'];
@@ -948,11 +974,11 @@
   // per-staff one-liner shown on the swipeable badge
   const STAFF_INFO = {
     aiman:  { bio: 'Ketua yang kau cakap terus. Faham niat kau, agih kerja ke specialist di belakang tabir, dan gabung hasil jadi satu jawapan.' },
-    meera:  { bio: 'Cari maklumat, fakta & data, dan ringkaskan jadi point yang jelas dan tepat.' },
-    wei:    { bio: 'Draf emel, caption, artikel, skrip & headline yang kemas, terus boleh guna.' },
-    danish: { bio: 'Timbang pro/kontra, banding pilihan, dan bagi keputusan berasaskan angka.' },
-    hana:   { bio: 'Pecah matlamat besar jadi langkah kecil dengan timeline & keutamaan.' },
-    hafiz:  { bio: 'Hal teknikal — kod, debug, sistem, tools & automasi. Terangkan dengan mudah.' }
+    meera:  { bio: 'Research, semak fakta, ringkasan & perbandingan — maklumat tepat yang boleh dipercayai.' },
+    wei:    { bio: 'Komunikasi — draf emel, WhatsApp, Telegram, caption & hashtag social media, siap untuk kongsi.' },
+    danish: { bio: 'Penasihat strategi — analisa, banding pilihan, brainstorm & keputusan berasaskan angka.' },
+    hana:   { bio: 'Perancang & jadual — pecah matlamat jadi langkah, urus timeline, reminder & tarikh penting.' },
+    hafiz:  { bio: 'Jurutera — kod, debug, automasi, integrasi & code review. Terangkan dengan mudah.' }
   };
   // ---- swipeable stacked card deck ----
   const deck = document.getElementById('deck');
@@ -1588,9 +1614,12 @@
       dl.addEventListener('click', () => downloadFile(d.fmt, d.fname || ('mind-office.' + meta.ext), d.title || 'Mind Office', d.text));
       foot.append(chip, dl);
     }
+    const share = document.createElement('button'); share.className = 'deliv-share'; share.textContent = 'Kongsi';
+    share.title = 'Kongsi ke WhatsApp / Telegram / emel';
+    share.addEventListener('click', () => shareText(d.text, share));
     const copy = document.createElement('button'); copy.className = 'deliv-copy'; copy.textContent = 'Salin';
     copy.addEventListener('click', () => copyText(d.text, copy));
-    foot.appendChild(copy);
+    foot.append(share, copy);
     el.append(top, body, foot);
     return el;
   }
@@ -1637,6 +1666,117 @@
     if (window.confirm('Kosongkan semua hasil kerja? Tak boleh undo.')) { deliverables = []; saveDeliverables(); renderTray(); }
   });
   renderTray();
+
+  // share a piece of text out to the real world (WhatsApp/Telegram/etc) via the
+  // Web Share sheet, falling back to clipboard — makes the Communications role real
+  function shareText(text, btn) {
+    if (navigator.share) { navigator.share({ text }).catch(() => {}); return; }
+    copyText(text, btn);
+    if (btn) { const o = btn.textContent; btn.textContent = 'Disalin ✓'; setTimeout(() => btn.textContent = o, 1400); }
+    setStatus('Disalin — tampal terus ke WhatsApp / Telegram / emel kau.');
+  }
+
+  // =====================================================================
+  //  SCHEDULE PLANNER — real reminders the boss can set in plain Malay.
+  //  Stored on-device; Kak Sumi confirms them and announces when they're due.
+  // =====================================================================
+  const remWrap = document.getElementById('rem'), remList = document.getElementById('rem-list'), remCount = document.getElementById('rem-count');
+  let reminders = [];
+  try { reminders = JSON.parse(localStorage.getItem('mo_reminders') || '[]'); } catch {}
+  const saveReminders = () => { try { localStorage.setItem('mo_reminders', JSON.stringify(reminders.slice(-60))); } catch {} };
+  const REM_MS = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+  const REM_BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+  function fmtWhen(ts) {
+    if (!ts) return 'bila-bila (tiada masa ditetapkan)';
+    const d = new Date(ts), now = new Date();
+    const jj = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    const sameDay = d.toDateString() === now.toDateString();
+    const tom = new Date(now); tom.setDate(tom.getDate() + 1);
+    const isTom = d.toDateString() === tom.toDateString();
+    if (sameDay) return `hari ni ${jj}:${mm}`;
+    if (isTom) return `esok ${jj}:${mm}`;
+    return `${REM_MS[d.getDay()]}, ${d.getDate()} ${REM_BULAN[d.getMonth()]} · ${jj}:${mm}`;
+  }
+  // parse a due time out of a Malay reminder sentence (best-effort, common cases)
+  function parseWhen(t) {
+    const l = ' ' + t.toLowerCase() + ' ', now = new Date();
+    let m;
+    if (m = l.match(/dalam\s+(\d+)\s*(minit|min|jam|hour|hari|day)/)) {
+      const n = +m[1], u = m[2], ms = /jam|hour/.test(u) ? 3600e3 : /hari|day/.test(u) ? 864e5 : 60e3;
+      return now.getTime() + n * ms;
+    }
+    let hh = null, mm = 0;
+    if (m = l.match(/pukul\s+(\d{1,2})(?:[:.](\d{2}))?\s*(pagi|petang|malam|tengah\s*hari|tgh\s*hari|am|pm)?/)) {
+      hh = +m[1]; mm = m[2] ? +m[2] : 0; const ap = m[3] || '';
+      if (/petang|pm|malam/.test(ap) && hh < 12) hh += 12;
+      if (/pagi|am/.test(ap) && hh === 12) hh = 0;
+    }
+    const tom = /\besok\b|\bbesok\b/.test(l);
+    let day = null, mon = null;
+    if (m = l.match(/(\d{1,2})\s*(?:hb|haribulan|hari\s*bulan)/)) day = +m[1];
+    for (let i = 0; i < REM_BULAN.length; i++) if (l.includes(REM_BULAN[i].toLowerCase())) { mon = i; break; }
+    if (day != null) { const d = new Date(now); d.setDate(day); if (mon != null) d.setMonth(mon); d.setHours(hh != null ? hh : 9, mm, 0, 0); if (d < now && mon == null) d.setMonth(d.getMonth() + 1); return d.getTime(); }
+    if (tom) { const d = new Date(now); d.setDate(d.getDate() + 1); d.setHours(hh != null ? hh : 9, mm, 0, 0); return d.getTime(); }
+    // a weekday name → next occurrence
+    for (let i = 0; i < REM_MS.length; i++) if (l.includes(' ' + REM_MS[i].toLowerCase())) { const d = new Date(now); let add = (i - d.getDay() + 7) % 7; if (add === 0) add = 7; d.setDate(d.getDate() + add); d.setHours(hh != null ? hh : 9, mm, 0, 0); return d.getTime(); }
+    if (hh != null) { const d = new Date(now); d.setHours(hh, mm, 0, 0); if (d <= now) d.setDate(d.getDate() + 1); return d.getTime(); }
+    return null;
+  }
+  // strip the trigger + time phrases to leave the reminder subject
+  function reminderLabel(t) {
+    let s = t.replace(/\b(tolong\s+)?(ingatkan|ingat|reminder|remind\s*me|set\s*alarm|alarm|peringatan|set)\b\s*(aku|saya|i)?\s*(untuk|supaya|yang|pasal|tentang)?/i, ' ')
+      .replace(/\bdalam\s+\d+\s*(minit|min|jam|hour|hari|day)\b/ig, ' ')
+      .replace(/\bpukul\s+\d{1,2}([:.]\d{2})?\s*(pagi|petang|malam|tengah\s*hari|tgh\s*hari|am|pm)?/ig, ' ')
+      .replace(/\b\d{1,2}\s*(hb|haribulan|hari\s*bulan)\b/ig, ' ')
+      .replace(/\b(esok|besok|hari\s*ni|hari\s*ini)\b/ig, ' ')
+      .replace(/\s{2,}/g, ' ').trim();
+    return s || 'peringatan';
+  }
+  function renderReminders() {
+    const active = reminders.filter(r => !r.done);
+    remCount.textContent = active.length;
+    remWrap.hidden = active.length === 0;
+    remList.innerHTML = '';
+    active.slice().sort((a, b) => (a.at || Infinity) - (b.at || Infinity)).forEach(r => {
+      const el = document.createElement('div'); el.className = 'rem-item' + (r.at && r.at <= Date.now() ? ' due' : '');
+      el.innerHTML = `<div class="rem-body"><div class="rem-text"></div><div class="rem-when"></div></div><button class="rem-x" aria-label="Buang">×</button>`;
+      el.querySelector('.rem-text').textContent = r.text;
+      el.querySelector('.rem-when').textContent = fmtWhen(r.at);
+      el.querySelector('.rem-x').addEventListener('click', () => { r.done = true; saveReminders(); renderReminders(); });
+      remList.appendChild(el);
+    });
+  }
+  const remEl = document.getElementById('rem');
+  document.getElementById('rem-head').addEventListener('click', e => {
+    if (e.target.closest('.tray-actions')) return;
+    const open = remEl.classList.toggle('open');
+    document.getElementById('rem-head').setAttribute('aria-expanded', open);
+  });
+  document.getElementById('rem-clear').addEventListener('click', () => {
+    if (!reminders.some(r => !r.done)) return;
+    if (window.confirm('Kosongkan semua peringatan?')) { reminders.forEach(r => r.done = true); saveReminders(); renderReminders(); }
+  });
+  function addReminder(text, at) {
+    reminders.push({ id: Date.now() + '' + Math.random().toString(36).slice(2, 6), text, at, done: false, notified: false });
+    if (reminders.length > 60) reminders = reminders.slice(-60);
+    saveReminders(); renderReminders();
+    // ask for notification permission once, so due reminders can ping even in background
+    if (at && 'Notification' in window && Notification.permission === 'default') { try { Notification.requestPermission(); } catch {} }
+  }
+  function tickReminders() {
+    const now = Date.now(); let fired = false;
+    for (const r of reminders) {
+      if (r.done || r.notified || !r.at || r.at > now) continue;
+      r.notified = true; fired = true;
+      addMsg(staff.hana.name, `⏰ Peringatan: ${r.text}`, 'staff', staff.hana.dot);
+      setStatus(`Peringatan dari Kak Sumi: ${r.text}`);
+      if ('Notification' in window && Notification.permission === 'granted') { try { new Notification('Mind Office — peringatan', { body: r.text }); } catch {} }
+    }
+    if (fired) { saveReminders(); renderReminders(); }
+  }
+  renderReminders();
+  setInterval(tickReminders, 20000);
+  setTimeout(tickReminders, 1500);   // catch anything already overdue at load
 
   // =====================================================================
   //  LLM BRAIN — works with Gemini (Google AI Studio) OR OpenRouter.
@@ -1955,11 +2095,11 @@ REALITI (penting): Kau tak boleh melayari web sendiri, TAPI kadang-kadang sistem
   }
   const PERSONA = {
     aiman: `Kau Aiman, KETUA (Chief Coordinator) office ni — orang utama yang bos cakap terus, macam Jarvis. Kau faham niat bos, jawab sendiri untuk soalan am/basa-basi/koordinasi/nasihat ringkas, dan bila kerja melibatkan specialist kau uruskan mereka di belakang tabir lepas tu gabungkan hasil jadi SATU jawapan kemas. Bersikap proaktif — bila sesuai, akhiri dengan satu cadangan langkah seterusnya yang berguna (ringkas). Team kau: Meera (research), Wei (tulisan), Danish (analisa), Kak Sumi (perancang), Hafiz (teknikal).\n${COMMON_RULES}`,
-    meera: `Kau Meera, Penyelidik (research) di office ni. Kerja kau cari maklumat, fakta, data, dan ringkaskan jadi point yang jelas. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
-    wei: `Kau Wei, Penulis (copywriter) di office ni. Kerja kau draf emel, caption, artikel, skrip, headline. Tanya nada atau audience kalau perlu, dan bagi draf yang kemas yang terus boleh pakai.\n${COMMON_RULES}`,
-    danish: `Kau Danish, Penganalisis (analyst) di office ni. Kerja kau timbang pro/kontra, banding pilihan, dan bagi cadangan berasaskan logik dan angka. Kalau ada data guna data; kalau tak ada, nyatakan andaian kau dengan jelas.\n${COMMON_RULES}`,
-    hana: `Kau Kak Sumi, Perancang (strategy/planner) di office ni. Kerja kau pecahkan matlamat besar jadi langkah-langkah kecil dengan timeline dan keutamaan. Bagi pelan yang praktikal dan boleh terus diikut.\n${COMMON_RULES}`,
-    hafiz: `Kau Hafiz, Jurutera/Tekno (tech) di office ni. Kerja kau hal teknikal — kod, debug, sistem, tools, automasi. Terangkan dengan mudah, dan bila sesuai bagi contoh kod atau langkah teknikal yang tepat.\n${COMMON_RULES}`
+    meera: `Kau Meera, Penyelidik (Research Analyst) di office ni. Kerja kau cari maklumat, semak fakta, ringkaskan, dan buat perbandingan. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
+    wei: `Kau Wei, orang Komunikasi di office ni. Kerja kau draf mesej & kandungan untuk apa saja saluran — emel, WhatsApp, Telegram, dan post/caption/hashtag social media (TikTok, Facebook, Instagram). Tanya nada atau audience kalau perlu, dan bagi draf kemas yang terus boleh kongsi. Kalau bos nak hantar, ingatkan yang kau sediakan draf & dia boleh tekan Kongsi untuk hantar dari app sebenar.\n${COMMON_RULES}`,
+    danish: `Kau Danish, Penasihat Strategi (Strategic Advisor + Analyst) di office ni. Kerja kau timbang pro/kontra, banding pilihan, brainstorm idea, dan bagi cadangan/keputusan berasaskan logik dan angka. Kalau ada data guna data; kalau tak ada, nyatakan andaian kau dengan jelas.\n${COMMON_RULES}`,
+    hana: `Kau Kak Sumi, Perancang & Penjadual (Schedule Planner) di office ni. Kerja kau pecahkan matlamat jadi langkah dengan timeline, dan urus jadual, reminder, alarm serta tarikh penting. Bagi pelan praktikal. Kalau bos minta reminder/ingatkan sesuatu, sahkan yang kau dah simpan dan sebut bila ia akan berbunyi.\n${COMMON_RULES}`,
+    hafiz: `Kau Hafiz, Jurutera (Engineering Specialist) di office ni. Kerja kau hal teknikal — kod, debug, sistem, tools, automasi, integrasi dan code review. Terangkan dengan mudah, dan bila sesuai bagi contoh kod atau langkah teknikal yang tepat.\n${COMMON_RULES}`
   };
 
   // keyword scores per SPECIALIST (Chief/aiman excluded — he coordinates, not contributes).
@@ -2114,6 +2254,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   // =====================================================================
   const MEETING_RE = /\b(meeting|mesyuarat|mesywarat|town\s?hall|perbincangan|taklimat)\b|\bkumpul(kan)?\s+(semua|semua\s+staff|pasukan|korang)\b|\bbincang(kan)?\s+(sama|ramai|bersama)\b/i;
   // office-mode commands (only these let staff leave their desks to wander / return)
+  const REM_RE = /\b(ingatkan|reminder|remind\s*me|set\s*alarm|alarm|peringatan)\b/i;
   const BREAK_RE = /\brehat\b|\bbreak\b|\bstop\b|\bberhenti\b|\brelax\b|\bcuti\b|\bsantai\b|jalan-?jalan/i;
   const WORK_RE  = /\b(sambung|start|mula(?:kan)?|balik|semua|korang|jom)\s+kerja\b|\bkerja\s+(balik|semula)\b|\bbalik\s+meja\b|\bfokus\s+kerja\b|^\s*(kerja|work|fokus)\s*$/i;
   // six standing spots ringing the round table at (2.9, 2.2)
@@ -2565,6 +2706,18 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     if (PROJECT_RE.test(t)) { runProject(projectTopic(t)); return; }
     // "meeting …" gathers the whole team at the table instead of summoning one staff
     if (MEETING_RE.test(t)) { callMeeting(meetingTopic(t)); return; }
+    // reminder / alarm — Kak Sumi (Schedule Planner) stores it and confirms. Checked
+    // before BREAK/WORK so "ingatkan aku pasal cuti esok" isn't read as a break command.
+    if (!img && REM_RE.test(t)) {
+      const at = parseWhen(t), label = reminderLabel(t);
+      addReminder(label, at);
+      const confirmMsg = at
+        ? `Ok bos, dah set peringatan: “${label}” — ${fmtWhen(at)}. Aku ingatkan nanti.`
+        : `Ok bos, aku dah catat: “${label}”. Bagi masa/tarikh (contoh “esok pukul 3 petang”) kalau nak aku bunyikan alarm.`;
+      const p = Promise.resolve(confirmMsg); p.catch(() => {});
+      summon('hana', t, p, false);   // ephemeral: a confirmation, not a saved deliverable
+      return;
+    }
     // BREAK / WORK commands — the only two things that let staff wander or send them
     // back to their desks. Checked before routing so they aren't treated as tasks.
     if (BREAK_RE.test(t)) {
@@ -2701,7 +2854,8 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
 
   // tiny debug handle for automated checks
   window.__mo = { isBlocked, sprites, los, ambientOnce, applyDaylight, dayPhase, getMode: () => officeMode, DESK,
-    roomAdd, roomRemove, roomRoster, toGrid, printerRun, pickFormat, makeFileBlob, liveSearch };
+    roomAdd, roomRemove, roomRoster, toGrid, printerRun, pickFormat, makeFileBlob, liveSearch,
+    parseWhen, reminderLabel, addReminder, getReminders: () => reminders, tickReminders };
 
   // PWA: register the service worker (no-op on file:// or unsupported browsers)
   if ('serviceWorker' in navigator) {
