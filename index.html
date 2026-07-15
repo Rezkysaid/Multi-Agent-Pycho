@@ -192,14 +192,23 @@
     position: absolute; left: 0; right: 0; top: 0; margin: 0 auto; width: 100%; height: 46px;
     border-radius: 14px; overflow: hidden;
     display: flex; flex-direction: column;
+    /* each card carries a soft wash of its crew colour (plain gradient as the no-color-mix fallback) */
     background: linear-gradient(172deg, var(--surface2), #1d160e 78%);
-    border: 1px solid var(--line); border-top: 2px solid var(--mc, var(--accent));
+    background:
+      radial-gradient(130% 110% at 100% 0%, color-mix(in srgb, var(--mc, var(--accent)) 15%, transparent), transparent 58%),
+      linear-gradient(172deg, #2b2317, #1c150e 80%);
+    border: 1px solid var(--line);
+    border-color: color-mix(in srgb, var(--mc, var(--accent)) 20%, var(--line));
+    border-top: 2px solid var(--mc, var(--accent));
     box-shadow: 0 10px 22px -14px #000;
     color: var(--text); cursor: pointer; will-change: transform;
     -webkit-user-select: none; user-select: none;
-    transition: transform .36s cubic-bezier(.3,.9,.32,1), height .36s cubic-bezier(.3,.9,.32,1), box-shadow .25s ease;
+    transition: transform .36s cubic-bezier(.3,.9,.32,1), height .36s cubic-bezier(.3,.9,.32,1), box-shadow .25s ease, filter .15s ease;
   }
-  .staff-card.front { height: 208px; border-radius: 16px; cursor: grab; box-shadow: 0 18px 34px -18px #000, inset 0 1px 0 #ffffff0d; }
+  .staff-card:not(.front):hover { filter: brightness(1.12); }
+  .staff-card.front { height: 214px; border-radius: 16px; cursor: grab; box-shadow: 0 18px 34px -18px #000, inset 0 1px 0 #ffffff0d; }
+  /* faint diagonal sheen across the active card — the "wallet card" glint */
+  .staff-card.front::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 42%, #ffffff04 47%, #ffffff08 52%, transparent 60%); }
   .staff-card.front:active { cursor: grabbing; }
   .staff-card.active { box-shadow: 0 0 0 1.5px var(--mc, var(--accent)), 0 18px 34px -18px #000; }
   .staff-card.active .sc-status { color: #fff; font-style: normal; font-weight: 800; }
@@ -209,9 +218,18 @@
   /* collapsed strip — mini avatar · name · role · live status · role icon */
   .wc-strip { position: absolute; left: 0; right: 0; top: 0; height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 9px; transition: opacity .2s ease .12s; }
   .staff-card.front .wc-strip { opacity: 0; pointer-events: none; transition: opacity .1s ease; }
-  .wc-full { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 13px 14px 11px; opacity: 0; transition: opacity .22s ease .12s; }
+  .wc-full { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 13px 14px 11px; opacity: 0; transition: opacity .22s ease .12s; }
   .staff-card.front .wc-full { opacity: 1; }
-  .ws-face { flex: 0 0 auto; width: 30px; height: 30px; position: relative; border-radius: 8px; overflow: hidden; background: #1a140d; box-shadow: inset 0 0 0 1px var(--line); }
+  /* oversized role glyph as faint card art, bottom-right */
+  .sc-mark { position: absolute; right: -12px; bottom: -16px; width: 104px; height: 104px; color: var(--mc, var(--accent)); opacity: .07; transform: rotate(-8deg); pointer-events: none; }
+  .sc-mark svg { width: 100%; height: 100%; }
+  .ws-face {
+    flex: 0 0 auto; width: 30px; height: 30px; position: relative; border-radius: 9px; overflow: hidden;
+    background: #1a140d;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 24%, #1a140d), #150f09 78%);
+    box-shadow: inset 0 0 0 1px var(--line);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc, var(--accent)) 32%, var(--line));
+  }
   .ws-face .px { position: absolute; left: 3px; top: 4px; width: 2px; height: 2px; image-rendering: pixelated; }
   .ws-name { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: .3px; color: #fff; white-space: nowrap; }
   .ws-role { min-width: 0; font-size: 10px; font-weight: 700; letter-spacing: .3px; color: var(--mc, var(--accent)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -223,11 +241,14 @@
   @media (min-width: 721px) { .ws-role, .ws-ico { display: none; } }
   .sc-head { display: flex; align-items: center; gap: 12px; }
   .sc-face {
-    flex: 0 0 auto; width: 56px; height: 56px; position: relative; border-radius: 12px; overflow: hidden;
-    background: #1a140d; box-shadow: inset 0 0 0 1px var(--line);
+    flex: 0 0 auto; width: 56px; height: 56px; position: relative; border-radius: 14px; overflow: hidden;
+    background: #1a140d;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 26%, #1a140d), #150f09 78%);
+    box-shadow: inset 0 0 0 1px var(--line);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc, var(--accent)) 35%, var(--line)), inset 0 -8px 14px -8px #0009;
   }
   .sc-face .px { position: absolute; left: 4px; top: 8px; width: 4px; height: 4px; image-rendering: pixelated; }
-  .sc-name { font-size: 17px; font-weight: 800; letter-spacing: .3px; color: #fff; line-height: 1.15; }
+  .sc-name { font-size: 18px; font-weight: 800; letter-spacing: .4px; color: #fff; line-height: 1.15; }
   .sc-role-row { display: flex; align-items: center; gap: 7px; margin-top: 3px; flex-wrap: wrap; }
   .sc-role { font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--mc, var(--accent)); }
   /* quiet "online" badge — visible but never louder than the name */
@@ -239,12 +260,24 @@
   }
   /* two quiet skill chips on the active card */
   .sc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .sc-chip { display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .3px; color: var(--muted); background: #ffffff08; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+  .sc-chip {
+    display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .3px;
+    color: var(--muted); background: #ffffff08; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px;
+    color: color-mix(in srgb, var(--mc, var(--accent)) 52%, #f1e9dc);
+    border-color: color-mix(in srgb, var(--mc, var(--accent)) 30%, var(--line));
+    background: color-mix(in srgb, var(--mc, var(--accent)) 9%, transparent);
+  }
   .sc-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); }
-  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #ffffff10; }
-  .sc-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'Nunito', sans-serif; font-size: 11px; font-style: italic; color: #b9d8c4; }
-  .sc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
-  .sc-id { font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #ffffff55; }
+  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #ffffff0c; }
+  /* live status as a quiet pill */
+  .sc-status {
+    display: inline-flex; align-items: center; gap: 6px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 700; font-style: normal; color: #cfe0c5;
+    background: #ffffff07; border: 1px solid #ffffff12; border-radius: 999px; padding: 3px 10px 3px 8px;
+  }
+  .sc-status::before { content: ''; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
+  /* the crew number as a big ghost numeral in the card's top corner */
+  .sc-id { position: absolute; top: 6px; right: 12px; font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; color: #ffffff10; pointer-events: none; }
   /* pagination dots — clear "you are here" indicator for the crew deck */
   .deck-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
   .deck-dots i { width: 6px; height: 6px; border-radius: 50%; background: #ffffff24; transition: background .25s ease, transform .25s ease; }
@@ -252,7 +285,7 @@
   .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 9px; }
   /* the desktop rail is narrow — give the bio more lines so it never cuts mid-sentence */
   @media (min-width: 721px) {
-    .staff-card.front { height: 266px; }
+    .staff-card.front { height: 272px; }
     .sc-bio { -webkit-line-clamp: 6; }
   }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
@@ -1298,7 +1331,9 @@
       + `<div><div class="sc-name">${a.name}</div><div class="sc-role-row"><span class="sc-role">${a.role}</span><span class="sc-live">Aktif</span></div></div></div>`
       + `<p class="sc-bio" title="${info.bio.replace(/"/g, '&quot;')}">${info.bio}</p>`
       + `<div class="sc-chips">${chips}</div>`
-      + `<div class="sc-foot"><span class="sc-status js-stat">kat meja</span><span class="sc-id">${String(idx + 1).padStart(2, '0')}</span></div>`
+      + `<div class="sc-foot"><span class="sc-status js-stat">kat meja</span></div>`
+      + `<span class="sc-id">${String(idx + 1).padStart(2, '0')}</span>`
+      + `<span class="sc-mark" aria-hidden="true">${ROLE_ICON[k] || ''}</span>`
       + `</div>`;
     deck.appendChild(card);
     card.querySelector('.sc-face .px').style.boxShadow = faceShadow(a.outfit, k, 4);
@@ -1313,7 +1348,7 @@
   // wallet layout: front card in full at y=0, everyone else a strip below it,
   // each strip tucked slightly under the previous for the layered wallet feel
   const STRIP_H = 46, STACK_GAP = 10, STRIP_OVER = 6;
-  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 266 : 208;
+  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 272 : 214;
   function renderDeck(snapKey) {
     const fh = frontH();
     order.forEach((k, i) => {
