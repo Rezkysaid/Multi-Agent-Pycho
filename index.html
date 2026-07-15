@@ -241,14 +241,43 @@
   /* empty room-chat watermark — handwritten wordmark + drifting colour particles;
      the whole thing (particles included) slips aside when the boss types */
   .chat-empty {
-    position: relative; align-self: stretch; margin: auto 0; padding: 26px 0; text-align: center; pointer-events: none;
-    transition: opacity .7s ease, transform .7s cubic-bezier(.4,0,.2,1);
+    align-self: stretch; display: flex; align-items: center; justify-content: center; padding: 6px 2px;
+    transition: opacity .5s ease, transform .5s cubic-bezier(.4,0,.2,1);
   }
-  .chat-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 14px; }
-  .ce-hi { font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 500; color: #b3a690; text-align: center; line-height: 1.4; max-width: 320px; }
-  .ce-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 420px; }
-  .ce-chip { font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: #cdbfa9; background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; transition: color .15s ease, border-color .15s ease, background .15s ease; }
-  .ce-chip:hover { color: var(--text); border-color: var(--accent); background: #2f2618; }
+  /* warm dark-glass "starter panel" with a soft accent glow behind it */
+  .starter {
+    position: relative; width: 100%; max-width: 400px; margin: 0 auto;
+    padding: 20px 16px 18px; border-radius: 20px;
+    background: radial-gradient(120% 90% at 50% -10%, #2b2013 0%, #211a12 55%, #1b140d 100%);
+    border: 1px solid var(--line); box-shadow: inset 0 1px 0 #ffffff0f, 0 20px 40px -28px #000;
+  }
+  .starter::before {
+    content: ''; position: absolute; left: 50%; top: -34px; width: 220px; height: 90px; transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(224,137,78,.22), transparent 72%); filter: blur(6px); pointer-events: none;
+  }
+  .starter-hd { position: relative; font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600; color: #efe6d6; text-align: center; line-height: 1.35; }
+  .starter-sub { position: relative; font-family: 'Nunito', sans-serif; font-size: 12.5px; font-weight: 600; color: #8a7c6a; text-align: center; margin-top: 5px; }
+  .ce-chips { position: relative; display: flex; flex-direction: column; gap: 9px; margin-top: 15px; }
+  /* each suggestion is a real, generous touch target (≥48px) */
+  .ce-chip {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 50px; padding: 9px 13px;
+    background: var(--surface2); border: 1px solid var(--line); border-radius: 14px;
+    cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;
+    transition: border-color .15s ease, background .15s ease, transform .08s ease, box-shadow .15s ease;
+  }
+  .ce-chip:hover { border-color: #6b5a45; background: #2b2318; }
+  .ce-chip:active { transform: scale(.985); border-color: var(--accent); background: #2f2618; box-shadow: 0 0 0 2px #e0894e22, 0 8px 20px -12px var(--accent); }
+  .ce-chip:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #e0894e2e; }
+  .ce-chip[disabled] { opacity: .5; pointer-events: none; }
+  .ce-chips.busy .ce-chip { opacity: .5; pointer-events: none; }
+  .ce-ico { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; background: #e0894e1f; color: var(--accent); }
+  .ce-ico svg { width: 16px; height: 16px; display: block; }
+  .ce-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .ce-cat { display: block; font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
+  .ce-label { display: block; font-family: 'Nunito', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--text); line-height: 1.25; }
+  .ce-go { flex: 0 0 auto; color: #6b5f4e; transition: color .15s ease, transform .15s ease; }
+  .ce-chip:hover .ce-go, .ce-chip:active .ce-go { color: var(--accent); transform: translateX(2px); }
+  .ce-go svg { width: 16px; height: 16px; display: block; }
   .chat-empty.bye { opacity: 0; transform: translateX(72px); }
   .chat-empty[hidden] { display: none; }
 
@@ -481,8 +510,11 @@
 
       <section class="convo">
         <div id="chat"><div class="chat-empty" id="chat-empty">
-          <div class="ce-hi">Apa kau nak crew AI tolong hari ni?</div>
-          <div class="ce-chips" id="ce-chips"></div>
+          <div class="starter">
+            <div class="starter-hd">Apa kau nak crew AI tolong hari ni?</div>
+            <div class="starter-sub">Pilih cadangan atau taip sendiri.</div>
+            <div class="ce-chips" id="ce-chips"></div>
+          </div>
         </div></div>
         <div class="composer">
           <div id="img-chip" class="img-chip" hidden>
@@ -1408,18 +1440,44 @@
     chatEmpty.classList.toggle('bye', !!e.target.value.trim());
   });
   // tappable example missions — everyday life, learning, decisions, side projects…
+  // each has a category label + a simple line icon; tapping submits it straight away
+  const CE_ICON = {
+    plan:  '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9h17M8 3.2v3.4M16 3.2v3.4"/>',
+    pilih: '<path d="M7 4.5v5a3 3 0 0 0 3 3h6"/><path d="m13.5 9.5 3 3-3 3"/>',
+    siasat:'<circle cx="11" cy="11" r="6.3"/><path d="m15.6 15.6 4 4"/>',
+    latih: '<circle cx="12" cy="12" r="7.6"/><circle cx="12" cy="12" r="3.4"/>',
+    riset: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.6 2.6 2.6 12.8 0 16M12 4c-2.6 2.6-2.6 12.8 0 16"/>',
+    misi:  '<path d="M6.5 3v18M6.5 4h11l-2.2 3.6L17.5 11H6.5"/>'
+  };
   const EXAMPLE_PROMPTS = [
-    'Rancang minggu aku',
-    'Tolong pilih telefon nak beli',
-    'Cari punca masalah aku',
-    'Buat pelan 30 hari belajar English',
-    'Research berita AI terkini',
-    'Tukar matlamat aku jadi misi'
+    { cat: 'Rancang',  key: 'plan',   text: 'Rancang minggu aku' },
+    { cat: 'Pilihan',  key: 'pilih',  text: 'Tolong pilih telefon nak beli' },
+    { cat: 'Siasat',   key: 'siasat', text: 'Cari punca masalah aku' },
+    { cat: 'Latihan',  key: 'latih',  text: 'Buat pelan 30 hari belajar English' },
+    { cat: 'Research', key: 'riset',  text: 'Research berita AI terkini' },
+    { cat: 'Misi',     key: 'misi',   text: 'Tukar matlamat aku jadi misi' }
   ];
   const ceChips = document.getElementById('ce-chips');
+  const svgWrap = inner => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const GO_SVG = svgWrap('<path d="M5 12h13M13 6l6 6-6 6"/>');
+  // tap a suggestion → fill the input and submit it, exactly like pressing send
+  function submitSuggestion(text) {
+    if (ceChips.classList.contains('busy')) return;              // prevent duplicate submit
+    const inp = document.getElementById('user-input');
+    inp.value = text;
+    ceChips.classList.add('busy');
+    if (navigator.vibrate) { try { navigator.vibrate(8); } catch {} }   // tap feedback where supported
+    handleSend();                                                 // same flow as the send button
+    // if nothing was sent (e.g. cooldown), re-enable the chips
+    setTimeout(() => { if (chatEmpty && !chatEmpty.hidden) ceChips.classList.remove('busy'); }, 60);
+  }
   if (ceChips) EXAMPLE_PROMPTS.forEach(p => {
-    const c = document.createElement('button'); c.className = 'ce-chip'; c.type = 'button'; c.textContent = p;
-    c.addEventListener('click', () => { const inp = document.getElementById('user-input'); inp.value = p; inp.focus(); if (chatEmpty && !chatEmpty.hidden) chatEmpty.classList.add('bye'); });
+    const c = document.createElement('button'); c.className = 'ce-chip'; c.type = 'button';
+    c.setAttribute('aria-label', p.text);
+    c.innerHTML = `<span class="ce-ico">${svgWrap(CE_ICON[p.key] || '')}</span>`
+      + `<span class="ce-body"><span class="ce-cat">${p.cat}</span><span class="ce-label">${p.text}</span></span>`
+      + `<span class="ce-go">${GO_SVG}</span>`;
+    c.addEventListener('click', () => submitSuggestion(p.text));   // works for tap + Enter/Space (native button)
     ceChips.appendChild(c);
   });
   // live crew count shown in the stage caption (reflects active / on a break)
