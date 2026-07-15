@@ -212,31 +212,70 @@
   .deck-hint { font-family: 'Nunito', sans-serif; font-size: 10.5px; color: var(--muted); }
 
   /* conversation — a real scrollable chat that holds long AI replies + history */
-  .convo { width: 100%; }
+  .convo { width: 100%; position: relative; }
   #chat {
     background: linear-gradient(180deg, var(--surface), #1a130c);
     border: 1px solid var(--line); border-radius: 16px;
-    padding: 15px; max-height: 46vh; min-height: 64px; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 13px; scrollbar-width: thin; scroll-behavior: smooth;
+    padding: 15px 15px 18px; min-height: 150px; max-height: 58vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 16px; scrollbar-width: thin; scroll-behavior: smooth;
+    overscroll-behavior: contain;   /* keep scroll inside — no nested-scroll chaining */
     box-shadow: inset 0 1px 0 #ffffff0d, 0 14px 36px -24px #000;
   }
-  .msg { display: flex; flex-direction: column; max-width: 84%; animation: msgIn .34s cubic-bezier(.2,.9,.3,1) both; }
+  @supports (max-height: 100dvh) { #chat { max-height: min(60dvh, 580px); } }
+  .msg { display: flex; flex-direction: column; max-width: 90%; animation: msgIn .34s cubic-bezier(.2,.9,.3,1) both; }
   @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  .msg .who { font-size: 10px; font-weight: 700; letter-spacing: .4px; color: var(--muted); margin: 0 3px 5px; display: flex; align-items: center; gap: 6px; }
-  .msg.staff .who::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--dotc, var(--accent)); }
+  .msg .who { font-size: 10.5px; font-weight: 700; letter-spacing: .3px; color: var(--muted); margin: 0 3px 5px; display: flex; align-items: baseline; gap: 6px; }
+  .msg.staff .who::before { content: ''; align-self: center; width: 6px; height: 6px; border-radius: 50%; background: var(--dotc, var(--accent)); flex: 0 0 auto; }
+  .msg .who-role { font-weight: 700; text-transform: none; letter-spacing: 0; color: #8a7c6a; }
+  .msg .who-role::before { content: '· '; }
+  .msg .who-time { margin-left: auto; font-size: 9.5px; font-weight: 600; color: #6f6250; font-variant-numeric: tabular-nums; }
+  /* readable sans-serif body for long replies (serif kept only for decorative headings) */
   .msg .bub {
-    padding: 10px 13px; border-radius: 13px; font-size: 14px; line-height: 1.55;
-    font-family: 'Fraunces', Georgia, serif; white-space: pre-wrap; word-wrap: break-word;
+    padding: 11px 14px; border-radius: 14px; font-size: 15px; line-height: 1.62;
+    font-family: 'Nunito', system-ui, sans-serif; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;
   }
   .msg.you { align-self: flex-end; align-items: flex-end; animation: none; }   /* your sent message appears instantly, no send animation */
-  .msg.you .bub { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; font-family: 'Nunito', sans-serif; font-weight: 600; }
+  .msg.you .bub { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 5px; font-weight: 600; }
   .msg.staff { align-self: flex-start; }
-  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border-left: 2px solid var(--dotc, var(--accent)); }
+  .msg.staff .bub { background: var(--surface2); color: var(--text); border-bottom-left-radius: 5px; border-left: 2px solid var(--dotc, var(--accent)); }
   .msg.sys { align-self: center; max-width: 94%; text-align: center; }
-  .msg.sys .bub { background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 12.5px; padding: 3px 8px; line-height: 1.5; }
+  .msg.sys .bub { background: transparent; color: var(--muted); font-size: 12.5px; padding: 3px 8px; line-height: 1.5; }
   .msg.meet { align-self: center; max-width: 94%; text-align: center; }
-  .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
+  .msg.meet .bub { background: linear-gradient(135deg, #2b2013, #241a10); border: 1px solid var(--accent); color: var(--text); font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 7px 15px; box-shadow: 0 0 0 1px #e0894e22, 0 10px 22px -12px var(--accent); }
   .msg .bub.typing { color: var(--muted); font-style: italic; }
+
+  /* long-reply clamp: show a useful portion + Baca penuh (visual only — full text
+     stays in the DOM so copy/select and URLs are preserved) */
+  .msg .bub.clamped { max-height: 232px; overflow: hidden; position: relative; }
+  .msg .bub.clamped::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 52px; pointer-events: none;
+    background: linear-gradient(180deg, transparent, var(--surface2));
+  }
+  .read-more { align-self: flex-start; margin: 6px 2px 0; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; color: var(--accent); background: none; border: none; padding: 4px 2px; cursor: pointer; }
+  .read-more:hover { text-decoration: underline; }
+
+  /* quick actions + inline sources under an agent reply */
+  .msg-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 1px 0; }
+  .msg-act { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; font-family: 'Nunito', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+  .msg-act:hover { color: var(--text); border-color: #6b5a45; }
+  .msg-act:active { transform: scale(.96); }
+  .msg-act:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px #e0894e33; }
+  .msg-act svg { width: 13px; height: 13px; }
+  .msg-sources { display: inline-flex; align-items: center; gap: 6px; margin: 8px 1px 0; font-family: 'Nunito', sans-serif; font-size: 11.5px; font-weight: 800; color: var(--sage); background: #93ad861a; border: 1px solid #93ad8640; border-radius: 999px; padding: 6px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .msg-sources:hover { background: #93ad8626; }
+  .msg-sources svg { width: 13px; height: 13px; }
+
+  /* jump-to-latest floating button (chat-scroll aware) */
+  .jump-latest {
+    position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(6px);
+    display: inline-flex; align-items: center; gap: 6px; z-index: 7;
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; color: var(--accent-ink);
+    background: var(--accent); border: none; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+    box-shadow: 0 8px 20px -8px #000, 0 0 0 3px #e0894e22; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .jump-latest.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+  .jump-latest svg { width: 14px; height: 14px; }
 
   /* empty room-chat watermark — handwritten wordmark + drifting colour particles;
      the whole thing (particles included) slips aside when the boss types */
@@ -340,9 +379,14 @@
   .paper.land { animation: paperLand .45s cubic-bezier(.2,1.4,.4,1) both; }
   @keyframes paperLand { from { transform: scale(1.7) translateY(-14px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
-  /* composer */
-  .composer { margin-top: 12px; }
-  #input-row { display: flex; gap: 9px; }
+  /* composer — sticks to the bottom of the chat section as you scroll, stays above
+     the device safe area, and never covers the latest message (chat has bottom padding) */
+  .composer {
+    position: sticky; bottom: 0; z-index: 6; margin-top: 12px;
+    padding-top: 10px; padding-bottom: calc(4px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, var(--ink) 30%);
+  }
+  #input-row { display: flex; gap: 9px; align-items: flex-end; }
   #img-btn {
     flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
     width: 46px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
@@ -516,6 +560,10 @@
             <div class="ce-chips" id="ce-chips"></div>
           </div>
         </div></div>
+        <button class="jump-latest" id="jump-latest" type="button" aria-label="Pergi ke mesej terbaru">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Terbaru</span>
+        </button>
         <div class="composer">
           <div id="img-chip" class="img-chip" hidden>
             <img id="img-thumb" alt="">
@@ -523,12 +571,12 @@
             <button id="img-remove" aria-label="Buang gambar">×</button>
           </div>
           <div id="input-row">
-            <button id="img-btn" title="Lampirkan gambar — bincang masalah sebenar dengan staff">
+            <button id="img-btn" aria-label="Lampirkan gambar" title="Lampirkan gambar — bincang masalah sebenar dengan crew">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2.2" stroke="currentColor" stroke-width="1.9"/><circle cx="9" cy="10.5" r="1.6" fill="currentColor"/><path d="m5.5 17.5 4.2-4 3 2.7 3.3-3.4 2.5 2.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <input type="file" id="img-in" hidden accept="image/*">
             <div class="input-wrap">
-              <input id="user-input" type="text" placeholder="Apa kau nak crew AI tolong hari ni?" autocomplete="off">
+              <input id="user-input" type="text" placeholder="Tanya crew apa-apa…" autocomplete="off">
             </div>
             <button id="send-btn"><span>Panggil</span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2 .4 6.4Z" fill="currentColor"/></svg></button>
           </div>
@@ -1423,15 +1471,93 @@
   // ---- chat panel — the shared conversation surface (you + staff replies) ----
   const chat = document.getElementById('chat');
   const chatEmpty = document.getElementById('chat-empty');
-  function addMsg(who, text, kind, dotColor) {
-    if (chatEmpty && !chatEmpty.hidden) chatEmpty.hidden = true;   // first message retires the watermark
+  const jumpBtn = document.getElementById('jump-latest');
+  let lastUserText = '';
+  const nameToRole = who => { const s = Object.values(staff).find(x => x.name === who); return s ? s.role : ''; };
+  const clockNow = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 100;
+  function scrollToLatest(smooth) { chat.scrollTo({ top: chat.scrollHeight, behavior: smooth ? 'smooth' : 'auto' }); showJump(false); }
+  function showJump(on) { jumpBtn.classList.toggle('show', on); }
+  jumpBtn.addEventListener('click', () => scrollToLatest(true));
+  chat.addEventListener('scroll', () => { if (isNearBottom()) showJump(false); });
+
+  function addMsg(who, text, kind, dotColor, role) {
+    if (chatEmpty && !chatEmpty.hidden) chatEmpty.hidden = true;   // first message retires the starter
+    // smart auto-scroll: decide BEFORE we append (your own message always sticks)
+    const stick = (kind === 'you') || isNearBottom();
     const m = document.createElement('div'); m.className = 'msg ' + (kind || 'staff');
-    if (who) { const w = document.createElement('div'); w.className = 'who'; w.textContent = who; m.appendChild(w); }
+    if (who) {
+      const w = document.createElement('div'); w.className = 'who';
+      const nm = document.createElement('span'); nm.className = 'who-name'; nm.textContent = who; w.appendChild(nm);
+      const r = role != null ? role : (kind === 'staff' ? nameToRole(who) : '');
+      if (r) { const rl = document.createElement('span'); rl.className = 'who-role'; rl.textContent = r; w.appendChild(rl); }
+      const tm = document.createElement('span'); tm.className = 'who-time'; tm.textContent = clockNow(); w.appendChild(tm);
+      m.appendChild(w);
+    }
     const bub = document.createElement('div'); bub.className = 'bub'; bub.textContent = text; m.appendChild(bub);
     if (dotColor) m.style.setProperty('--dotc', dotColor);
     chat.appendChild(m);
-    chat.scrollTop = chat.scrollHeight;
+    // long-reply clamp for genuine staff prose (not the "sedang menaip…" placeholder)
+    if (kind === 'staff' && text && text.length > 620 && text !== 'sedang menaip…') maybeClamp(m, bub);
+    if (stick) scrollToLatest(false); else if (kind === 'staff') showJump(true);
     return bub;
+  }
+  // clamp a very tall reply and add a Baca penuh / Tutup toggle (visual only)
+  function maybeClamp(m, bub) {
+    requestAnimationFrame(() => {
+      if (bub.scrollHeight <= 260) return;
+      bub.classList.add('clamped');
+      const btn = document.createElement('button'); btn.className = 'read-more'; btn.type = 'button'; btn.textContent = 'Baca penuh';
+      btn.addEventListener('click', () => {
+        if (bub.classList.contains('clamped')) { bub.classList.remove('clamped'); btn.textContent = 'Tutup'; }
+        else { bub.classList.add('clamped'); btn.textContent = 'Baca penuh'; m.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      });
+      bub.insertAdjacentElement('afterend', btn);
+    });
+  }
+  // fire a follow-up through the SAME send pipeline (with a small double-tap guard)
+  let lastQuickAt = 0;
+  function quickSubmit(text) {
+    const now = Date.now(); if (now - lastQuickAt < 1200) return; lastQuickAt = now;
+    const inp = document.getElementById('user-input'); inp.value = text; handleSend();
+  }
+  // save a reply into the existing Hasil (deliverables) store
+  function saveReply(text, agentKey, btn) {
+    const dup = deliverables.some(d => d.text === text);
+    if (!dup && agentKey && staff[agentKey]) addDeliverable(agentKey, text);
+    if (btn) { const sp = btn.querySelector('span'); if (sp) { const o = sp.textContent; sp.textContent = dup ? 'Sudah disimpan' : 'Disimpan ✓'; setTimeout(() => sp.textContent = o, 1500); } }
+    setStatus(dup ? 'Jawapan tu memang dah tersimpan di Hasil.' : 'Disimpan di Hasil.');
+  }
+  const A_ICO = {
+    ring: '<path d="M4 6h16M4 12h10M4 18h6"/>',
+    ask:  '<path d="M5 5h14v9H10l-3 3v-3H5z"/>',
+    save: '<path d="M6.5 4h11v16l-5.5-3.5L6.5 20z"/>',
+    misi: '<path d="M6.5 3v18M6.5 4h11l-2.2 3.6L17.5 11H6.5"/>',
+    src:  '<circle cx="11" cy="11" r="6.3"/><path d="m15.6 15.6 4 4"/>'
+  };
+  // add the inline-sources row + quick actions under a genuine agent reply
+  function decorateReply(bub, agentKey) {
+    if (!bub || !bub.parentElement || bub.parentElement.className.indexOf('msg') < 0) return;
+    const m = bub.parentElement;
+    // inline sources: only when THIS task actually did research
+    if (typeof research !== 'undefined' && research && research.sources && research.sources.length) {
+      const sr = document.createElement('button'); sr.className = 'msg-sources'; sr.type = 'button';
+      sr.innerHTML = svgWrap(A_ICO.src) + `<span>${research.sources.length} sumber ditemui</span>`;
+      sr.setAttribute('aria-label', research.sources.length + ' sumber — buka panel sumber');
+      sr.addEventListener('click', () => {
+        srcEl.classList.add('open'); document.getElementById('src-head').setAttribute('aria-expanded', 'true');
+        document.getElementById('sources').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      m.appendChild(sr);
+    }
+    const acts = document.createElement('div'); acts.className = 'msg-actions';
+    const mk = (label, ico, fn) => { const b = document.createElement('button'); b.className = 'msg-act'; b.type = 'button'; b.innerHTML = svgWrap(ico) + `<span>${label}</span>`; b.setAttribute('aria-label', label); b.addEventListener('click', () => fn(b)); return b; };
+    acts.appendChild(mk('Ringkaskan', A_ICO.ring, () => quickSubmit('Ringkaskan jawapan tadi.')));
+    acts.appendChild(mk('Tanya lanjut', A_ICO.ask, () => { const inp = document.getElementById('user-input'); inp.value = 'Tanya lanjut: '; inp.focus(); }));
+    acts.appendChild(mk('Simpan', A_ICO.save, (b) => saveReply(bub.textContent, agentKey, b)));
+    if (AI.key) acts.appendChild(mk('Jadikan misi', A_ICO.misi, () => quickSubmit('misi: ' + (lastUserText || bub.textContent.slice(0, 90)))));
+    m.appendChild(acts);
+    if (isNearBottom()) scrollToLatest(false);
   }
   // the empty state slides aside while you're typing, drifts back if the field is
   // cleared before anything was ever sent
@@ -2412,7 +2538,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     const nq = normalizeQuery(rawQuery);
     if (research.queryCache[nq]) { setStatus('Menggunakan research tersimpan…'); research.searches.push({ agent: agentKey, query: nq, at: Date.now(), ok: true, cached: true }); return { ...research.queryCache[nq], cached: true }; }
     if (research.searchCount >= research.maxSearches) { setStatus('Had carian web dicapai (3/3).'); throw new Error('search-limit'); }
-    setStatus('Mencari di web…');
+    setStatus((staff[agentKey] ? staff[agentKey].name : 'Crew') + ' tengah cari maklumat…');
     let out;
     try { out = await tavilySearch(rawQuery, { maxResults: TAVILY_MAX_RESULTS }); }
     catch (e) {
@@ -2425,7 +2551,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     research.queryCache[nq] = out;
     research.searches.push({ agent: agentKey, query: nq, at: Date.now(), ok: true });
     for (const r of out.results) if (r.url && !research.sources.some(s => s.url === r.url)) research.sources.push(r);
-    setStatus('Research siap.'); renderSources();
+    setStatus(research.sources.length + ' sumber ditemui — tengah semak fakta…'); renderSources();
     return out;
   }
 
@@ -2581,6 +2707,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
           attachFile(rb, fmt, text, reply);              // …and arrive as a file IN the chat too
           setStatus(`${a.name} dah lampirkan fail ${FMT_META[fmt].label} dalam chat — tekan Muat turun.`);
         }
+        decorateReply(rb, k);                            // inline sources + quick actions
       }
       setStat(k, 'dengan kau'); setActive(k, true);
       if (!fmt || ephemeral) setStatus(`${a.name} tengah update kat kau.`);
@@ -2754,6 +2881,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       const isFinal = i === PROJECT_PIPELINE.length - 1;
       addDeliverable(k, out, isFinal ? fmt : null, topic);
       if (isFinal && fmt) attachFile(ob, fmt, topic, out);
+      if (isFinal) decorateReply(ob, k);
       ctx = (ctx === '(belum ada)' ? '' : ctx + '\n\n') + `[${a.role} — ${a.name}] ${out}`;
       if (ctx.length > 1400) ctx = ctx.slice(-1400);
       setStat(k, 'siap bahagian');
@@ -2837,6 +2965,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       remember('model', chiefA.name, final);
       addDeliverable('aiman', final, fmt, topic);
       if (fmt) attachFile(rb, fmt, topic, final);
+      decorateReply(rb, 'aiman');                        // inline sources + quick actions
       setStatus('Ketua dah siapkan jawapan gabungan.');
       setStat('aiman', 'dengan kau');
       const readMs = Math.max(9000, Math.min(26000, final.length * 55));
@@ -2983,7 +3112,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       const ob = addMsg(a.name, out, 'staff', a.dot);
       remember('model', a.name, out);
       ctx += (ctx ? '\n\n' : '') + `[${a.role} — ${a.name}] ${out}`;
-      if (isLast) { finalOut = out; if (fmt) attachFile(ob, fmt, topic, out); }
+      if (isLast) { finalOut = out; if (fmt) attachFile(ob, fmt, topic, out); decorateReply(ob, k); }
       await sleep(Math.max(2200, Math.min(7000, out.length * 30)));
     }
     if (!failed && finalOut) {
@@ -3049,12 +3178,17 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     btn.classList.add('sending'); setTimeout(() => btn.classList.remove('sending'), 520);
   }
 
+  let _lastSentText = '', _lastSentAt = 0;
   async function handleSend() {
     const i = document.getElementById('user-input');
     let t = i.value.trim();
     const img = pendingImg;            // photo attached? capture it for this send
     if (!t && !img) return;
     if (!t) t = 'Tolong tengok gambar ni dan bagi pandangan kau.';
+    // guard accidental duplicate submits (double-tap send / Enter twice / quick action)
+    const now = Date.now();
+    if (!img && t === _lastSentText && now - _lastSentAt < 900) return;
+    _lastSentText = t; _lastSentAt = now;
     const usingAI = !!AI.key;
     // still cooling down? don't fire — and don't eat the message, so kau boleh hantar
     // balik sekali cooldown habis without retyping
@@ -3066,6 +3200,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     // "bubar" dissolves the drag-and-drop meeting room
     if (BUBAR_RE.test(t)) { roomClear(); addMsg('', 'Bilik bincang dibubarkan — semua kembali standby.', 'meet'); return; }
     remember('user', 'Kau', t + (img ? ' (bos lampirkan gambar — kau dah tengok)' : ''));
+    lastUserText = t;   // for the "Jadikan misi" quick action
     newResearch();   // fresh shared research context per task (quota + cache reset)
     // a manned meeting room (≥2 staff dragged in) claims the next task as ITS project
     if (roomRoster.size >= 2 && !BREAK_RE.test(t) && !WORK_RE.test(t)) { runRoomMeeting(t); return; }
