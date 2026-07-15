@@ -22,7 +22,7 @@
     --surface2:#2d251b;
     --line:#3c3225;        /* warm hairline */
     --text:#f1e9dc;        /* warm off-white */
-    --muted:#a6957f;       /* warm muted */
+    --muted:#b0a089;       /* warm muted — light enough to read on the dark ink */
     --accent:#e0894e;      /* terracotta — ties to the room's armchair */
     --accent-ink:#241305;
     --sage:#93ad86;        /* calm secondary */
@@ -38,7 +38,8 @@
     /* viewport-fit=cover lets the page draw under the notch/status bar and
        home indicator — pad those safe areas back in, or the header collides
        with the system clock/battery UI */
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(40px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+    /* bottom padding clears the floating chat bubble so no card control ends up trapped under it */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(84px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
   }
   /* faint paper grain — cheap static overlay (no blend-mode: crashes mobile Safari) */
   body::after {
@@ -49,21 +50,21 @@
   /* ---- header (asymmetric: brand left, live meta right) ---- */
   .topbar {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    width: min(1000px, 94vw); margin: 0 auto; padding: 18px 4px 14px;
+    width: min(1000px, 94vw); margin: 0 auto; padding: 14px 4px 12px;
   }
   .brand { display: flex; align-items: center; gap: 9px; }
   .logo-mark { display: inline-flex; color: var(--accent); }
   .logo-mark svg { display: block; }
-  .wordmark { font-family: 'Fraunces', Georgia, serif; font-weight: 800; font-size: 24px; letter-spacing: -.3px; color: var(--text); line-height: 1; }
+  .wordmark { font-family: 'Fraunces', Georgia, serif; font-weight: 800; font-size: 26px; letter-spacing: -.3px; color: var(--text); line-height: 1; }
   .brand-sub {
     font-size: 9.5px; font-weight: 800; letter-spacing: 1.5px; color: var(--accent);
     border: 1px solid #e0894e66; border-radius: 5px; padding: 2px 6px; align-self: center; margin-top: 2px;
   }
   .topbar-right { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
   #ai-btn {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; cursor: pointer;
-    color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .6px; padding: 6px 11px;
+    display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
+    background: transparent; border: 1px solid var(--line); border-radius: 9px; cursor: pointer;
+    color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .6px; padding: 5px 9px;
     transition: border-color .15s ease, color .15s ease, background .15s ease;
   }
   #ai-btn .api-ico { flex: 0 0 auto; }
@@ -82,8 +83,14 @@
   /* office + chat live together in one column, so the chat is always right
      under the room — no roster panel wedged between them */
   .main-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-  .stage-caption { font-size: 11.5px; color: #8a7c6a; margin: 0 2px 8px; }
-  .stage-caption b { color: var(--muted); font-weight: 700; }
+  /* the office scene sits in a proper hero card — grouped, bordered, softly lit */
+  .stage-wrap {
+    background: linear-gradient(180deg, var(--surface), #1c150e);
+    border: 1px solid var(--line); border-radius: 16px; padding: 12px 12px 13px;
+    box-shadow: 0 14px 34px -22px #000, 0 0 44px -22px rgba(224, 137, 78, .3);
+  }
+  .stage-caption { font-size: 11.5px; color: var(--muted); margin: 0 2px 8px; }
+  .stage-caption b { color: var(--text); font-weight: 700; }
   #mood { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; }
   #mood svg { width: 13px; height: 13px; display: block; }
 
@@ -172,16 +179,16 @@
   #ambient::after { content: ''; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(253, 247, 234, .94); border-bottom: 0; }
   @keyframes ambPop { from { opacity: 0; transform: translate(-50%, calc(-100% + 6px)) scale(.9); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
 
-  .hint { font-size: 12px; color: var(--muted); margin: 12px 2px 0; min-height: 16px; }
+  .hint { font-size: 12px; color: var(--muted); margin: 10px 2px 0; min-height: 16px; }
 
   /* team rail — swipeable stacked staff-card deck (Tinder style), minimal badge look */
   .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
   .rail-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .2px; color: var(--text); margin: 0 0 12px 2px; }
   .deck-count { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 18px; padding: 0 7px; border-radius: 9px; background: var(--surface2); color: var(--muted); font-size: 10.5px; font-weight: 700; }
-  .deck { position: relative; height: 252px; margin: 4px auto 0; max-width: 300px; touch-action: pan-y; }
+  .deck { position: relative; height: 226px; margin: 4px auto 0; max-width: 300px; touch-action: pan-y; }
   .staff-card {
-    position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 224px;
-    border-radius: 16px; padding: 15px 16px 13px; overflow: hidden;
+    position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 198px;
+    border-radius: 16px; padding: 13px 14px 11px; overflow: hidden;
     display: flex; flex-direction: column;
     background: linear-gradient(172deg, var(--surface2), #1d160e 78%);
     border: 1px solid var(--line); border-top: 2px solid var(--mc, var(--accent));
@@ -199,13 +206,30 @@
   }
   .sc-face .px { position: absolute; left: 4px; top: 8px; width: 4px; height: 4px; image-rendering: pixelated; }
   .sc-name { font-size: 17px; font-weight: 800; letter-spacing: .3px; color: #fff; line-height: 1.15; }
-  .sc-role { font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--mc, var(--accent)); margin-top: 3px; }
-  .sc-bio { margin: 12px 0 0; font-family: 'Nunito', sans-serif; font-size: 12px; line-height: 1.55; color: var(--muted); }
-  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid #ffffff10; }
+  .sc-role-row { display: flex; align-items: center; gap: 7px; margin-top: 3px; flex-wrap: wrap; }
+  .sc-role { font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--mc, var(--accent)); }
+  /* quiet "online" badge — visible but never louder than the name */
+  .sc-live { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 800; letter-spacing: .5px; color: #b9d8c4; background: #93ad8617; border: 1px solid #93ad8630; border-radius: 999px; padding: 2px 7px; }
+  .sc-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--sage); }
+  .sc-bio {
+    margin: 9px 0 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.5; color: var(--muted);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;   /* keep the card compact — 3 lines max */
+  }
+  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #ffffff10; }
   .sc-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'Nunito', sans-serif; font-size: 11px; font-style: italic; color: #b9d8c4; }
   .sc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
   .sc-id { font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #ffffff55; }
-  .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
+  /* pagination dots — clear "you are here" indicator for the crew deck */
+  .deck-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+  .deck-dots i { width: 6px; height: 6px; border-radius: 50%; background: #ffffff24; transition: background .25s ease, transform .25s ease; }
+  .deck-dots i.on { background: var(--accent); transform: scale(1.3); }
+  .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 9px; }
+  /* the desktop rail is narrow — give the bio more lines so it never cuts mid-sentence */
+  @media (min-width: 721px) {
+    .deck { height: 244px; }
+    .staff-card { height: 216px; }
+    .sc-bio { -webkit-line-clamp: 5; }
+  }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
   .deck-btn:hover { border-color: var(--accent); color: var(--accent); }
   .deck-btn:active { transform: scale(.92); }
@@ -436,18 +460,20 @@
   .fly-msg svg { width: 13px; height: 13px; flex: 0 0 auto; }
   .fly-msg span { overflow: hidden; text-overflow: ellipsis; }
 
-  .foot { width: min(1000px, 94vw); margin: 18px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
+  .foot { width: min(1000px, 94vw); margin: 14px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
   .foot b { color: var(--muted); font-weight: 700; }
 
   /* deliverables tray — collapsed by default so the page stays calm; the boss
      taps the header to open it and read/copy/export the captured output */
-  .tray { margin-top: 14px; background: linear-gradient(180deg, var(--surface), #19120b); border: 1px solid var(--line); border-radius: 16px; padding: 14px; box-shadow: 0 14px 36px -24px #000; }
+  .tray { background: linear-gradient(180deg, var(--surface), #19120b); border: 1px solid var(--line); border-radius: 16px; padding: 14px; box-shadow: 0 14px 36px -24px #000; }   /* main-col gap sets the rhythm — no extra margin */
   .tray-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; -webkit-user-select: none; user-select: none; }
   .tray.open .tray-head { margin-bottom: 12px; }
   .tray-chev { width: 14px; height: 14px; color: var(--muted); transition: transform .25s ease; }
   .tray.open .tray-chev { transform: rotate(180deg); }
   .tray:not(.open) .tray-actions, .tray:not(.open) .tray-list { display: none; }
   .tray-count.tick { animation: countPop .5s cubic-bezier(.2,1.5,.4,1); }
+  .tray-hd-left { flex: 1; min-width: 0; }
+  .tray-sub { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); margin: 3px 1px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   @keyframes countPop { 30% { transform: scale(1.35); } 100% { transform: scale(1); } }
   .tray-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .2px; color: var(--text); }
   .tray-count { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 10px; font-weight: 800; letter-spacing: 0; }
@@ -493,14 +519,14 @@
   .app .main-col > .convo { display: none; }
 
   .chat-bubble {
-    position: fixed; z-index: 140; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
-    width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+    position: fixed; z-index: 140; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom));
+    width: 54px; height: 54px; border-radius: 50%; cursor: pointer;
     background: linear-gradient(160deg, #efac6c, var(--accent)); color: var(--accent-ink);
-    display: inline-flex; align-items: center; justify-content: center;
-    box-shadow: 0 12px 30px -8px #000, 0 0 0 4px #e0894e22; -webkit-tap-highlight-color: transparent;
+    border: 1px solid #f3bc85; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 14px 30px -8px #000, 0 3px 10px -3px #00000088, 0 0 0 4px #e0894e1f; -webkit-tap-highlight-color: transparent;
     transition: transform .18s cubic-bezier(.2,1.3,.4,1), opacity .18s ease, box-shadow .18s ease;
   }
-  .chat-bubble svg { width: 26px; height: 26px; display: block; }
+  .chat-bubble svg { width: 24px; height: 24px; display: block; }
   .chat-bubble:hover { transform: scale(1.05); }
   .chat-bubble:active { transform: scale(.94); }
   .chat-bubble:focus-visible { outline: none; box-shadow: 0 12px 30px -8px #000, 0 0 0 3px var(--accent); }
@@ -509,10 +535,20 @@
   .bubble-badge[hidden] { display: none; }
   .bubble-dot { position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 2px var(--ink); animation: clPulse 1.8s ease-in-out infinite; }
   .bubble-dot[hidden] { display: none; }
+  /* first-run onboarding label beside the bubble — retires once the boss has opened chat */
+  .bubble-hint {
+    position: fixed; z-index: 140; right: calc(18px + 54px + 10px); bottom: calc(31px + env(safe-area-inset-bottom));
+    padding: 7px 12px; border-radius: 999px; cursor: pointer;
+    background: var(--surface2); color: var(--text); border: 1px solid #e0894e66;
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; white-space: nowrap;
+    box-shadow: 0 10px 24px -10px #000; animation: hintNudge 2.6s ease-in-out infinite;
+  }
+  .bubble-hint[hidden] { display: none; }
+  @keyframes hintNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
 
   /* peek preview when a reply arrives while chat is closed */
   .chat-peek {
-    position: fixed; z-index: 141; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom));
+    position: fixed; z-index: 141; right: 18px; bottom: calc(82px + env(safe-area-inset-bottom));
     max-width: min(300px, 78vw); padding: 10px 13px; border-radius: 14px; cursor: pointer;
     background: linear-gradient(180deg, var(--surface2), #201911); border: 1px solid var(--line);
     border-left: 3px solid var(--dotc, var(--accent)); box-shadow: 0 14px 30px -10px #000;
@@ -617,7 +653,7 @@
           <div id="bubble" hidden></div>
           <div id="comic" hidden></div>
         </div>
-        <p class="hint" id="status">Taip apa kau nak — crew yang sesuai akan datang bantu.</p>
+        <p class="hint" id="status">Apa kau nak buat hari ni? Crew yang sesuai akan bantu.</p>
       </section>
 
       <section class="taskq" id="taskq" hidden>
@@ -687,10 +723,13 @@
 
       <section class="tray" id="tray">
         <div class="tray-head" id="tray-head" role="button" aria-expanded="false" title="Tekan untuk buka / tutup">
-          <h2 class="tray-title">
-            Hasil <span class="tray-count" id="tray-count">0</span>
-            <svg class="tray-chev" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </h2>
+          <div class="tray-hd-left">
+            <h2 class="tray-title">
+              Hasil <span class="tray-count" id="tray-count">0</span>
+              <svg class="tray-chev" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </h2>
+            <div class="tray-sub" id="tray-sub">Hasil kerja crew tersimpan di sini.</div>
+          </div>
           <div class="tray-actions">
             <button id="tray-export" title="Muat turun semua sebagai fail .md">Export</button>
             <button id="tray-clear" title="Kosongkan semua hasil">Kosong</button>
@@ -703,6 +742,7 @@
     <aside class="rail">
       <h2 class="rail-title">Crew kau <span class="deck-count" id="deck-count">1/6</span></h2>
       <div class="deck" id="deck"></div>
+      <div class="deck-dots" id="deck-dots" aria-hidden="true"></div>
       <div class="deck-nav">
         <button class="deck-btn" id="deck-prev" aria-label="Sebelum">‹</button>
         <span class="deck-hint">Swipe untuk tukar crew</span>
@@ -738,6 +778,7 @@
     <span class="peek-who" id="peek-who"></span>
     <span class="peek-text" id="peek-text"></span>
   </div>
+  <button class="bubble-hint" id="bubble-hint" type="button" aria-label="Buka chat crew" hidden>Tanya crew</button>
   <button id="chat-bubble" class="chat-bubble" type="button" aria-label="Buka chat crew">
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.6 3.6A.8.8 0 0 1 4 20V17a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="currentColor"/></svg>
     <span class="bubble-badge" id="bubble-badge" hidden>0</span>
@@ -1195,6 +1236,11 @@
   const deck = document.getElementById('deck');
   const deckCountEl = document.getElementById('deck-count');
   const deckKeys = Object.keys(staff);
+  const deckDots = deckKeys.map(() => {
+    const i = document.createElement('i');
+    document.getElementById('deck-dots').appendChild(i);
+    return i;
+  });
   const cardEls = {};
   let order = deckKeys.slice();     // order[0] = front card
   deckKeys.forEach((k, idx) => {
@@ -1203,8 +1249,8 @@
     card.style.setProperty('--mc', a.dot);
     card.innerHTML =
       `<div class="sc-head"><div class="sc-face"><div class="px"></div></div>`
-      + `<div><div class="sc-name">${a.name}</div><div class="sc-role">${a.role}</div></div></div>`
-      + `<p class="sc-bio">${info.bio}</p>`
+      + `<div><div class="sc-name">${a.name}</div><div class="sc-role-row"><span class="sc-role">${a.role}</span><span class="sc-live">Aktif</span></div></div></div>`
+      + `<p class="sc-bio" title="${info.bio.replace(/"/g, '&quot;')}">${info.bio}</p>`
       + `<div class="sc-foot"><span class="sc-status">kat meja</span><span class="sc-id">${String(idx + 1).padStart(2, '0')}</span></div>`;
     deck.appendChild(card);
     card.querySelector('.sc-face .px').style.boxShadow = faceShadow(a.outfit, k, 4);
@@ -1223,7 +1269,9 @@
       card.style.pointerEvents = i === 0 ? 'auto' : 'none';
       if (k === snapKey) { void card.offsetWidth; card.style.transition = 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease'; }
     });
-    deckCountEl.textContent = (deckKeys.indexOf(order[0]) + 1) + '/' + deckKeys.length;
+    const idx = deckKeys.indexOf(order[0]);
+    deckCountEl.textContent = (idx + 1) + '/' + deckKeys.length;
+    deckDots.forEach((d, i) => d.classList.toggle('on', i === idx));
   }
   function cycle(dir) {                 // dir>0 next, dir<0 prev
     const moved = order[0];
@@ -1737,6 +1785,16 @@
   const sheetBody = document.getElementById('sheet-body');
   { const convoEl = document.querySelector('.convo'); if (convoEl && sheetBody) sheetBody.appendChild(convoEl); }
 
+  // "Tanya crew" onboarding label — shows on the first few visits, gone forever once chat is opened
+  const bubbleHint = document.getElementById('bubble-hint');
+  {
+    let seen = 0; try { seen = +(localStorage.getItem('mo_bubble_hint') || 0); } catch {}
+    if (seen < 3) {
+      bubbleHint.hidden = false;
+      try { localStorage.setItem('mo_bubble_hint', String(seen + 1)); } catch {}
+    }
+  }
+
   const SNAPS = [40, 70, 95];
   let sheetOpen = false, unread = 0, peekT = null;
   const isDesktop = () => window.matchMedia('(min-width: 721px)').matches;
@@ -1748,6 +1806,9 @@
     if (!isDesktop()) setSheetHeight(snap || 70);
     sheet.dataset.state = 'open'; sheet.setAttribute('aria-hidden', 'false');
     scrim.classList.add('show'); chatBubble.classList.add('hidden'); peek.hidden = true;
+    // once chat has been opened, the onboarding label has done its job for good
+    bubbleHint.hidden = true;
+    try { localStorage.setItem('mo_bubble_hint', '9'); } catch {}
     clearUnread();
     requestAnimationFrame(() => scrollToLatest(false));
   }
@@ -1769,6 +1830,7 @@
     clearTimeout(peekT); peekT = setTimeout(() => { peek.hidden = true; }, 6000);
   }
   chatBubble.addEventListener('click', () => openChat(70));
+  bubbleHint.addEventListener('click', () => openChat(70));
   document.getElementById('sheet-close').addEventListener('click', closeChat);
   document.getElementById('sheet-min').addEventListener('click', minimizeChat);
   scrim.addEventListener('click', closeChat);
@@ -2031,6 +2093,10 @@
   }
   function renderTray() {
     trayCount.textContent = deliverables.length;
+    const traySub = document.getElementById('tray-sub');
+    if (traySub) traySub.textContent = deliverables.length
+      ? deliverables.length + ' hasil siap untuk disemak'
+      : 'Hasil kerja crew tersimpan di sini.';
     if (!deliverables.length) { trayList.innerHTML = '<div class="tray-empty">Belum ada hasil. Bagi crew kau sesuatu untuk buat — hasil mereka tersimpan di sini, boleh salin & kongsi.</div>'; return; }
     trayList.innerHTML = '';
     for (let i = deliverables.length - 1; i >= 0; i--) trayList.appendChild(delivCard(deliverables[i]));   // newest on top
@@ -3461,7 +3527,9 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   function fit() {
     const stage = document.getElementById('stage');
     const col = stage.parentElement;                 // the .stage-wrap column
-    const avail = Math.min(820, col.clientWidth);
+    const cs = getComputedStyle(col);                // hero card has padding — scale to its content box
+    const inner = col.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    const avail = Math.min(820, inner);
     const s = avail / BOARD_W; currentScale = s;
     office.style.transform = 'scale(' + s + ')';
     stage.style.width = (BOARD_W * s) + 'px'; stage.style.height = (BOARD_H * s) + 'px';
