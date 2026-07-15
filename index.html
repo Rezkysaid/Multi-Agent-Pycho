@@ -446,38 +446,7 @@
     color: var(--text); font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .4px; white-space: nowrap;
     box-shadow: 0 10px 24px -8px #000;
   }
-  /* ===== interactive zone layer — live labels, glows and crew chips over the room ===== */
-  .zone-glow { position: absolute; pointer-events: none; border-radius: 50%; background: radial-gradient(closest-side, var(--zg, rgba(224,137,78,.18)), transparent 72%); opacity: 0; transition: opacity .9s ease; z-index: 3; }
-  .zone-glow.on { opacity: 1; }
-  .zlabel {
-    position: absolute; z-index: 56; transform: translate(-50%, -50%); white-space: nowrap;
-    display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; border: 1px solid #ffffff1c;
-    background: rgba(19, 13, 8, .78); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 8.5px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase;
-    cursor: pointer; -webkit-tap-highlight-color: transparent; opacity: .6; transition: opacity .35s ease, border-color .35s ease;
-  }
-  .zlabel svg { width: 11px; height: 11px; display: block; color: var(--zc, var(--accent)); }
-  .zlabel .zl-n { font-size: 8px; font-weight: 800; letter-spacing: .3px; text-transform: none; color: var(--muted); }
-  /* small screens: the scene is tiny — collapse labels to icon + count so they never crowd the room */
-  @media (max-width: 560px) {
-    .zlabel { padding: 3px 7px; gap: 4px; }
-    .zlabel .zl-name { display: none; }
-    .zlabel .zl-n { font-size: 8.5px; }
-  }
-  .zlabel.busy { opacity: 1; border-color: var(--zc, var(--accent)); }
-  .zlabel.busy .zl-n { color: var(--zc, var(--accent)); }
-  .zlabel:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px #e0894e44; }
-  /* live "NAME · status" chip pinned to a busy crew member */
-  .crew-chip {
-    position: absolute; z-index: 57; transform: translate(-50%, -100%);
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 8px; white-space: nowrap;
-    background: rgba(19, 13, 8, .84); border: 1px solid #ffffff18; border-left: 2px solid var(--cc, var(--accent));
-    font-family: 'Nunito', sans-serif; font-size: 9.5px; color: var(--text);
-    pointer-events: none; opacity: 0; transition: opacity .35s ease;
-  }
-  .crew-chip.on { opacity: 1; }
-  .crew-chip b { font-size: 8.5px; font-weight: 800; letter-spacing: .5px; color: var(--cc, var(--accent)); }
-  /* compact popover for zone detail / scene summary */
+  /* compact popover for the scene summary (Ringkasan) */
   .scene-pop {
     position: absolute; z-index: 58; left: 10px; right: 10px; top: 40px; max-width: 330px; margin: 0 auto;
     background: linear-gradient(180deg, #251d13f5, #1a130cf5); border: 1px solid var(--line); border-radius: 14px;
@@ -521,8 +490,11 @@
   .cta-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .cta-txt b { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.35; }
   .cta-txt span { font-family: 'Nunito', sans-serif; font-size: 11px; color: var(--muted); }
-  .cta-go { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: var(--accent-ink); }
+  .cta-go { position: relative; flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: var(--accent-ink); }
   .cta-go svg { width: 17px; height: 17px; }
+  /* unread count rides on the CTA now that the floating bubble is gone */
+  .cta-badge { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #d64f3a; color: #fff; font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #211a10; }
+  .cta-badge[hidden] { display: none; }
   /* pause the living-office animations when the scene scrolls off-screen */
   #office.suspend .sprite-canvas { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) { .sprite-canvas { animation: none !important; } .zone-glow { transition: none; } }
@@ -657,6 +629,9 @@
   /* the chat lives inside the sheet; hide it while still inline (pre-move) so no flash */
   .app .main-col > .convo { display: none; }
 
+  /* the floating bubble is retired — the scene CTA is the single entry into chat.
+     The element stays in the DOM (unread/peek logic hangs off it) but never shows. */
+  .chat-bubble, .bubble-hint { display: none !important; }
   .chat-bubble {
     position: fixed; z-index: 140; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom));
     width: 54px; height: 54px; border-radius: 50%; cursor: pointer;
@@ -687,7 +662,7 @@
 
   /* peek preview when a reply arrives while chat is closed */
   .chat-peek {
-    position: fixed; z-index: 141; right: 18px; bottom: calc(82px + env(safe-area-inset-bottom));
+    position: fixed; z-index: 141; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom));   /* no bubble below it any more */
     max-width: min(300px, 78vw); padding: 10px 13px; border-radius: 14px; cursor: pointer;
     background: linear-gradient(180deg, var(--surface2), #201911); border: 1px solid var(--line);
     border-left: 3px solid var(--dotc, var(--accent)); box-shadow: 0 14px 30px -10px #000;
@@ -797,11 +772,11 @@
           <div id="bubble" hidden></div>
           <div id="comic" hidden></div>
         </div>
-        <p class="hint" id="status">Semua crew sedia. Tekan zon dalam pejabat untuk tengok siapa buat apa.</p>
+        <p class="hint" id="status">Semua crew sedia membantu.</p>
         <button class="scene-cta" id="scene-cta" type="button" aria-label="Buka chat crew">
           <span class="cta-spark"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3.5 13.8 9 19.5 11 13.8 13 12 18.5 10.2 13 4.5 11 10.2 9Z" fill="currentColor"/><path d="M18.5 3.8 19.2 6 21.5 6.8 19.2 7.6 18.5 9.8 17.8 7.6 15.5 6.8 17.8 6Z" fill="currentColor" opacity=".7"/></svg></span>
           <span class="cta-txt"><b>Apa kau nak buat hari ni? Crew yang sesuai akan bantu.</b><span>Pilih tugasan atau cerita ringkas, kami aturkan selebihnya.</span></span>
-          <span class="cta-go"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="cta-go"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="cta-badge" id="cta-badge" hidden>0</span></span>
         </button>
         <div class="scene-pop" id="scene-pop" role="dialog" aria-label="Butiran zon" hidden></div>
       </section>
@@ -1993,8 +1968,17 @@
   let sheetOpen = false, unread = 0, peekT = null;
   const isDesktop = () => window.matchMedia('(min-width: 721px)').matches;
   function setSheetHeight(pct) { pct = Math.max(30, Math.min(97, pct)); sheet.style.height = pct + (isDesktop() ? 'vh' : 'vh'); }
-  function clearUnread() { unread = 0; bubbleBadge.hidden = true; bubbleBadge.textContent = '0'; }
-  function bumpUnread() { unread++; bubbleBadge.textContent = unread > 9 ? '9+' : String(unread); bubbleBadge.hidden = false; }
+  const ctaBadge = () => document.getElementById('cta-badge');
+  function clearUnread() {
+    unread = 0; bubbleBadge.hidden = true; bubbleBadge.textContent = '0';
+    const cb = ctaBadge(); if (cb) cb.hidden = true;
+  }
+  function bumpUnread() {
+    unread++;
+    const label = unread > 9 ? '9+' : String(unread);
+    bubbleBadge.textContent = label; bubbleBadge.hidden = false;
+    const cb = ctaBadge(); if (cb) { cb.textContent = label; cb.hidden = false; }
+  }
   function openChat(snap) {
     sheetOpen = true;
     if (!isDesktop()) setSheetHeight(snap || 70);
@@ -3758,37 +3742,10 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     { id: 'lounge',  name: 'Rehat',      color: '#93ad86', rect: [10.8, 4.0, 14.9, 9.7],anchor: [13.2, 4.1], glow: [12.6, 6.2, 2.6], icon: zsvg('<path d="M4 12v5h16v-5M6 12V7h12v5M4 12h16"/>') }
   ];
   const stageEl = document.getElementById('stage');
-  // soft glow pool inside the scaled office (lights up while the zone is working)
-  ZONES.forEach(z => {
-    const g = document.createElement('div'); g.className = 'zone-glow';
-    const c = project(z.glow[0], z.glow[1]), w = z.glow[2] * TILE_W, h = z.glow[2] * TILE_H * 1.35;
-    g.style.setProperty('--zg', z.color + '2e');
-    Object.assign(g.style, { width: w + 'px', height: h + 'px', left: (c.x - w / 2) + 'px', top: (c.y - h / 2) + 'px' });
-    office.appendChild(g); z.glowEl = g;
-  });
-  // tappable zone labels live UNSCALED in the stage so text stays crisp
-  ZONES.forEach(z => {
-    const b = document.createElement('button'); b.className = 'zlabel'; b.type = 'button';
-    b.style.setProperty('--zc', z.color);
-    b.innerHTML = `${z.icon}<span class="zl-name">${z.name}</span><span class="zl-n">0 crew</span>`;
-    b.setAttribute('aria-label', 'Zon ' + z.name);
-    b.addEventListener('click', () => openZonePop(z));
-    stageEl.appendChild(b); z.labelEl = b; z.nEl = b.querySelector('.zl-n');
-  });
-  function zoneLayout() {
-    ZONES.forEach(z => {
-      const p = project(z.anchor[0], z.anchor[1]);
-      z.labelEl.style.left = (p.x * currentScale) + 'px';
-      z.labelEl.style.top = (p.y * currentScale) + 'px';
-    });
-  }
-  window.addEventListener('resize', () => requestAnimationFrame(zoneLayout));
-  requestAnimationFrame(() => requestAnimationFrame(zoneLayout));
-
+  // occupancy stays computed from real sprite positions — it feeds the Ringkasan
+  // summary, but the scene itself stays clean (no labels/overlays on the room)
   const zoneOf = (gx, gy) => ZONES.find(z => gx >= z.rect[0] && gx <= z.rect[2] && gy >= z.rect[1] && gy <= z.rect[3]) || null;
   const statusOf = k => (sprites[k].statEls && sprites[k].statEls[0]) ? sprites[k].statEls[0].textContent : '';
-  // live "NAME · status" chips over busy crew (small pool, repositioned per tick)
-  const chipPool = [0, 1, 2].map(() => { const c = document.createElement('div'); c.className = 'crew-chip'; stageEl.appendChild(c); return c; });
   let zoneOcc = {};
   function zoneTick() {
     zoneOcc = {}; ZONES.forEach(z => zoneOcc[z.id] = []);
@@ -3796,27 +3753,6 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       const s = sprites[k], z = zoneOf(s.gx, s.gy);
       if (z) zoneOcc[z.id].push(k);
     }
-    ZONES.forEach(z => {
-      const ks = zoneOcc[z.id], busy = ks.some(k => sprites[k].busy);
-      z.nEl.textContent = ks.length + ' crew';
-      z.labelEl.classList.toggle('busy', busy);
-      z.glowEl.classList.toggle('on', busy);
-    });
-    // chips: up to 3 busy, non-walking crew — skip anyone whose head-cue bubble is showing
-    const cueEl = document.getElementById('bubble');
-    const busyK = Object.keys(staff).filter(k => sprites[k].busy && !sprites[k].isWalking).slice(0, 3);
-    chipPool.forEach((chip, i) => {
-      const k = busyK[i];
-      if (!k) { chip.classList.remove('on'); return; }
-      const s = sprites[k];
-      const x = (parseFloat(s.wrap.style.left) + SPR_HALF) * currentScale;
-      const y = parseFloat(s.wrap.style.top) * currentScale;
-      if (!cueEl.hidden && Math.abs(parseFloat(cueEl.style.left || 0) - (parseFloat(s.wrap.style.left) + SPR_HALF)) < 24) { chip.classList.remove('on'); return; }
-      chip.style.setProperty('--cc', staff[k].dot);
-      chip.innerHTML = `<b>${staff[k].name}</b>${escHtml(statusOf(k))}`;
-      chip.style.left = x + 'px'; chip.style.top = (y - 10) + 'px';
-      chip.classList.add('on');
-    });
     if (!popEl.hidden && popKind === 'sum') renderSummary();   // keep an open summary live
   }
 
@@ -3829,30 +3765,6 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     if (withChat) { const b = document.createElement('button'); b.className = 'pri'; b.textContent = 'Buka chat'; b.addEventListener('click', () => { closePop(); openChat(70); }); row.appendChild(b); }
     const c = document.createElement('button'); c.textContent = 'Tutup'; c.addEventListener('click', closePop); row.appendChild(c);
     return row;
-  }
-  function openZonePop(z) {
-    popKind = 'zone';
-    popEl.style.setProperty('--zc', z.color);
-    popEl.innerHTML = `<div class="sp-title">${z.icon}${z.name}</div>`;
-    const ks = zoneOcc[z.id] || [];
-    const sub = document.createElement('div'); sub.className = 'sp-sub';
-    sub.textContent = ks.length ? ks.length + ' crew di zon ni sekarang' : 'Kosong buat masa ni';
-    popEl.appendChild(sub);
-    if (ks.length) {
-      const rows = document.createElement('div'); rows.className = 'sp-rows';
-      ks.forEach(k => {
-        const r = document.createElement('div'); r.className = 'sp-row'; r.style.setProperty('--rc', staff[k].dot);
-        r.innerHTML = `<b>${staff[k].name}</b><span>${escHtml(statusOf(k))}</span>`;
-        rows.appendChild(r);
-      });
-      popEl.appendChild(rows);
-    } else {
-      const e = document.createElement('div'); e.className = 'sp-empty';
-      e.textContent = 'Bagi crew tugasan — zon ni akan hidup bila mereka mula bekerja.';
-      popEl.appendChild(e);
-    }
-    popEl.appendChild(popActions(true));
-    popEl.hidden = false;
   }
   function renderSummary() {
     popEl.style.setProperty('--zc', 'var(--accent)');
@@ -3879,7 +3791,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   });
   document.addEventListener('click', e => {   // tap anywhere outside → close
     if (popEl.hidden) return;
-    if (!popEl.contains(e.target) && !e.target.closest('.zlabel') && !e.target.closest('#hud-sum')) closePop();
+    if (!popEl.contains(e.target) && !e.target.closest('#hud-sum')) closePop();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !popEl.hidden) closePop(); });
 
