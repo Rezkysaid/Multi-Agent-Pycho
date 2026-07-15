@@ -488,6 +488,82 @@
   .src-meta .src-domain { color: var(--sage); font-weight: 700; }
   .src-snip { font-family: 'Nunito', sans-serif; font-size: 11.5px; color: #b8ab97; line-height: 1.45; margin-top: 5px; }
 
+  /* ===== collapsible chat: floating bubble + expandable bottom sheet ===== */
+  /* the chat lives inside the sheet; hide it while still inline (pre-move) so no flash */
+  .app .main-col > .convo { display: none; }
+
+  .chat-bubble {
+    position: fixed; z-index: 140; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(160deg, #efac6c, var(--accent)); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 30px -8px #000, 0 0 0 4px #e0894e22; -webkit-tap-highlight-color: transparent;
+    transition: transform .18s cubic-bezier(.2,1.3,.4,1), opacity .18s ease, box-shadow .18s ease;
+  }
+  .chat-bubble svg { width: 26px; height: 26px; display: block; }
+  .chat-bubble:hover { transform: scale(1.05); }
+  .chat-bubble:active { transform: scale(.94); }
+  .chat-bubble:focus-visible { outline: none; box-shadow: 0 12px 30px -8px #000, 0 0 0 3px var(--accent); }
+  .chat-bubble.hidden { opacity: 0; transform: scale(.6); pointer-events: none; }
+  .bubble-badge { position: absolute; top: -3px; right: -3px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #d64f3a; color: #fff; font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--ink); }
+  .bubble-badge[hidden] { display: none; }
+  .bubble-dot { position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 2px var(--ink); animation: clPulse 1.8s ease-in-out infinite; }
+  .bubble-dot[hidden] { display: none; }
+
+  /* peek preview when a reply arrives while chat is closed */
+  .chat-peek {
+    position: fixed; z-index: 141; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom));
+    max-width: min(300px, 78vw); padding: 10px 13px; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(180deg, var(--surface2), #201911); border: 1px solid var(--line);
+    border-left: 3px solid var(--dotc, var(--accent)); box-shadow: 0 14px 30px -10px #000;
+    animation: peekIn .28s cubic-bezier(.2,1,.3,1) both;
+  }
+  .chat-peek[hidden] { display: none; }
+  @keyframes peekIn { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+  .peek-who { display: block; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--dotc, var(--accent)); }
+  .peek-text { display: block; font-family: 'Nunito', sans-serif; font-size: 12.5px; color: var(--text); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  #chat-scrim { position: fixed; inset: 0; z-index: 150; background: rgba(8,5,3,.42); opacity: 0; pointer-events: none; transition: opacity .28s ease; }
+  #chat-scrim.show { opacity: 1; pointer-events: auto; }
+
+  .sheet {
+    position: fixed; z-index: 151; left: 0; right: 0; bottom: 0;
+    height: 70vh; max-height: 100vh; transform: translateY(100%);
+    background: linear-gradient(180deg, #241d15 0%, #1b140d 100%);
+    border-top: 1px solid var(--line); border-radius: 20px 20px 0 0;
+    box-shadow: 0 -18px 50px -20px #000; display: flex; flex-direction: column;
+    transition: transform .34s cubic-bezier(.25,.9,.3,1); will-change: transform;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @supports (height: 100dvh) { .sheet { max-height: 100dvh; } }
+  .sheet.dragging { transition: none; }
+  .sheet[data-state="open"] { transform: translateY(0); }
+  .sheet-handle { flex: 0 0 auto; display: flex; justify-content: center; padding: 9px 0 4px; cursor: grab; touch-action: none; }
+  .sheet-handle span { width: 40px; height: 5px; border-radius: 3px; background: #5a4d3b; }
+  .sheet-handle:active { cursor: grabbing; }
+  .sheet-header { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 2px 14px 10px; cursor: grab; touch-action: none; border-bottom: 1px solid var(--line); }
+  .sheet-title-wrap { flex: 1; min-width: 0; }
+  .sheet-title { font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.1; }
+  .sheet-sub { font-family: 'Nunito', sans-serif; font-size: 11.5px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sheet-btn { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: color .15s ease, border-color .15s ease; }
+  .sheet-btn:hover { color: var(--text); border-color: var(--accent); }
+  .sheet-btn:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px #e0894e33; }
+  .sheet-btn svg { width: 17px; height: 17px; }
+  .sheet-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 10px 12px 0; }
+  /* the existing chat fills the sheet body; composer pinned at the bottom by flex */
+  .sheet .convo { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .sheet #chat { flex: 1; min-height: 0; max-height: none; border: none; background: none; box-shadow: none; padding: 4px 3px 10px; }
+  @supports (height: 100dvh) { .sheet #chat { max-height: none; } }
+  .sheet .composer { position: static; margin-top: 8px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); background: none; }
+
+  /* desktop / tablet: a right-side floating panel instead of a full-width sheet */
+  @media (min-width: 721px) {
+    .sheet { left: auto; right: 20px; bottom: 20px; width: min(430px, 42vw); height: min(82vh, 760px); border-radius: 18px; border: 1px solid var(--line); transform: translateY(120%); }
+    .sheet[data-state="open"] { transform: translateY(0); }
+    #chat-scrim { background: rgba(8,5,3,.28); }
+    .chat-peek { right: 20px; }
+  }
+
   /* stack on narrow screens: office + chat first (order 0, default), roster after */
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
@@ -638,6 +714,35 @@
   <footer class="foot">
     <b>Mind Crew</b> — dibina tangan. Tarik crew ke meja bulat untuk buka perbincangan pasukan.
   </footer>
+
+  <!-- collapsible chat: scrim + bottom sheet (the existing .convo is moved inside on load) -->
+  <div id="chat-scrim" aria-hidden="true"></div>
+  <div id="chat-sheet" class="sheet" data-state="closed" role="dialog" aria-modal="false" aria-label="Chat Crew" aria-hidden="true">
+    <div class="sheet-handle" id="sheet-handle" role="separator" aria-label="Seret untuk ubah saiz"><span></span></div>
+    <div class="sheet-header" id="sheet-header">
+      <div class="sheet-title-wrap">
+        <div class="sheet-title">Chat Crew</div>
+        <div class="sheet-sub" id="sheet-sub">Sedia bila-bila.</div>
+      </div>
+      <button class="sheet-btn" id="sheet-min" type="button" aria-label="Minimize chat" title="Minimize">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="sheet-btn" id="sheet-close" type="button" aria-label="Tutup chat" title="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body" id="sheet-body"><!-- .convo moved here --></div>
+  </div>
+
+  <div id="chat-peek" class="chat-peek" role="button" tabindex="0" aria-label="Buka chat crew" hidden>
+    <span class="peek-who" id="peek-who"></span>
+    <span class="peek-text" id="peek-text"></span>
+  </div>
+  <button id="chat-bubble" class="chat-bubble" type="button" aria-label="Buka chat crew">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.6 3.6A.8.8 0 0 1 4 20V17a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="currentColor"/></svg>
+    <span class="bubble-badge" id="bubble-badge" hidden>0</span>
+    <span class="bubble-dot" id="bubble-dot" hidden></span>
+  </button>
 
 <script>
   // =====================================================================
@@ -1466,7 +1571,7 @@
   function hideComic() { comicSeq++; clearTimeout(comicT); comic.hidden = true; }
   comic.addEventListener('click', () => { if (comic._advance) comic._advance(); });
 
-  const setStatus = t => document.getElementById('status').textContent = t;
+  const setStatus = t => { document.getElementById('status').textContent = t; const ss = document.getElementById('sheet-sub'); if (ss) ss.textContent = t; };
 
   // ---- chat panel — the shared conversation surface (you + staff replies) ----
   const chat = document.getElementById('chat');
@@ -1500,6 +1605,8 @@
     // long-reply clamp for genuine staff prose (not the "sedang menaip…" placeholder)
     if (kind === 'staff' && text && text.length > 620 && text !== 'sedang menaip…') maybeClamp(m, bub);
     if (stick) scrollToLatest(false); else if (kind === 'staff') showJump(true);
+    // unread badge + peek when a reply lands while the chat sheet is closed
+    if (kind === 'staff' && text && text !== 'sedang menaip…') notifyChat(who, text, dotColor);
     return bub;
   }
   // clamp a very tall reply and add a Baca penuh / Tutup toggle (visual only)
@@ -1614,6 +1721,81 @@
     el.textContent = officeMode === 'break' ? n + ' crew tengah rehat' : n + ' crew aktif';
   }
   updateChatLive();
+
+  // =====================================================================
+  //  COLLAPSIBLE CHAT — floating bubble + draggable bottom sheet.
+  //  The existing conversation (.convo: #chat + jump + composer) is MOVED
+  //  into the sheet once, so there is ONE chat implementation and all
+  //  state (history, draft, scroll, running tasks) is preserved.
+  // =====================================================================
+  const sheet = document.getElementById('chat-sheet');
+  const scrim = document.getElementById('chat-scrim');
+  const chatBubble = document.getElementById('chat-bubble');
+  const bubbleBadge = document.getElementById('bubble-badge');
+  const bubbleDot = document.getElementById('bubble-dot');
+  const peek = document.getElementById('chat-peek');
+  const sheetBody = document.getElementById('sheet-body');
+  { const convoEl = document.querySelector('.convo'); if (convoEl && sheetBody) sheetBody.appendChild(convoEl); }
+
+  const SNAPS = [40, 70, 95];
+  let sheetOpen = false, unread = 0, peekT = null;
+  const isDesktop = () => window.matchMedia('(min-width: 721px)').matches;
+  function setSheetHeight(pct) { pct = Math.max(30, Math.min(97, pct)); sheet.style.height = pct + (isDesktop() ? 'vh' : 'vh'); }
+  function clearUnread() { unread = 0; bubbleBadge.hidden = true; bubbleBadge.textContent = '0'; }
+  function bumpUnread() { unread++; bubbleBadge.textContent = unread > 9 ? '9+' : String(unread); bubbleBadge.hidden = false; }
+  function openChat(snap) {
+    sheetOpen = true;
+    if (!isDesktop()) setSheetHeight(snap || 70);
+    sheet.dataset.state = 'open'; sheet.setAttribute('aria-hidden', 'false');
+    scrim.classList.add('show'); chatBubble.classList.add('hidden'); peek.hidden = true;
+    clearUnread();
+    requestAnimationFrame(() => scrollToLatest(false));
+  }
+  function closeChat() {
+    sheetOpen = false;
+    sheet.dataset.state = 'closed'; sheet.setAttribute('aria-hidden', 'true');
+    scrim.classList.remove('show'); chatBubble.classList.remove('hidden');
+    const inp = document.getElementById('user-input'); if (document.activeElement === inp) inp.blur();
+    chatBubble.focus({ preventScroll: true });
+  }
+  function minimizeChat() { if (!isDesktop()) setSheetHeight(40); }
+  function notifyChat(who, text, dot) {
+    if (sheetOpen) return;                 // visible → no need to nudge
+    bumpUnread();
+    if (dot) peek.style.setProperty('--dotc', dot);
+    document.getElementById('peek-who').textContent = who + ' dah update';
+    document.getElementById('peek-text').textContent = String(text).replace(/\s+/g, ' ').slice(0, 64);
+    peek.hidden = false;
+    clearTimeout(peekT); peekT = setTimeout(() => { peek.hidden = true; }, 6000);
+  }
+  chatBubble.addEventListener('click', () => openChat(70));
+  document.getElementById('sheet-close').addEventListener('click', closeChat);
+  document.getElementById('sheet-min').addEventListener('click', minimizeChat);
+  scrim.addEventListener('click', closeChat);
+  peek.addEventListener('click', () => openChat(70));
+  peek.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChat(70); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheetOpen) closeChat(); });
+
+  // drag to resize / dismiss — only the handle + header (never the composer/input),
+  // so you can't accidentally close the sheet while typing
+  let dragging = false, dragStartY = 0, dragStartH = 0;
+  function dragStart(e) { if (isDesktop()) return; dragging = true; dragStartY = e.clientY; dragStartH = sheet.getBoundingClientRect().height; sheet.classList.add('dragging'); try { e.currentTarget.setPointerCapture(e.pointerId); } catch {} }
+  function dragMove(e) { if (!dragging) return; const vh = window.innerHeight; let h = dragStartH - (e.clientY - dragStartY); h = Math.max(vh * 0.2, Math.min(vh * 0.97, h)); sheet.style.height = h + 'px'; }
+  function dragEnd() {
+    if (!dragging) return; dragging = false; sheet.classList.remove('dragging');
+    const vh = window.innerHeight, pct = (sheet.getBoundingClientRect().height / vh) * 100;
+    if (pct < 32) { closeChat(); sheet.style.height = '70vh'; return; }     // swiped down past threshold → collapse
+    let nearest = SNAPS[0]; for (const s of SNAPS) if (Math.abs(s - pct) < Math.abs(nearest - pct)) nearest = s;
+    setSheetHeight(nearest);
+  }
+  ['sheet-handle', 'sheet-header'].forEach(id => { const el = document.getElementById(id);
+    el.addEventListener('pointerdown', dragStart); el.addEventListener('pointermove', dragMove);
+    el.addEventListener('pointerup', dragEnd); el.addEventListener('pointercancel', dragEnd);
+  });
+  // subtle pulsing dot on the bubble while crew is working and chat is closed
+  setInterval(() => { bubbleDot.hidden = sheetOpen || !(document.querySelector('#chat .bub.typing') || (typeof projectBusy !== 'undefined' && projectBusy) || (typeof meetingBusy !== 'undefined' && meetingBusy) || (typeof roomBusy !== 'undefined' && roomBusy)); }, 900);
+  // debug hook
+  window.__sheet = { open: openChat, close: closeChat, minimize: minimizeChat, state: () => ({ open: sheetOpen, unread, h: sheet.style.height }) };
 
   // ---- task queue — a live progress board of what the office is working on ----
   const taskqWrap = document.getElementById('taskq');
