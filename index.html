@@ -446,6 +446,87 @@
     color: var(--text); font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .4px; white-space: nowrap;
     box-shadow: 0 10px 24px -8px #000;
   }
+  /* ===== interactive zone layer — live labels, glows and crew chips over the room ===== */
+  .zone-glow { position: absolute; pointer-events: none; border-radius: 50%; background: radial-gradient(closest-side, var(--zg, rgba(224,137,78,.18)), transparent 72%); opacity: 0; transition: opacity .9s ease; z-index: 3; }
+  .zone-glow.on { opacity: 1; }
+  .zlabel {
+    position: absolute; z-index: 56; transform: translate(-50%, -50%); white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; border: 1px solid #ffffff1c;
+    background: rgba(19, 13, 8, .78); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 8.5px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; opacity: .6; transition: opacity .35s ease, border-color .35s ease;
+  }
+  .zlabel svg { width: 11px; height: 11px; display: block; color: var(--zc, var(--accent)); }
+  .zlabel .zl-n { font-size: 8px; font-weight: 800; letter-spacing: .3px; text-transform: none; color: var(--muted); }
+  /* small screens: the scene is tiny — collapse labels to icon + count so they never crowd the room */
+  @media (max-width: 560px) {
+    .zlabel { padding: 3px 7px; gap: 4px; }
+    .zlabel .zl-name { display: none; }
+    .zlabel .zl-n { font-size: 8.5px; }
+  }
+  .zlabel.busy { opacity: 1; border-color: var(--zc, var(--accent)); }
+  .zlabel.busy .zl-n { color: var(--zc, var(--accent)); }
+  .zlabel:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px #e0894e44; }
+  /* live "NAME · status" chip pinned to a busy crew member */
+  .crew-chip {
+    position: absolute; z-index: 57; transform: translate(-50%, -100%);
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 8px; white-space: nowrap;
+    background: rgba(19, 13, 8, .84); border: 1px solid #ffffff18; border-left: 2px solid var(--cc, var(--accent));
+    font-family: 'Nunito', sans-serif; font-size: 9.5px; color: var(--text);
+    pointer-events: none; opacity: 0; transition: opacity .35s ease;
+  }
+  .crew-chip.on { opacity: 1; }
+  .crew-chip b { font-size: 8.5px; font-weight: 800; letter-spacing: .5px; color: var(--cc, var(--accent)); }
+  /* compact popover for zone detail / scene summary */
+  .scene-pop {
+    position: absolute; z-index: 58; left: 10px; right: 10px; top: 40px; max-width: 330px; margin: 0 auto;
+    background: linear-gradient(180deg, #251d13f5, #1a130cf5); border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 13px 11px; box-shadow: 0 22px 46px -18px #000; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    animation: pop .2s cubic-bezier(.2,1.2,.4,1); transform-origin: top center;
+  }
+  .scene-pop[hidden] { display: none; }
+  .sp-title { display: flex; align-items: center; gap: 7px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; color: var(--text); }
+  .sp-title svg { width: 13px; height: 13px; color: var(--zc, var(--accent)); }
+  .sp-sub { font-family: 'Nunito', sans-serif; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .sp-rows { margin-top: 9px; display: flex; flex-direction: column; gap: 6px; }
+  .sp-row { display: flex; align-items: baseline; gap: 7px; font-family: 'Nunito', sans-serif; font-size: 11.5px; color: var(--text); }
+  .sp-row::before { content: ''; align-self: center; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--rc, var(--accent)); }
+  .sp-row b { font-size: 10px; font-weight: 800; letter-spacing: .5px; }
+  .sp-row span { color: var(--muted); font-size: 10.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-empty { font-family: 'Nunito', sans-serif; font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .sp-actions { display: flex; gap: 7px; margin-top: 11px; }
+  .sp-actions button { flex: 0 0 auto; min-height: 32px; font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 5px 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface2); color: var(--muted); transition: color .15s ease, border-color .15s ease; }
+  .sp-actions button:hover { color: var(--text); border-color: var(--accent); }
+  .sp-actions button.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  /* HUD action in the caption row */
+  .stage-caption { display: flex; align-items: center; gap: 6px; }
+  .hud-btn {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 5px; min-height: 28px;
+    background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; cursor: pointer;
+    color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .4px;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .hud-btn:hover { color: var(--text); border-color: var(--accent); }
+  .hud-btn svg { width: 12px; height: 12px; color: var(--accent); }
+  /* CTA panel at the bottom of the hero */
+  .scene-cta {
+    display: flex; align-items: center; gap: 11px; width: 100%; margin-top: 10px; padding: 11px 12px; text-align: left;
+    border-radius: 14px; background: linear-gradient(180deg, #2b2214, #211a10); border: 1px solid var(--line);
+    cursor: pointer; -webkit-tap-highlight-color: transparent; transition: border-color .15s ease, background .15s ease;
+  }
+  .scene-cta:hover { border-color: #6b5a45; }
+  .scene-cta:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px #e0894e33; }
+  .cta-spark { flex: 0 0 auto; color: var(--accent); }
+  .cta-spark svg { width: 22px; height: 22px; display: block; }
+  .cta-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .cta-txt b { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.35; }
+  .cta-txt span { font-family: 'Nunito', sans-serif; font-size: 11px; color: var(--muted); }
+  .cta-go { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: var(--accent-ink); }
+  .cta-go svg { width: 17px; height: 17px; }
+  /* pause the living-office animations when the scene scrolls off-screen */
+  #office.suspend .sprite-canvas { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .sprite-canvas { animation: none !important; } .zone-glow { transition: none; } }
+  .sprite:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   #roomzone { position: absolute; pointer-events: none; border: 2px dashed #e0894e88; border-radius: 50%; background: rgba(224,137,78,.08); z-index: 48; transition: background .2s ease, border-color .2s ease; }
   #roomzone[hidden] { display: none; }
   #roomzone.hot { background: rgba(224,137,78,.22); border-color: var(--accent); }
@@ -702,8 +783,13 @@
 
   <main class="app">
     <div class="main-col">
-      <section class="stage-wrap">
-        <div class="stage-caption">Hub kau · <b id="here">6 crew aktif</b> · <span id="mood"></span></div>
+      <section class="stage-wrap" style="position:relative">
+        <div class="stage-caption"><span>Hub kau · <b id="here">6 crew aktif</b> · <span id="mood"></span></span>
+          <button class="hud-btn" id="hud-sum" type="button" aria-label="Ringkasan aktiviti pejabat">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 20v-7M12 20V5M19 20v-10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            Ringkasan
+          </button>
+        </div>
         <div id="stage">
           <div id="office"><!-- floor / walls / furniture / sprites injected by JS --></div>
           <div id="tint"></div>
@@ -711,7 +797,13 @@
           <div id="bubble" hidden></div>
           <div id="comic" hidden></div>
         </div>
-        <p class="hint" id="status">Apa kau nak buat hari ni? Crew yang sesuai akan bantu.</p>
+        <p class="hint" id="status">Semua crew sedia. Tekan zon dalam pejabat untuk tengok siapa buat apa.</p>
+        <button class="scene-cta" id="scene-cta" type="button" aria-label="Buka chat crew">
+          <span class="cta-spark"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3.5 13.8 9 19.5 11 13.8 13 12 18.5 10.2 13 4.5 11 10.2 9Z" fill="currentColor"/><path d="M18.5 3.8 19.2 6 21.5 6.8 19.2 7.6 18.5 9.8 17.8 7.6 15.5 6.8 17.8 6Z" fill="currentColor" opacity=".7"/></svg></span>
+          <span class="cta-txt"><b>Apa kau nak buat hari ni? Crew yang sesuai akan bantu.</b><span>Pilih tugasan atau cerita ringkas, kami aturkan selebihnya.</span></span>
+          <span class="cta-go"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+        <div class="scene-pop" id="scene-pop" role="dialog" aria-label="Butiran zon" hidden></div>
       </section>
 
       <section class="taskq" id="taskq" hidden>
@@ -3477,12 +3569,14 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     }
   }
   // drag a staff sprite → drop over the round table = into the room; drop outside = out
-  let dragK2 = null, dragGhost = null;
+  // (a short press with no travel counts as a TAP → opens that crew's wallet card)
+  let dragK2 = null, dragGhost = null, sprDownX = 0, sprDownY = 0;
   Object.keys(staff).forEach(k => sprites[k].wrap.classList.add('grabbable'));
   office.addEventListener('pointerdown', e => {
     const w = e.target.closest('.sprite'); if (!w) return;
     const k = w.id.replace('s-', ''); if (!staff[k]) return;
-    if (sprites[k].busy && !roomRoster.has(k)) return;      // mid-task staff can't be dragged
+    sprDownX = e.clientX; sprDownY = e.clientY;
+    if (sprites[k].busy && !roomRoster.has(k)) { dragK2 = 'tap:' + k; return; }   // mid-task staff: tap only, no drag
     dragK2 = k;
     dragGhost = document.createElement('div'); dragGhost.className = 'drag-ghost';
     dragGhost.style.setProperty('--gc', staff[k].dot);
@@ -3497,11 +3591,23 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     dragGhost.style.left = e.clientX + 'px'; dragGhost.style.top = e.clientY + 'px';
     roomzone.classList.toggle('hot', inRoom(toGrid(e.clientX, e.clientY)));
   });
+  // tapping a sprite (little to no pointer travel) opens that crew's card instead of ending a drag
+  function spriteTap(k) {
+    bringToFront(k);
+    if (cardEls[k]) cardEls[k].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
   document.addEventListener('pointerup', e => {
     if (!dragK2) return;
+    const wasTap = Math.hypot(e.clientX - sprDownX, e.clientY - sprDownY) < 8;
+    if (String(dragK2).startsWith('tap:')) {           // busy crew: tap works, drag was never armed
+      const k = dragK2.slice(4); dragK2 = null;
+      if (wasTap) spriteTap(k);
+      return;
+    }
     const k = dragK2; dragK2 = null;
     if (dragGhost) { dragGhost.remove(); dragGhost = null; }
     roomzone.hidden = true; roomzone.classList.remove('hot');
+    if (wasTap) { spriteTap(k); return; }              // no travel → tap, don't touch room membership
     const g = toGrid(e.clientX, e.clientY);
     if (inRoom(g)) roomAdd(k);
     else if (roomRoster.has(k)) roomRemove(k);
@@ -3637,6 +3743,162 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     stage.style.width = (BOARD_W * s) + 'px'; stage.style.height = (BOARD_H * s) + 'px';
   }
   window.addEventListener('resize', fit); requestAnimationFrame(fit); fit();
+
+  // =====================================================================
+  //  INTERACTIVE ZONES — the office as a live command hub. Occupancy is
+  //  derived from each sprite's REAL grid position (which already follows
+  //  task state: desks when working, round table for team missions, etc.)
+  // =====================================================================
+  const zsvg = inner => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ZONES = [
+    { id: 'meeting', name: 'Meeting',    color: '#e0894e', rect: [0.7, 0.5, 4.8, 4.3],  anchor: [2.6, 0.75], glow: [2.9, 2.3, 2.3], icon: zsvg('<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>') },
+    { id: 'focus',   name: 'Focus Work', color: '#7fb3c8', rect: [4.8, 1.4, 10.7, 5.9], anchor: [7.9, 1.5],  glow: [7.3, 3.5, 3.0], icon: zsvg('<rect x="3" y="5" width="18" height="12" rx="1.6"/><path d="M9 20h6"/>') },
+    { id: 'disc',    name: 'Discussion', color: '#d9825f', rect: [5.2, 0, 13.4, 1.4],   anchor: [12.3, 0.25], glow: [9.9, 0.8, 2.2], icon: zsvg('<path d="M4 5h11v8H8l-4 3.4V5Z"/><path d="M18 9h2v11l-3.4-3H10"/>') },
+    { id: 'brief',   name: 'Quick Brief',color: '#b58bd9', rect: [0.1, 5.7, 5.7, 9.7],  anchor: [2.1, 6.2],  glow: [3.6, 7.6, 2.2], icon: zsvg('<path d="M13 3 5 13h5l-1 8 8-10h-5l1-8Z"/>') },
+    { id: 'lounge',  name: 'Rehat',      color: '#93ad86', rect: [10.8, 4.0, 14.9, 9.7],anchor: [13.2, 4.1], glow: [12.6, 6.2, 2.6], icon: zsvg('<path d="M4 12v5h16v-5M6 12V7h12v5M4 12h16"/>') }
+  ];
+  const stageEl = document.getElementById('stage');
+  // soft glow pool inside the scaled office (lights up while the zone is working)
+  ZONES.forEach(z => {
+    const g = document.createElement('div'); g.className = 'zone-glow';
+    const c = project(z.glow[0], z.glow[1]), w = z.glow[2] * TILE_W, h = z.glow[2] * TILE_H * 1.35;
+    g.style.setProperty('--zg', z.color + '2e');
+    Object.assign(g.style, { width: w + 'px', height: h + 'px', left: (c.x - w / 2) + 'px', top: (c.y - h / 2) + 'px' });
+    office.appendChild(g); z.glowEl = g;
+  });
+  // tappable zone labels live UNSCALED in the stage so text stays crisp
+  ZONES.forEach(z => {
+    const b = document.createElement('button'); b.className = 'zlabel'; b.type = 'button';
+    b.style.setProperty('--zc', z.color);
+    b.innerHTML = `${z.icon}<span class="zl-name">${z.name}</span><span class="zl-n">0 crew</span>`;
+    b.setAttribute('aria-label', 'Zon ' + z.name);
+    b.addEventListener('click', () => openZonePop(z));
+    stageEl.appendChild(b); z.labelEl = b; z.nEl = b.querySelector('.zl-n');
+  });
+  function zoneLayout() {
+    ZONES.forEach(z => {
+      const p = project(z.anchor[0], z.anchor[1]);
+      z.labelEl.style.left = (p.x * currentScale) + 'px';
+      z.labelEl.style.top = (p.y * currentScale) + 'px';
+    });
+  }
+  window.addEventListener('resize', () => requestAnimationFrame(zoneLayout));
+  requestAnimationFrame(() => requestAnimationFrame(zoneLayout));
+
+  const zoneOf = (gx, gy) => ZONES.find(z => gx >= z.rect[0] && gx <= z.rect[2] && gy >= z.rect[1] && gy <= z.rect[3]) || null;
+  const statusOf = k => (sprites[k].statEls && sprites[k].statEls[0]) ? sprites[k].statEls[0].textContent : '';
+  // live "NAME · status" chips over busy crew (small pool, repositioned per tick)
+  const chipPool = [0, 1, 2].map(() => { const c = document.createElement('div'); c.className = 'crew-chip'; stageEl.appendChild(c); return c; });
+  let zoneOcc = {};
+  function zoneTick() {
+    zoneOcc = {}; ZONES.forEach(z => zoneOcc[z.id] = []);
+    for (const k of Object.keys(staff)) {
+      const s = sprites[k], z = zoneOf(s.gx, s.gy);
+      if (z) zoneOcc[z.id].push(k);
+    }
+    ZONES.forEach(z => {
+      const ks = zoneOcc[z.id], busy = ks.some(k => sprites[k].busy);
+      z.nEl.textContent = ks.length + ' crew';
+      z.labelEl.classList.toggle('busy', busy);
+      z.glowEl.classList.toggle('on', busy);
+    });
+    // chips: up to 3 busy, non-walking crew — skip anyone whose head-cue bubble is showing
+    const cueEl = document.getElementById('bubble');
+    const busyK = Object.keys(staff).filter(k => sprites[k].busy && !sprites[k].isWalking).slice(0, 3);
+    chipPool.forEach((chip, i) => {
+      const k = busyK[i];
+      if (!k) { chip.classList.remove('on'); return; }
+      const s = sprites[k];
+      const x = (parseFloat(s.wrap.style.left) + SPR_HALF) * currentScale;
+      const y = parseFloat(s.wrap.style.top) * currentScale;
+      if (!cueEl.hidden && Math.abs(parseFloat(cueEl.style.left || 0) - (parseFloat(s.wrap.style.left) + SPR_HALF)) < 24) { chip.classList.remove('on'); return; }
+      chip.style.setProperty('--cc', staff[k].dot);
+      chip.innerHTML = `<b>${staff[k].name}</b>${escHtml(statusOf(k))}`;
+      chip.style.left = x + 'px'; chip.style.top = (y - 10) + 'px';
+      chip.classList.add('on');
+    });
+    if (!popEl.hidden && popKind === 'sum') renderSummary();   // keep an open summary live
+  }
+
+  // ---- popover: zone detail + scene summary (one element, two builders) ----
+  const popEl = document.getElementById('scene-pop');
+  let popKind = null;
+  function closePop() { popEl.hidden = true; popKind = null; }
+  function popActions(withChat) {
+    const row = document.createElement('div'); row.className = 'sp-actions';
+    if (withChat) { const b = document.createElement('button'); b.className = 'pri'; b.textContent = 'Buka chat'; b.addEventListener('click', () => { closePop(); openChat(70); }); row.appendChild(b); }
+    const c = document.createElement('button'); c.textContent = 'Tutup'; c.addEventListener('click', closePop); row.appendChild(c);
+    return row;
+  }
+  function openZonePop(z) {
+    popKind = 'zone';
+    popEl.style.setProperty('--zc', z.color);
+    popEl.innerHTML = `<div class="sp-title">${z.icon}${z.name}</div>`;
+    const ks = zoneOcc[z.id] || [];
+    const sub = document.createElement('div'); sub.className = 'sp-sub';
+    sub.textContent = ks.length ? ks.length + ' crew di zon ni sekarang' : 'Kosong buat masa ni';
+    popEl.appendChild(sub);
+    if (ks.length) {
+      const rows = document.createElement('div'); rows.className = 'sp-rows';
+      ks.forEach(k => {
+        const r = document.createElement('div'); r.className = 'sp-row'; r.style.setProperty('--rc', staff[k].dot);
+        r.innerHTML = `<b>${staff[k].name}</b><span>${escHtml(statusOf(k))}</span>`;
+        rows.appendChild(r);
+      });
+      popEl.appendChild(rows);
+    } else {
+      const e = document.createElement('div'); e.className = 'sp-empty';
+      e.textContent = 'Bagi crew tugasan — zon ni akan hidup bila mereka mula bekerja.';
+      popEl.appendChild(e);
+    }
+    popEl.appendChild(popActions(true));
+    popEl.hidden = false;
+  }
+  function renderSummary() {
+    popEl.style.setProperty('--zc', 'var(--accent)');
+    const runningTasks = [...document.querySelectorAll('#taskq-list .tq:not(.done):not(.fail) .tq-label')].map(e => e.textContent).slice(0, 3);
+    const busyCount = Object.keys(staff).filter(k => sprites[k].busy).length;
+    const zoneBits = ZONES.filter(z => (zoneOcc[z.id] || []).length).map(z => z.name + ' ' + zoneOcc[z.id].length);
+    const latest = deliverables.length ? deliverables[deliverables.length - 1] : null;
+    popEl.innerHTML = `<div class="sp-title">${zsvg('<path d="M5 20v-7M12 20V5M19 20v-10"/>')}Ringkasan pejabat</div>`;
+    const sub = document.createElement('div'); sub.className = 'sp-sub';
+    sub.textContent = busyCount ? busyCount + ' crew tengah bekerja' : 'Semua crew standby';
+    popEl.appendChild(sub);
+    const rows = document.createElement('div'); rows.className = 'sp-rows';
+    const addRow = (label, text, col) => { const r = document.createElement('div'); r.className = 'sp-row'; r.style.setProperty('--rc', col || 'var(--accent)'); r.innerHTML = `<b>${label}</b><span>${escHtml(text)}</span>`; rows.appendChild(r); };
+    runningTasks.forEach(t => addRow('Misi', t, '#7fb3c8'));
+    if (!runningTasks.length) addRow('Misi', 'Tiada misi berjalan', '#6b5f4e');
+    addRow('Zon', zoneBits.length ? zoneBits.join(' · ') : 'Semua kosong', '#93ad86');
+    if (latest) addRow('Hasil', (latest.name || '') + ' — ' + String(latest.text || '').replace(/\s+/g, ' ').slice(0, 44), latest.dot || 'var(--accent)');
+    popEl.appendChild(rows);
+    popEl.appendChild(popActions(true));
+  }
+  document.getElementById('hud-sum').addEventListener('click', () => {
+    if (popKind === 'sum' && !popEl.hidden) return closePop();
+    popKind = 'sum'; renderSummary(); popEl.hidden = false;
+  });
+  document.addEventListener('click', e => {   // tap anywhere outside → close
+    if (popEl.hidden) return;
+    if (!popEl.contains(e.target) && !e.target.closest('.zlabel') && !e.target.closest('#hud-sum')) closePop();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !popEl.hidden) closePop(); });
+
+  // CTA panel → same chat, same submit pipeline
+  document.getElementById('scene-cta').addEventListener('click', () => openChat(70));
+
+  // sprites: keyboard access — Enter brings that crew's wallet card to the front
+  Object.keys(staff).forEach(k => {
+    const w = sprites[k].wrap;
+    w.tabIndex = 0; w.setAttribute('role', 'button');
+    w.setAttribute('aria-label', staff[k].name + ', ' + staff[k].role + ' — lihat kad crew');
+    w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bringToFront(k); cardEls[k].scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } });
+  });
+
+  // pause the living office while it's scrolled off-screen
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(es => office.classList.toggle('suspend', !es[0].isIntersecting), { threshold: 0.04 }).observe(stageEl);
+  }
+  setInterval(zoneTick, 1200); zoneTick();   // start the live occupancy loop (after all refs exist)
 
   // =====================================================================
   //  LIVING OFFICE — day/night lighting + idle chatter
