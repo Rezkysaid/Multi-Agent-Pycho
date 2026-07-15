@@ -185,20 +185,42 @@
   .rail { background: linear-gradient(180deg, var(--surface), #1c150e); border: 1px solid var(--line); border-radius: 16px; padding: 15px 13px; box-shadow: 0 14px 34px -22px #000; }
   .rail-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .2px; color: var(--text); margin: 0 0 12px 2px; }
   .deck-count { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 18px; padding: 0 7px; border-radius: 9px; background: var(--surface2); color: var(--muted); font-size: 10.5px; font-weight: 700; }
-  .deck { position: relative; height: 226px; margin: 4px auto 0; max-width: 300px; touch-action: pan-y; }
+  /* wallet stack: the active card in full at the top, every other crew as a
+     layered strip tucked underneath — all six always visible & tappable */
+  .deck { position: relative; margin: 4px auto 0; max-width: 300px; touch-action: pan-y; }
   .staff-card {
-    position: absolute; left: 0; right: 0; margin: 0 auto; width: 100%; height: 198px;
-    border-radius: 16px; padding: 13px 14px 11px; overflow: hidden;
+    position: absolute; left: 0; right: 0; top: 0; margin: 0 auto; width: 100%; height: 46px;
+    border-radius: 14px; overflow: hidden;
     display: flex; flex-direction: column;
     background: linear-gradient(172deg, var(--surface2), #1d160e 78%);
     border: 1px solid var(--line); border-top: 2px solid var(--mc, var(--accent));
-    box-shadow: 0 18px 34px -18px #000;
-    color: var(--text); cursor: grab; will-change: transform;
+    box-shadow: 0 10px 22px -14px #000;
+    color: var(--text); cursor: pointer; will-change: transform;
     -webkit-user-select: none; user-select: none;
+    transition: transform .36s cubic-bezier(.3,.9,.32,1), height .36s cubic-bezier(.3,.9,.32,1), box-shadow .25s ease;
   }
+  .staff-card.front { height: 208px; border-radius: 16px; cursor: grab; box-shadow: 0 18px 34px -18px #000, inset 0 1px 0 #ffffff0d; }
   .staff-card.front:active { cursor: grabbing; }
   .staff-card.active { box-shadow: 0 0 0 1.5px var(--mc, var(--accent)), 0 18px 34px -18px #000; }
   .staff-card.active .sc-status { color: #fff; font-style: normal; font-weight: 800; }
+  .staff-card.active .ws-stat { color: #fff; }
+  .staff-card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent), 0 18px 34px -18px #000; }
+  @media (prefers-reduced-motion: reduce) { .staff-card, .wc-strip, .wc-full { transition: none; } }
+  /* collapsed strip — mini avatar · name · role · live status · role icon */
+  .wc-strip { position: absolute; left: 0; right: 0; top: 0; height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 9px; transition: opacity .2s ease .12s; }
+  .staff-card.front .wc-strip { opacity: 0; pointer-events: none; transition: opacity .1s ease; }
+  .wc-full { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 13px 14px 11px; opacity: 0; transition: opacity .22s ease .12s; }
+  .staff-card.front .wc-full { opacity: 1; }
+  .ws-face { flex: 0 0 auto; width: 30px; height: 30px; position: relative; border-radius: 8px; overflow: hidden; background: #1a140d; box-shadow: inset 0 0 0 1px var(--line); }
+  .ws-face .px { position: absolute; left: 3px; top: 4px; width: 2px; height: 2px; image-rendering: pixelated; }
+  .ws-name { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: .3px; color: #fff; white-space: nowrap; }
+  .ws-role { min-width: 0; font-size: 10px; font-weight: 700; letter-spacing: .3px; color: var(--mc, var(--accent)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ws-stat { margin-left: auto; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 700; color: var(--muted); max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ws-stat::before { content: ''; flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); }
+  .ws-ico { flex: 0 0 auto; display: inline-flex; color: var(--mc, var(--accent)); opacity: .85; }
+  .ws-ico svg { width: 14px; height: 14px; display: block; }
+  /* the desktop rail is too narrow for the full strip row — the accent colour already carries the role there */
+  @media (min-width: 721px) { .ws-role, .ws-ico { display: none; } }
   .sc-head { display: flex; align-items: center; gap: 12px; }
   .sc-face {
     flex: 0 0 auto; width: 56px; height: 56px; position: relative; border-radius: 12px; overflow: hidden;
@@ -215,6 +237,10 @@
     margin: 9px 0 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.5; color: var(--muted);
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;   /* keep the card compact — 3 lines max */
   }
+  /* two quiet skill chips on the active card */
+  .sc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .sc-chip { display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .3px; color: var(--muted); background: #ffffff08; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+  .sc-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); }
   .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #ffffff10; }
   .sc-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'Nunito', sans-serif; font-size: 11px; font-style: italic; color: #b9d8c4; }
   .sc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
@@ -226,9 +252,8 @@
   .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 9px; }
   /* the desktop rail is narrow — give the bio more lines so it never cuts mid-sentence */
   @media (min-width: 721px) {
-    .deck { height: 244px; }
-    .staff-card { height: 216px; }
-    .sc-bio { -webkit-line-clamp: 5; }
+    .staff-card.front { height: 266px; }
+    .sc-bio { -webkit-line-clamp: 6; }
   }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
   .deck-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -745,7 +770,7 @@
       <div class="deck-dots" id="deck-dots" aria-hidden="true"></div>
       <div class="deck-nav">
         <button class="deck-btn" id="deck-prev" aria-label="Sebelum">‹</button>
-        <span class="deck-hint">Swipe untuk tukar crew</span>
+        <span class="deck-hint">Tarik kad untuk tukar crew</span>
         <button class="deck-btn" id="deck-next" aria-label="Seterus">›</button>
       </div>
     </aside>
@@ -1232,6 +1257,20 @@
     hana:   { bio: 'Perancang & jadual — pecah matlamat jadi langkah, urus timeline, reminder & tarikh penting.' },
     hafiz:  { bio: 'Jurutera — kod, debug, automasi, integrasi & code review. Terangkan dengan mudah.' }
   };
+  // two skill chips per crew (active card) + a small role glyph (wallet strip)
+  const STAFF_SKILLS = {
+    aiman: ['Strategi', 'Koordinasi'], meera: ['Research', 'Fakta'], wei: ['Draf', 'Social'],
+    danish: ['Analisa', 'Angka'], hana: ['Jadual', 'Reminder'], hafiz: ['Kod', 'Debug']
+  };
+  const wsvg = inner => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ROLE_ICON = {
+    aiman:  wsvg('<path d="M4 17h16M5 17l-1.2-9 5.2 3.6L12 5l3 6.6L20.2 8 19 17"/>'),
+    meera:  wsvg('<circle cx="11" cy="11" r="6"/><path d="m15.5 15.5 4.5 4.5"/>'),
+    wei:    wsvg('<path d="M4 5h16v11H9l-5 4V5Z"/>'),
+    danish: wsvg('<path d="M4 20h16M6 20v-7M12 20V6M18 20v-10"/>'),
+    hana:   wsvg('<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
+    hafiz:  wsvg('<path d="m8 8-4 4 4 4M16 8l4 4-4 4"/>')
+  };
   // ---- swipeable stacked card deck ----
   const deck = document.getElementById('deck');
   const deckCountEl = document.getElementById('deck-count');
@@ -1245,33 +1284,56 @@
   let order = deckKeys.slice();     // order[0] = front card
   deckKeys.forEach((k, idx) => {
     const a = staff[k], info = STAFF_INFO[k] || { bio: '' };
+    const chips = (STAFF_SKILLS[k] || []).slice(0, 2).map(s => `<span class="sc-chip">${s}</span>`).join('');
     const card = document.createElement('div'); card.className = 'staff-card'; card.dataset.k = k;
     card.style.setProperty('--mc', a.dot);
+    card.tabIndex = 0; card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', a.name + ', ' + a.role + ' — bawa ke depan');
     card.innerHTML =
-      `<div class="sc-head"><div class="sc-face"><div class="px"></div></div>`
+      `<div class="wc-strip"><div class="ws-face"><div class="px"></div></div>`
+      + `<span class="ws-name">${a.name}</span><span class="ws-role">${a.role}</span>`
+      + `<span class="ws-stat js-stat">kat meja</span><span class="ws-ico">${ROLE_ICON[k] || ''}</span></div>`
+      + `<div class="wc-full">`
+      + `<div class="sc-head"><div class="sc-face"><div class="px"></div></div>`
       + `<div><div class="sc-name">${a.name}</div><div class="sc-role-row"><span class="sc-role">${a.role}</span><span class="sc-live">Aktif</span></div></div></div>`
       + `<p class="sc-bio" title="${info.bio.replace(/"/g, '&quot;')}">${info.bio}</p>`
-      + `<div class="sc-foot"><span class="sc-status">kat meja</span><span class="sc-id">${String(idx + 1).padStart(2, '0')}</span></div>`;
+      + `<div class="sc-chips">${chips}</div>`
+      + `<div class="sc-foot"><span class="sc-status js-stat">kat meja</span><span class="sc-id">${String(idx + 1).padStart(2, '0')}</span></div>`
+      + `</div>`;
     deck.appendChild(card);
     card.querySelector('.sc-face .px').style.boxShadow = faceShadow(a.outfit, k, 4);
-    cardEls[k] = card;
-    sprites[k].statEl = card.querySelector('.sc-status'); sprites[k].memberEl = card;
-  });
-  function renderDeck(snapKey) {
-    order.forEach((k, i) => {
-      const card = cardEls[k], depth = Math.min(i, 3);
-      if (k === snapKey) card.style.transition = 'none';
-      else card.style.transition = 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease';
-      card.classList.toggle('front', i === 0);
-      card.style.zIndex = 100 - i;
-      card.style.opacity = i < 4 ? '1' : '0';
-      card.style.transform = `translateY(${depth * 9}px) scale(${1 - depth * 0.04})`;
-      card.style.pointerEvents = i === 0 ? 'auto' : 'none';
-      if (k === snapKey) { void card.offsetWidth; card.style.transition = 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease'; }
+    card.querySelector('.ws-face .px').style.boxShadow = faceShadow(a.outfit, k, 2);
+    // Enter/Space brings a background card to the front (drag has a no-drag fallback)
+    card.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && !card.classList.contains('front')) { e.preventDefault(); bringToFront(k); }
     });
+    cardEls[k] = card;
+    sprites[k].statEls = [...card.querySelectorAll('.js-stat')]; sprites[k].memberEl = card;
+  });
+  // wallet layout: front card in full at y=0, everyone else a strip below it,
+  // each strip tucked slightly under the previous for the layered wallet feel
+  const STRIP_H = 46, STACK_GAP = 10, STRIP_OVER = 6;
+  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 266 : 208;
+  function renderDeck(snapKey) {
+    const fh = frontH();
+    order.forEach((k, i) => {
+      const card = cardEls[k];
+      if (k === snapKey) card.style.transition = 'none';
+      card.classList.toggle('front', i === 0);
+      card.style.zIndex = i === 0 ? 60 : 50 - i;               // strips stack behind each other, front on top
+      card.style.transform = i === 0 ? 'translateY(0)' : `translateY(${fh + STACK_GAP + (i - 1) * (STRIP_H - STRIP_OVER)}px)`;
+      card.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+      if (k === snapKey) { void card.offsetWidth; card.style.transition = ''; }
+    });
+    deck.style.height = (fh + STACK_GAP + (deckKeys.length - 2) * (STRIP_H - STRIP_OVER) + STRIP_H) + 'px';
     const idx = deckKeys.indexOf(order[0]);
     deckCountEl.textContent = (idx + 1) + '/' + deckKeys.length;
     deckDots.forEach((d, i) => d.classList.toggle('on', i === idx));
+  }
+  function bringToFront(k) {
+    if (order[0] === k) return;
+    order = [k, ...order.filter(x => x !== k)];
+    renderDeck();
   }
   function cycle(dir) {                 // dir>0 next, dir<0 prev
     const moved = order[0];
@@ -1279,6 +1341,11 @@
     else order.unshift(order.pop());
     renderDeck(dir >= 0 ? moved : order[0]);
   }
+  deck.addEventListener('click', e => {          // tap a background strip → bring that crew to the front
+    const c = e.target.closest('.staff-card'); if (!c || c.classList.contains('front')) return;
+    bringToFront(c.dataset.k);
+  });
+  window.addEventListener('resize', () => renderDeck());   // front-card height differs across the breakpoint
   // drag / swipe on the front card
   let dragK = null, sx = 0, sy = 0, drag = false;
   deck.addEventListener('pointerdown', e => {
@@ -1306,7 +1373,7 @@
   document.getElementById('deck-next').addEventListener('click', () => cycle(1));
   document.getElementById('deck-prev').addEventListener('click', () => cycle(-1));
   renderDeck();
-  function setStat(k, txt) { if (sprites[k].statEl) sprites[k].statEl.textContent = txt; }
+  function setStat(k, txt) { (sprites[k].statEls || []).forEach(el => { el.textContent = txt; }); }
   function setActive(k, on) { if (sprites[k].memberEl) sprites[k].memberEl.classList.toggle('active', on); }
 
   // ---- movement: A* pathfinding so characters walk AROUND furniture, never over it ----
