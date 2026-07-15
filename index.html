@@ -389,10 +389,10 @@
   #input-row { display: flex; gap: 9px; align-items: flex-end; }
   #img-btn {
     flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
-    width: 46px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+    width: 52px; min-height: 52px; background: var(--surface2); border: 1px solid var(--line); border-radius: 13px;
     color: var(--muted); cursor: pointer; transition: border-color .15s ease, color .15s ease;
   }
-  #img-btn svg { width: 18px; height: 18px; display: block; }
+  #img-btn svg { width: 21px; height: 21px; display: block; }
   #img-btn:hover { border-color: var(--accent); color: var(--accent); }
   /* attached-photo preview chip above the input */
   .img-chip { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; padding: 7px 9px; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; }
@@ -406,19 +406,19 @@
   .msg.you .chat-img { margin-left: auto; }
   .input-wrap { position: relative; flex: 1; display: flex; min-width: 0; }   /* min-width:0 lets the field shrink so the send button never crops off-screen */
   #user-input {
-    flex: 1; min-width: 0; background: var(--ink2); border: 1px solid var(--line); border-radius: 11px;
-    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 13px 15px;
+    flex: 1; min-width: 0; min-height: 52px; box-sizing: border-box; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px;
+    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; padding: 15px 16px;
     transition: border-color .18s ease;
   }
   #user-input::placeholder { color: #8a7c6a; }
   #user-input:focus { outline: none; border-color: #6b5a45; }
   #send-btn {
-    display: inline-flex; align-items: center; gap: 7px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
     font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .2px;
-    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 11px;
-    padding: 0 19px; cursor: pointer; transition: transform .1s ease, filter .15s ease;
+    background: var(--accent); color: var(--accent-ink); border: none; border-radius: 12px;
+    padding: 0 22px; min-height: 52px; cursor: pointer; transition: transform .1s ease, filter .15s ease;
   }
-  #send-btn svg { width: 15px; height: 15px; display: block; transition: transform .15s ease; }
+  #send-btn svg { width: 17px; height: 17px; display: block; transition: transform .15s ease; }
   #send-btn:hover { filter: brightness(1.05); }
   #send-btn:hover svg { transform: translateX(2px); }
   #send-btn:active { transform: translateY(1px) scale(.98); }
@@ -570,11 +570,11 @@
     .rail { order: 2; }
     .topbar-right .clock { display: none; }
   }
-  /* very narrow phones: drop the "Panggil" label — the arrow says it all */
+  /* very narrow phones: drop the "Panggil" label — the arrow says it all, but keep a big square tap pad */
   @media (max-width: 420px) {
-    #send-btn { padding: 0 15px; }
+    #send-btn { width: 52px; min-width: 52px; padding: 0; gap: 0; }
     #send-btn span { display: none; }
-    #send-btn svg { width: 18px; height: 18px; }
+    #send-btn svg { width: 20px; height: 20px; }
   }
 </style>
 </head>
