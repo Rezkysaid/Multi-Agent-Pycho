@@ -2810,7 +2810,8 @@ FORMAT OUTPUT (WAJIB): Kau sebahagian daripada crew AI user — tulis ringkas da
     const hari = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'][d.getDay()];
     const bulan = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'][d.getMonth()];
     const jj = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
-    return `MAKLUMAT MASA SEBENAR (guna untuk sebarang soalan hari/tarikh/masa — JANGAN teka): Sekarang hari ${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}, pukul ${jj}:${mm} (waktu peranti bos).`;
+    let tz = 'Asia/Kuala_Lumpur'; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch {}
+    return `MAKLUMAT MASA SEBENAR (guna untuk sebarang soalan hari/tarikh/masa — JANGAN teka): Sekarang hari ${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}, pukul ${jj}:${mm} (waktu peranti bos, zon ${tz}).`;
   }
   const MS_HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
   const MS_BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
@@ -2831,8 +2832,8 @@ FORMAT OUTPUT (WAJIB): Kau sebahagian daripada crew AI user — tulis ringkas da
     return `Hari ni ${dateStr}, ${timeStr}, bos.`;
   }
   const PERSONA = {
-    aiman: `Kau Aiman, KETUA (Chief Coordinator) office ni — orang utama yang bos cakap terus, macam Jarvis. Kau faham niat bos, jawab sendiri untuk soalan am/basa-basi/koordinasi/nasihat ringkas, dan bila kerja melibatkan specialist kau uruskan mereka di belakang tabir lepas tu gabungkan hasil jadi SATU jawapan kemas. Bersikap proaktif — bila sesuai, akhiri dengan satu cadangan langkah seterusnya yang berguna (ringkas). Team kau: Meera (research), Wei (tulisan), Danish (analisa), Kak Sumi (perancang), Hafiz (teknikal).\n${COMMON_RULES}`,
-    meera: `Kau Meera, Penyelidik (Research Analyst) di office ni. Kerja kau cari maklumat, semak fakta, ringkaskan, dan buat perbandingan. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi.\n${COMMON_RULES}`,
+    aiman: `Kau Aiman, KETUA (Chief Coordinator) office ni — orang utama yang bos cakap terus, macam Jarvis. Kau faham niat bos, jawab sendiri untuk soalan am/basa-basi/koordinasi/nasihat ringkas, dan bila kerja melibatkan specialist kau uruskan mereka di belakang tabir lepas tu gabungkan hasil jadi SATU jawapan kemas. Untuk jadual sukan semasa, fixture, live score, keputusan terkini atau status kejohanan: JANGAN SESEKALI jawab dari ingatan — kerja tu milik Meera (research) dan mesti disahkan dengan carian live dulu. Bersikap proaktif — bila sesuai, akhiri dengan satu cadangan langkah seterusnya yang berguna (ringkas). Team kau: Meera (research), Wei (tulisan), Danish (analisa), Kak Sumi (perancang), Hafiz (teknikal).\n${COMMON_RULES}`,
+    meera: `Kau Meera, Penyelidik (Research Analyst) di office ni. Kerja kau cari maklumat, semak fakta, ringkaskan, dan buat perbandingan. Bila bos tanya sesuatu, bagi jawapan berasaskan fakta dan jujur sebut kalau ada yang perlu disahkan lagi. Untuk soalan SUKAN semasa (jadual, fixture, skor, keputusan, status kejohanan): utamakan jadual rasmi & data fixture berstruktur, dan JANGAN agak pertandingan, tarikh, atau status kejohanan tanpa bukti carian.\n${COMMON_RULES}`,
     wei: `Kau Wei, orang Komunikasi di office ni. Kerja kau draf mesej & kandungan untuk apa saja saluran — emel, WhatsApp, Telegram, dan post/caption/hashtag social media (TikTok, Facebook, Instagram). Tanya nada atau audience kalau perlu, dan bagi draf kemas yang terus boleh kongsi. Kalau bos nak hantar, ingatkan yang kau sediakan draf & dia boleh tekan Kongsi untuk hantar dari app sebenar.\n${COMMON_RULES}`,
     danish: `Kau Danish, Penasihat Strategi (Strategic Advisor + Analyst) di office ni. Kerja kau timbang pro/kontra, banding pilihan, brainstorm idea, dan bagi cadangan/keputusan berasaskan logik dan angka. Kalau ada data guna data; kalau tak ada, nyatakan andaian kau dengan jelas.\n${COMMON_RULES}`,
     hana: `Kau Kak Sumi, Perancang & Penjadual (Schedule Planner) di office ni. Kerja kau pecahkan matlamat jadi langkah dengan timeline, dan urus jadual, reminder, alarm serta tarikh penting. Bagi pelan praktikal. Kalau bos minta reminder/ingatkan sesuatu, sahkan yang kau dah simpan dan sebut bila ia akan berbunyi.\n${COMMON_RULES}`,
@@ -2856,6 +2857,7 @@ FORMAT OUTPUT (WAJIB): Kau sebahagian daripada crew AI user — tulis ringkas da
 - "direct": kau (Ketua) jawab sendiri — soalan am, basa-basi, sapaan, koordinasi, nasihat ringkas.
 - "one": satu specialist patut buat. agent salah satu: meera (research/fakta/data), wei (tulis/draf/emel/caption), danish (analisa/banding/angka), hana (rancang/strategi/jadual), hafiz (teknikal/kod).
 - "team": tugasan melibatkan LEBIH SATU bidang — senaraikan 2-3 agents yang perlu.
+PENTING: jadual sukan semasa, fixture, live score, keputusan terkini atau status kejohanan → WAJIB {"mode":"one","agent":"meera"}. Jangan sesekali "direct" untuk benda macam tu — ia perlu carian live, bukan ingatan.
 Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","agents":["meera","danish","wei"]} atau {"mode":"direct"}`;
     const out = await gemini(sys, [{ role: 'user', parts: [{ text }] }], 40, 6000, { raw: true });   // JSON — skip the plain-text formatter
     let j = null; try { j = JSON.parse((out.match(/\{[\s\S]*\}/) || [''])[0]); } catch {}
@@ -2901,8 +2903,105 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
   const WEB_TRIGGER_RE = /\b(terkini|terbaru|baharu|semasa|latest|recent|current|today|hari\s*(ni|ini)|sekarang|harga|price|kadar|trend|berita|news|dokumentasi\s*rasmi|official|laman\s*web|website|statistik)\b|apa\s+yang\s+baru/i;
   // clearly does NOT need the web → never search
   const WEB_SKIP_RE = /\b(terjemah|translate|tulis\s*semula|rewrite|grammar|tatabahasa|brainstorm|karang|kira|math|matematik|debug|kod|code)\b/i;
+  // ===== SPORTS LIVE-INFO GUARD ==========================================
+  // Current sports info must NEVER come from model memory. Intent = a sports
+  // word + a time-sensitive word (Malay or English). Detection is code-level;
+  // it forces routing to the Research Agent, forces web_search, and the final
+  // answer must pass validateSportsAnswer() before it reaches the boss.
+  const SPORTS_RE = /\b(bola|football|soccer|futsal|match|perlawanan|fixture(s)?|liga|league|piala\s*dunia|world\s*cup|piala|cup\b|champions|uefa|fifa|afc\b|epl|premier\s*league|la\s*liga|serie\s*a|bundesliga|jdt|harimau\s*malaya|badminton|tenis|tennis|motogp|f1|formula\s*1|olimpik|olympics?|sukan|kick\s*-?\s*off|kickoff|live\s*score|skor|tournament|kejohanan|separuh\s*akhir|suku\s*akhir|final\b)\b/i;
+  const SPORTS_TIMEY_RE = /\b(hari\s*(ni|ini)|malam\s*(ni|ini)|pagi\s*(ni|ini)|petang\s*(ni|ini)|esok|semalam|tonight|today|yesterday|sekarang|now|live|terkini|latest|jadual|schedule|fixture(s)?|keputusan|score|skor|result(s)?|pukul\s*berapa|pukul\s*\d|kick\s*-?\s*off|kickoff|siapa\s*(main|lawan|menang)|dah\s*(habis|tamat|mula|start)|sudah\s*(tamat|berakhir|habis)|masih\s*(berlangsung|jalan|ada|on)|bila\s*(mula|start|final|kick)|status|minggu\s*ni|is\s*(it|the\s*\w+)?\s*over|still\s*(on|going)|berlangsung)\b/i;
+  // strong standalone sports phrasings that skip the two-part check —
+  // "siapa main malam ni?", "live score", "game ni tournament apa?"
+  const SPORTS_STRONG_RE = /\b(live\s*score|siapa\s*(main|lawan|menang)\b|(game|match|perlawanan)\s*(ni|ini|tu|itu)\s*(tournament|kejohanan|liga|game)?\s*apa|tournament\s*apa|kejohanan\s*apa|kick\s*-?\s*off\s*(pukul|bila|time))\b/i;
+  const isSportsLive = text => { const s = String(text || ''); return (SPORTS_RE.test(s) && SPORTS_TIMEY_RE.test(s)) || SPORTS_STRONG_RE.test(s); };
+  // date/time/timezone context — user's real zone when available, KL fallback,
+  // and everything shown to the boss is anchored to Malaysia time
+  function tzContext() {
+    let tz = 'Asia/Kuala_Lumpur';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch {}
+    let myDate = '', myTime = '';
+    try {
+      myDate = new Intl.DateTimeFormat('ms-MY', { timeZone: 'Asia/Kuala_Lumpur', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+      myTime = new Intl.DateTimeFormat('ms-MY', { timeZone: 'Asia/Kuala_Lumpur', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+    } catch { const d = new Date(); myDate = d.toDateString(); myTime = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); }
+    return { tz, myDate, myTime };
+  }
+  // source priority: official bodies first, then trusted sports-data providers/news
+  const OFFICIAL_SPORTS_HOSTS = ['fifa.com', 'uefa.com', 'afc.com', 'premierleague.com', 'laliga.com', 'bundesliga.com', 'legaseriea.it', 'ligue1.com', 'fam.org.my', 'olympics.com', 'wtatennis.com', 'atptour.com', 'formula1.com', 'motogp.com', 'bwfbadminton.com', 'concacaf.com', 'conmebol.com'];
+  const TRUSTED_SPORTS_HOSTS = ['flashscore.com', 'sofascore.com', 'espn.com', 'bbc.com', 'bbc.co.uk', 'goal.com', 'skysports.com', 'beinsports.com', 'foxsports.com', 'livescore.com', 'astroawani.com', 'stadiumastro.com', 'nst.com.my', 'thestar.com.my', 'bharian.com.my', 'reuters.com', 'apnews.com'];
+  const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+  const isHostIn = (h, list) => list.some(o => h === o || h.endsWith('.' + o));
+  // the sports research protocol injected into the Research Agent's system prompt
+  function sportsProtocol(tzc) {
+    return `PROTOKOL SUKAN LIVE (WAJIB IKUT):
+- SEKARANG: ${tzc.myDate}, pukul ${tzc.myTime} WAKTU MALAYSIA (Asia/Kuala_Lumpur). Zon peranti bos: ${tzc.tz}.
+- JANGAN jawab jadual, fixture, skor, keputusan atau status kejohanan dari ingatan — WAJIB guna web_search dulu.
+- Strategi carian (jimat, max 3): (1) jadual rasmi pertandingan + tarikh, (2) fixture/status spesifik, (3) semakan silang kalau perlu sahaja. Masukkan pertandingan, tarikh, pasukan & timezone dalam query bila tahu.
+- Keutamaan sumber: laman RASMI kejohanan/liga/persekutuan/kelab (cth fifa.com untuk FIFA, uefa.com untuk UEFA, premierleague.com) > penyedia data sukan dipercayai (Flashscore, Sofascore, ESPN, BBC Sport) > berita bereputasi. Blog rawak & media sosial BUKAN bukti.
+- TUKAR semua masa kick-off ke waktu Malaysia. HATI-HATI match lepas tengah malam: perlawanan 3 pagi 17hb waktu Malaysia mungkin tersenarai 16hb di zon lain — JANGAN banding tarikh tanpa tukar timezone dulu.
+- JANGAN isytihar kejohanan dah tamat hanya kerana satu peringkat selesai, snippet nampak lama, satu halaman tulis "final", atau ingatan kau. Untuk kata TAMAT perlu: tarikh tamat rasmi + tarikh semasa selepasnya + tiada perlawanan berjadual. Kalau tak cukup bukti guna: "Masih berlangsung" atau "Belum dapat disahkan".
+- Soalan kabur (tiada team/liga disebut): kalau carian jumpa beberapa match berkemungkinan, senaraikan pilihan ("Ada beberapa match sekitar waktu tu. Yang mana satu?"); kalau tiada apa-apa, minta nama team atau liga. JANGAN anggap World Cup tanpa bukti.
+- Sumber bercanggah: tunjuk percanggahan, kenal pasti yang rasmi, ikut sumber rasmi bila padan pertandingan & tarikh, dan sebut ketidakpastian.
+- Carian gagal / tiada sumber boleh percaya: JANGAN reka. Jawab: "Aku tak dapat sahkan jadual live sekarang. Cuba semak semula kejap lagi atau bagi nama team/liga supaya carian lebih tepat."
+- Format jawapan TEKS BIASA (tiada simbol Markdown), ringkas ikut struktur: "Jawapan ringkas:" kemudian mana yang berkenaan "Masa Malaysia:", "Pertandingan:", "Status:", "Sumber:" (senarai dengan •). Kalau tak pasti: "Belum dapat disahkan:" diikuti "Apa yang aku perlukan:" (nama team, liga/tournament, tarikh).`;
+  }
+  // safe response when live verification is impossible — never invent fixtures
+  function sportsSafeFallback() {
+    let t = 'Aku tak dapat sahkan jadual live sekarang. Cuba semak semula kejap lagi atau bagi nama team/liga supaya carian lebih tepat.';
+    if (!AI.tavilyKey) t += '\n\nNota: carian web live belum disambung — tekan butang API dan masukkan Tavily key supaya aku boleh semak jadual sebenar.';
+    t += '\n\nApa yang aku perlukan:\n• Nama team\n• Liga atau tournament\n• Tarikh yang dimaksudkan';
+    return t;
+  }
+  // code-level validation — prompts alone are not trusted
+  function validateSportsAnswer({ answer, sources, timezone, reviewer }) {
+    const reasons = [];
+    if (!timezone) reasons.push('no-timezone');
+    if (!sources.length) reasons.push('no-source');
+    const hosts = sources.map(s => hostOf(s.url)).filter(Boolean);
+    const officialSourceFound = hosts.some(h => isHostIn(h, OFFICIAL_SPORTS_HOSTS));
+    if (sources.length && !officialSourceFound && !hosts.some(h => isHostIn(h, TRUSTED_SPORTS_HOSTS)))
+      reasons.push('no-authoritative-source');
+    // a "tournament has ended" claim needs completion evidence in the gathered sources
+    const claimsEnded = /(dah|sudah|telah)\s*(habis|tamat|berakhir)|kejohanan\s+(tamat|berakhir)|\b(has\s+ended|is\s+over|already\s+(ended|finished|concluded))\b/i.test(answer)
+      && !/\bbelum\b|tak\s+dapat\s+sahkan|tidak\s+dapat\s+sahkan|masih\s+berlangsung/i.test(answer);
+    if (claimsEnded) {
+      const evidence = sources.some(s => /(tamat|berakhir|telah berakhir|ended|concluded|full[-\s]?time\s+final|champions?\b|juara|winner|lifted\s+the|trophy)/i.test((s.title || '') + ' ' + (s.snippet || '')));
+      if (!evidence) reasons.push('tournament-status-unsupported');
+    }
+    if (reviewer && reviewer.approve === false) reasons.push('reviewer-rejected');
+    return { ok: !reasons.length, officialSourceFound, reasons };
+  }
+  // Reviewer Agent pass: strict fact-check of the draft against gathered evidence
+  async function sportsReviewer(question, answer) {
+    const srcs = ((research && research.sources) || []).slice(0, 6)
+      .map((s, i) => `${i + 1}. ${s.title || ''} — ${String(s.snippet || '').slice(0, 200)} (${s.url})`).join('\n') || '(tiada bukti carian)';
+    const sys = 'Kau REVIEWER fakta sukan yang tegas. Semak DRAF JAWAPAN lawan BUKTI CARIAN. TOLAK kalau ada tarikh, masa kick-off, pasukan, nama pertandingan atau status kejohanan yang TIDAK disokong bukti, atau ada bukti yang bercanggah dengan jawapan tanpa disebut. Semak juga penukaran ke waktu Malaysia masuk akal. Jawab JSON sahaja: {"approve":true} atau {"approve":false,"reasons":["sebab ringkas"]}';
+    const user = `SOALAN BOS: ${question}\n\nBUKTI CARIAN:\n${srcs}\n\nDRAF JAWAPAN:\n${answer}`;
+    const out = await gemini(sys, [{ role: 'user', parts: [{ text: user }] }], 140, 9000, { raw: true });
+    let j = null; try { j = JSON.parse((out.match(/\{[\s\S]*\}/) || ['{}'])[0]); } catch {}
+    if (!j || typeof j.approve === 'undefined') throw new Error('review-parse');
+    return { approve: j.approve !== false, reasons: j.reasons || [] };
+  }
+  // the gate every sports answer must pass before reaching the boss
+  async function sportsGate(question, answer) {
+    const tzc = tzContext();
+    const sources = (research && research.sources) || [];
+    let reviewer = null;
+    if (sources.length) {
+      try { reviewer = await sportsReviewer(question, answer); }
+      catch (e) { console.debug('[sports] reviewer unavailable (' + String(e.message) + ') — deterministic checks only'); }
+    }
+    const v = validateSportsAnswer({ answer, sources, timezone: tzc.tz, reviewer });
+    console.debug('[sports] officialSourceFound=' + v.officialSourceFound
+      + ' sourceDomains=' + sources.map(s => hostOf(s.url)).join(',')
+      + ' reviewerVerified=' + (reviewer ? String(reviewer.approve) : 'skipped')
+      + (v.ok ? ' validationPassed=true' : ' validationFailureReason=' + v.reasons.join('|')));
+    return v.ok ? answer : sportsSafeFallback();
+  }
+  // =======================================================================
   function wantsWebSearch(text) {
     if (WEB_CMD_RE.test(text)) return { search: true, force: true };
+    if (isSportsLive(text)) return { search: true, force: true, sports: true };   // sports live info: always search, never memory
     if (WEB_SKIP_RE.test(text)) return { search: false };
     return { search: WEB_TRIGGER_RE.test(text), force: false };
   }
@@ -2962,7 +3061,14 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     if (!research) newResearch();
     if (!canUseTool(agentKey, 'web_search')) { research.searches.push({ agent: agentKey, query: normalizeQuery(rawQuery), at: Date.now(), ok: false, reason: 'permission' }); throw new Error('search-permission'); }
     const nq = normalizeQuery(rawQuery);
-    if (research.queryCache[nq]) { setStatus('Menggunakan research tersimpan…'); research.searches.push({ agent: agentKey, query: nq, at: Date.now(), ok: true, cached: true }); return { ...research.queryCache[nq], cached: true }; }
+    const hit = research.queryCache[nq];
+    if (hit) {
+      // sports/live data goes stale fast: 10-minute TTL and never across a calendar day
+      const fresh = !isSportsLive(nq) || (Date.now() - hit.at < 10 * 60 * 1000 && hit.day === new Date().toDateString());
+      if (fresh) { setStatus('Menggunakan research tersimpan…'); research.searches.push({ agent: agentKey, query: nq, at: Date.now(), ok: true, cached: true }); return { ...hit.data, cached: true }; }
+      console.debug('[sports] staleCacheDiscarded query="' + nq.slice(0, 60) + '"');
+      delete research.queryCache[nq];
+    }
     if (research.searchCount >= research.maxSearches) { setStatus('Had carian web dicapai (3/3).'); throw new Error('search-limit'); }
     setStatus((staff[agentKey] ? staff[agentKey].name : 'Crew') + ' tengah cari maklumat…');
     let out;
@@ -2974,7 +3080,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       throw e;   // never retry 401 / 429
     }
     research.searchCount++;
-    research.queryCache[nq] = out;
+    research.queryCache[nq] = { data: out, at: Date.now(), day: new Date().toDateString() };
     research.searches.push({ agent: agentKey, query: nq, at: Date.now(), ok: true });
     for (const r of out.results) if (r.url && !research.sources.some(s => s.url === r.url)) research.sources.push(r);
     setStatus(research.sources.length + ' sumber ditemui — tengah semak fakta…'); renderSources();
@@ -3041,19 +3147,36 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     const a = staff[k];
     // manual /web override or the orchestrator's trigger, gated by permission + key
     const web = wantsWebSearch(text);
+    const sports = !!web.sports;
     const canWeb = !img && AI.tavilyKey && canUseTool(k, 'web_search') && (web.search || web.force);
     // safe debug (no key ever): why did/didn't we search?
     console.debug('[web] tavilyConfigured=' + !!AI.tavilyKey + ' requiresLiveData=' + !!(web.search || web.force) + ' selectedAgent=' + k + ' canWeb=' + canWeb + ' provider=' + AI.provider);
     let cleanText = stripWebCmd(text);
+    if (sports) {
+      const tzc = tzContext();
+      console.debug('[sports] sportsIntentDetected=true currentDate="' + tzc.myDate + '" currentTime=' + tzc.myTime + ' userTimezone=' + tzc.tz + ' selectedAgent=' + k + ' normalizedQuery="' + normalizeQuery(cleanText).slice(0, 80) + '"');
+      // no live search possible (no key / photo attached / agent has no permission)
+      // → NEVER fall back to model memory for current fixtures
+      if (!canWeb) { console.debug('[sports] validationFailureReason=live-search-unavailable'); return sportsSafeFallback(); }
+    }
     // Research Agent on an OpenAI-compat brain → real DeepSeek tool-calling loop.
     // The Orchestrator has already decided live data is needed, so force the search.
     if (canWeb && OPENAI_COMPAT.has(AI.provider)) {
       setStatus('Menentukan jika data langsung diperlukan…');
       const fmt0 = pickFormat(text);
       let sys0 = nowContext() + `\nPERINGATAN IDENTITI: Kau ${a.name} (${a.role}). Jawab HANYA sebagai ${a.name}.\n` + PERSONA[k];
+      if (sports) sys0 = sportsProtocol(tzContext()) + '\n\n' + sys0;
       if (fmt0) sys0 += `\n[ARAHAN OUTPUT] Hasil sebagai FAIL ${FMT_META[fmt0].label.toUpperCase()} — kandungan dokumen penuh sahaja.`;
-      try { return await researchToolLoop(k, sys0, cleanText, true); }
-      catch (e) { console.debug('[web] tool loop failed, falling back: ' + String(e.message)); if (String(e.message) === 'http-429') throw e; /* else fall through */ }
+      try {
+        const out = await researchToolLoop(k, sys0, cleanText, true);
+        return sports ? await sportsGate(cleanText, out) : out;   // sports answers must pass the gate
+      }
+      catch (e) {
+        console.debug('[web] tool loop failed, falling back: ' + String(e.message));
+        if (String(e.message) === 'http-429') throw e;
+        if (sports) { console.debug('[sports] validationFailureReason=live-search-failed'); return sportsSafeFallback(); }   // never memory for fixtures
+        /* else fall through */
+      }
     }
     const wantsLive = LIVE_RE.test(text);
     const fmt = pickFormat(text);
@@ -3067,6 +3190,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     if (wantsLive) { const live = await liveSearch(text); if (live) userText += '\n\n' + live; }
     if (fmt) userText += `\n\n[ARAHAN OUTPUT] Bos mahu hasil ini sebagai FAIL ${FMT_META[fmt].label.toUpperCase()}. Tulis KANDUNGAN penuh dokumen sahaja — tajuk, seksyen/point tersusun — TANPA ayat pembuka/penutup chat.${fmt === 'xls' || fmt === 'csv' ? ' Susun data sebagai jadual: satu baris satu rekod, kolum dipisah dengan " | ".' : ''}`;
     let sys = nowContext() + `\nPERINGATAN IDENTITI: Kau ${a.name} (${a.role}). Jawab HANYA sebagai ${a.name}.\n` + PERSONA[k];
+    if (sports) sys = sportsProtocol(tzContext()) + '\n\n' + sys;
     const userParts = [{ text: userText }];
     if (img) {
       if (AI.provider === 'deepseek') {
@@ -3078,7 +3202,8 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
       }
     }
     const contents = [...historyContents(), { role: 'user', parts: userParts }];
-    return gemini(sys, contents, fmt ? 900 : 600, (fmt || img) ? 24000 : 16000, { search: wantsLive && AI.provider === 'gemini', vision: !!img && AI.provider !== 'deepseek' });
+    const out = await gemini(sys, contents, fmt ? 900 : 600, (fmt || img) ? 24000 : 16000, { search: wantsLive && AI.provider === 'gemini', vision: !!img && AI.provider !== 'deepseek' });
+    return sports ? await sportsGate(cleanText, out) : out;   // sports answers must pass the verification gate
   }
 
   // ---- free-tier rate-limit cooldown ----
@@ -3672,7 +3797,9 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     // Skipped when a photo is attached, OR when this is clearly a research/web
     // request — otherwise "research pasal berita HARINI apa yang baru" gets hijacked
     // by the "hari ni apa" date pattern instead of triggering live search.
-    const isResearchIntent = wantsWebSearch(t).search || /\b(research|kaji|cari|berita|maklumat)\b/i.test(t);
+    // sports live info also skips this shortcut — "match pukul 3 pagi ni game apa"
+    // must reach live research, not get hijacked by the "pukul berapa" clock pattern
+    const isResearchIntent = wantsWebSearch(t).search || isSportsLive(t) || /\b(research|kaji|cari|berita|maklumat)\b/i.test(t);
     const dt = (img || isResearchIntent) ? null : localDateTimeAnswer(t);
     if (dt) {
       const who = staffMentioned(t)[0] || 'aiman';
@@ -3686,6 +3813,9 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     // CAN still call someone by name, but never HAS to — the Chief handles the rest.
     const named = staffMentioned(t);
     if (named.length >= 1) k = named[0];
+    // sports live info is CODE-routed to the Research Agent — the Chief and
+    // keyword router are never allowed to answer current fixtures from memory
+    else if (usingAI && isSportsLive(t)) { k = 'meera'; console.debug('[sports] routed=meera (forced, live sports intent)'); }
     else if (usingAI) {
       // Chief coordination: 2+ distinct specialist domains hit by keywords → fan out
       // to a team and combine (free to detect). One clear domain → that specialist.
