@@ -495,9 +495,18 @@
   /* unread count rides on the CTA now that the floating bubble is gone */
   .cta-badge { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #d64f3a; color: #fff; font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #211a10; }
   .cta-badge[hidden] { display: none; }
+  /* living office: monitor screens flicker softly and LEDs blink, each on its
+     own rhythm (random duration/delay set inline) so the room never syncs up */
+  .mon-led { animation: ledBlink var(--bd, 2.6s) steps(1) infinite; }
+  @keyframes ledBlink { 0%, 86% { opacity: 1; } 87%, 94% { opacity: .2; } 95%, 100% { opacity: 1; } }
+  .mon-glow { animation: scrFlicker var(--fd, 3.8s) ease-in-out infinite; }
+  @keyframes scrFlicker {
+    0%, 100% { opacity: .82; } 9% { opacity: 1; } 18% { opacity: .66; } 31% { opacity: .95; }
+    45% { opacity: .72; } 58% { opacity: 1; } 73% { opacity: .78; } 87% { opacity: .9; }
+  }
   /* pause the living-office animations when the scene scrolls off-screen */
-  #office.suspend .sprite-canvas { animation-play-state: paused; }
-  @media (prefers-reduced-motion: reduce) { .sprite-canvas { animation: none !important; } .zone-glow { transition: none; } }
+  #office.suspend .sprite-canvas, #office.suspend .mon-led, #office.suspend .mon-glow { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .sprite-canvas, .mon-led, .mon-glow { animation: none !important; } .zone-glow { transition: none; } }
   .sprite:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   #roomzone { position: absolute; pointer-events: none; border: 2px dashed #e0894e88; border-radius: 50%; background: rgba(224,137,78,.08); z-index: 48; transition: background .2s ease, border-color .2s ease; }
   #roomzone[hidden] { display: none; }
@@ -1073,14 +1082,19 @@
     const mStart = office.children.length;
     box(gx + 0.28, gy + 0.28, 0.58, 0.07, 15, monBack, false, TOP + TH + 3.5);
     for (let i = mStart; i < office.children.length; i++) office.children[i].style.zIndex = dz + 2;
-    // power LED + a soft light-bleed above the top edge — the machine reads as ON
+    // power LED + a soft light-bleed above the top edge — the machine reads as ON,
+    // and both blink/flicker on their own random rhythm so the office feels alive
     const ledP = project(gx + 0.74, gy + 0.35);
-    const led = document.createElement('div'); led.className = 'deco';
+    const led = document.createElement('div'); led.className = 'deco mon-led';
     Object.assign(led.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 4px #e0894e', left:ledP.x+'px', top:(ledP.y - TOP - TH - 3.5 - 5)+'px', zIndex: dz + 3 });
+    led.style.setProperty('--bd', (2.2 + Math.random() * 2.6).toFixed(2) + 's');
+    led.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
     office.appendChild(led);
     const glP = project(gx + 0.57, gy + 0.28);
-    const gl = document.createElement('div'); gl.className = 'deco';
+    const gl = document.createElement('div'); gl.className = 'deco mon-glow';
     Object.assign(gl.style, { width:'34px', height:'10px', borderRadius:'50%', background:'radial-gradient(closest-side, rgba(150,200,245,.42), transparent)', left:(glP.x - 17)+'px', top:(glP.y - TOP - TH - 3.5 - 15 - 7)+'px', zIndex: dz + 3 });
+    gl.style.setProperty('--fd', (3.2 + Math.random() * 2.8).toFixed(2) + 's');
+    gl.style.animationDelay = (-Math.random() * 4).toFixed(2) + 's';
     office.appendChild(gl);
     box(gx + 0.32, gy + 0.14, 0.5, 0.13, 1.5, kbC, false, TOP + TH);  // keyboard on the sitter's side
     box(gx + 0.9,  gy + 0.1,  0.1, 0.1, 4, { top:'#d9694a', left:'#a84a34', right:'#c25a40' }, false, TOP + TH); // coffee mug
@@ -1156,12 +1170,19 @@
   office.appendChild(net);
   contactShadow(3.4, 7.3, 1.9, 1.05);
   box(3.4, 7.3, 1.9, 1.05, 30, woodDk); box(3.75, 7.5, 0.6, 0.12, 24, screenC, false, 30); // boss desk + monitor
+  { // the boss monitor's screen light flickers too
+    const bmP = project(4.05, 7.56); const bmGl = document.createElement('div'); bmGl.className = 'deco mon-glow';
+    Object.assign(bmGl.style, { width:'30px', height:'9px', borderRadius:'50%', background:'radial-gradient(closest-side, rgba(150,200,245,.4), transparent)', left:(bmP.x - 15)+'px', top:(bmP.y - 30 - 24 - 6)+'px', zIndex: 400 });
+    bmGl.style.setProperty('--fd', (3.4 + Math.random() * 2).toFixed(2) + 's');
+    office.appendChild(bmGl);
+  }
   chair(4.15, 7.55);                                                                        // boss chair
   // office printer on the low cabinet — final reports are "printed" here then hand-delivered
   box(0.22, 6.15, 0.55, 0.6, 9, { top:'#e2e5ea', left:'#aab0bb', right:'#c6cbd4' }, false, 30);   // printer body
   box(0.26, 6.22, 0.46, 0.1, 2, { top:'#2a2e36', left:'#1b1e24', right:'#22252c' }, false, 39);   // paper slot
-  const prLedP = project(0.66, 6.5); const prLed = document.createElement('div'); prLed.className = 'deco';
+  const prLedP = project(0.66, 6.5); const prLed = document.createElement('div'); prLed.className = 'deco mon-led';
   Object.assign(prLed.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#93ad86', boxShadow:'0 0 4px #93ad86', left:prLedP.x+'px', top:(prLedP.y-41)+'px', zIndex:400 });
+  prLed.style.setProperty('--bd', '3.4s');
   office.appendChild(prLed);
 
   // --- extra office nuance: rug, water cooler, coffee machine, greenery, whiteboard ---
@@ -1178,8 +1199,9 @@
   box(6.79, 0.32, 0.06, 0.06, 3, { top:'#3a6f99', left:'#2c5679', right:'#336288' }, false, 15);
   box(10.4, 0.28, 0.42, 0.4, 16, { top:'#3a3f4c', left:'#22262f', right:'#2c3038' }, false, 30);  // coffee machine on pantry
   box(10.48, 0.6, 0.26, 0.06, 4, { top:'#5a5f6c', left:'#42464f', right:'#4c5058' }, false, 30);
-  const cmL = project(10.6, 0.42); const cmDot = document.createElement('div'); cmDot.className = 'deco';
+  const cmL = project(10.6, 0.42); const cmDot = document.createElement('div'); cmDot.className = 'deco mon-led';
   Object.assign(cmDot.style, { width:'3px', height:'3px', borderRadius:'50%', background:'#e0894e', boxShadow:'0 0 5px #e0894e', left:cmL.x+'px', top:(cmL.y-44)+'px', zIndex:400 });
+  cmDot.style.setProperty('--bd', '1.9s'); cmDot.style.animationDelay = '-0.8s';
   office.appendChild(cmDot);
   plant(10.9, 8.5); plant(0.55, 0.45);                                                       // corner greenery
 
