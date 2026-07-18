@@ -28,7 +28,8 @@
     --sage:#93ad86;        /* calm secondary */
   }
   * { box-sizing: border-box; }
-  html, body { overflow-x: hidden; touch-action: pan-x pan-y; }   /* app feels locked — no pinch/double-tap zoom */
+  /* overflow-x: clip (not hidden) — hidden would create a scroll container and kill position:sticky on the header */
+  html, body { overflow-x: hidden; overflow-x: clip; touch-action: pan-x pan-y; }   /* app feels locked — no pinch/double-tap zoom */
   body {
     margin: 0; background:
       radial-gradient(140% 120% at 22% -10%, #221a12 0%, var(--ink) 60%) fixed;
@@ -48,10 +49,31 @@
   }
 
   /* ---- header (asymmetric: brand left, live meta right) ---- */
+  /* floating glass command bar — sticks to the top and hovers over content */
   .topbar {
+    position: sticky; top: calc(env(safe-area-inset-top) + 8px); z-index: 90;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    width: min(1000px, 94vw); margin: 0 auto; padding: 14px 4px 12px;
+    width: min(1000px, 94vw); margin: 10px auto 14px; padding: 9px 12px 9px 10px;
+    background: linear-gradient(165deg, rgba(46, 37, 25, .9), rgba(26, 19, 12, .94));
+    border: 1px solid #ffffff14; border-radius: 18px;
+    box-shadow: 0 14px 34px -18px #000d, inset 0 1px 0 #ffffff0f;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    overflow: hidden;   /* keeps the brand halo + sweep neatly inside the rounded bar */
   }
+  /* faint warm sweep along the bar so it never reads flat */
+  .topbar::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(100deg, rgba(224, 137, 78, .07), transparent 42%, transparent 78%, rgba(224, 137, 78, .05));
+  }
+  /* live crew chip beside the API pill */
+  .hdr-live {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
+    font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; color: var(--muted);
+    background: #ffffff07; border: 1px solid #ffffff12; border-radius: 999px; padding: 5px 11px;
+    box-shadow: inset 0 1px 0 #ffffff0a; white-space: nowrap;
+  }
+  .hdr-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 6px #93ad86aa; animation: clPulse 2.2s ease-in-out infinite; }
+  @media (max-width: 370px) { .hdr-live { display: none; } }
   .brand { position: relative; display: flex; align-items: center; gap: 11px; }
   /* a soft warm halo behind the brand so the header corner feels lit */
   .brand::before {
@@ -80,7 +102,7 @@
     color: var(--accent); -webkit-background-clip: initial; background: #e0894e1c; -webkit-text-fill-color: var(--accent);
     border: 1px solid #e0894e55; border-radius: 5px; padding: 2px 5px 1px; transform: translateY(-2px);
   }
-  .brand-tag { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .3px; color: #9c8d79; }
+  .brand-tag { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .3px; color: #9c8d79; white-space: nowrap; }
   .topbar-right { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
   #ai-btn {
     display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
@@ -96,8 +118,7 @@
   #ai-btn.on .api-dot { background: var(--sage); box-shadow: 0 0 6px #93ad86cc; animation: clPulse 2.4s ease-in-out infinite; }
   @keyframes clPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.82); } }
   .clock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); }
-  /* hairline that fades at both ends — softer than a hard rule */
-  .rule { width: min(1000px, 94vw); height: 1px; margin: 0 auto 14px; background: linear-gradient(90deg, transparent, var(--line) 18%, #4a3d2c 50%, var(--line) 82%, transparent); }
+  .rule { display: none; }   /* the floating glass bar separates itself — no rule needed */
 
   /* ---- main: office hero + team rail (asymmetric two-column) ---- */
   .app {
@@ -781,10 +802,11 @@
       </span>
       <span class="brand-txt">
         <span class="wordmark">Crew <em class="brand-sub">AI</em></span>
-        <span class="brand-tag">crew peribadi kau, sedia 24/7</span>
+        <span class="brand-tag">crew peribadi · 24/7</span>
       </span>
     </div>
     <div class="topbar-right">
+      <span class="hdr-live" id="hdr-live" title="Crew aktif sekarang"><i></i>6 crew</span>
       <button id="ai-btn" title="Tetapan API key">
         <svg class="api-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="8" cy="8" r="4.2" stroke="currentColor" stroke-width="1.9"/>
@@ -1991,6 +2013,8 @@
     if (!el) return;
     const n = Object.keys(staff).length;
     el.textContent = officeMode === 'break' ? n + ' crew tengah rehat' : n + ' crew aktif';
+    const hl = document.getElementById('hdr-live');
+    if (hl) hl.childNodes[1].textContent = officeMode === 'break' ? n + ' rehat' : n + ' crew';
   }
   updateChatLive();
 
