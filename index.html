@@ -219,18 +219,19 @@
     /* each card carries a soft wash of its crew colour (plain gradient as the no-color-mix fallback) */
     background: linear-gradient(172deg, var(--surface2), #1d160e 78%);
     background:
-      radial-gradient(130% 110% at 100% 0%, color-mix(in srgb, var(--mc, var(--accent)) 15%, transparent), transparent 58%),
-      linear-gradient(172deg, #2b2317, #1c150e 80%);
+      radial-gradient(130% 110% at 100% 0%, color-mix(in srgb, var(--mc, var(--accent)) 17%, transparent), transparent 58%),
+      radial-gradient(90% 60% at 0% 100%, color-mix(in srgb, var(--mc, var(--accent)) 6%, transparent), transparent 65%),
+      linear-gradient(172deg, #2d2418, #1b140d 82%);
     border: 1px solid var(--line);
-    border-color: color-mix(in srgb, var(--mc, var(--accent)) 20%, var(--line));
+    border-color: color-mix(in srgb, var(--mc, var(--accent)) 22%, var(--line));
     border-top: 2px solid var(--mc, var(--accent));
-    box-shadow: 0 10px 22px -14px #000;
+    box-shadow: 0 10px 22px -14px #000, inset 0 1px 0 #ffffff0f;
     color: var(--text); cursor: pointer; will-change: transform;
     -webkit-user-select: none; user-select: none;
     transition: transform .36s cubic-bezier(.3,.9,.32,1), height .36s cubic-bezier(.3,.9,.32,1), box-shadow .25s ease, filter .15s ease;
   }
   .staff-card:not(.front):hover { filter: brightness(1.12); }
-  .staff-card.front { height: 214px; border-radius: 16px; cursor: grab; box-shadow: 0 18px 34px -18px #000, inset 0 1px 0 #ffffff0d; }
+  .staff-card.front { height: 218px; border-radius: 19px; cursor: grab; box-shadow: 0 22px 40px -18px #000, 0 0 30px -14px color-mix(in srgb, var(--mc, var(--accent)) 55%, transparent), inset 0 1px 0 #ffffff14; }
   /* faint diagonal sheen across the active card — the "wallet card" glint */
   .staff-card.front::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 42%, #ffffff04 47%, #ffffff08 52%, transparent 60%); }
   .staff-card.front:active { cursor: grabbing; }
@@ -248,14 +249,15 @@
   .sc-mark { position: absolute; right: -12px; bottom: -16px; width: 104px; height: 104px; color: var(--mc, var(--accent)); opacity: .07; transform: rotate(-8deg); pointer-events: none; }
   .sc-mark svg { width: 100%; height: 100%; }
   .ws-face {
-    flex: 0 0 auto; width: 30px; height: 30px; position: relative; border-radius: 9px; overflow: hidden;
+    flex: 0 0 auto; width: 30px; height: 30px; position: relative; border-radius: 10px; overflow: hidden;
     background: #1a140d;
-    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 24%, #1a140d), #150f09 78%);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 28%, #1a140d), #150f09 78%);
     box-shadow: inset 0 0 0 1px var(--line);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc, var(--accent)) 32%, var(--line));
+    /* mini ring to match the active card's avatar */
+    box-shadow: 0 0 0 1.5px #1c150e, 0 0 0 2.5px color-mix(in srgb, var(--mc, var(--accent)) 65%, transparent);
   }
   .ws-face .px { position: absolute; left: 3px; top: 4px; width: 2px; height: 2px; image-rendering: pixelated; }
-  .ws-name { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: .3px; color: #fff; white-space: nowrap; }
+  .ws-name { flex: 0 0 auto; font-size: 12.5px; font-weight: 800; letter-spacing: .3px; color: #fff; white-space: nowrap; }
   .ws-role { min-width: 0; font-size: 10px; font-weight: 700; letter-spacing: .3px; color: var(--mc, var(--accent)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ws-stat { margin-left: auto; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 9.5px; font-weight: 700; color: var(--muted); max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ws-stat::before { content: ''; flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); }
@@ -265,19 +267,20 @@
   @media (min-width: 721px) { .ws-role, .ws-ico { display: none; } }
   .sc-head { display: flex; align-items: center; gap: 12px; }
   .sc-face {
-    flex: 0 0 auto; width: 56px; height: 56px; position: relative; border-radius: 14px; overflow: hidden;
+    flex: 0 0 auto; width: 56px; height: 56px; position: relative; border-radius: 16px; overflow: hidden;
     background: #1a140d;
-    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 26%, #1a140d), #150f09 78%);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 30%, #1a140d), #150f09 78%);
     box-shadow: inset 0 0 0 1px var(--line);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc, var(--accent)) 35%, var(--line)), inset 0 -8px 14px -8px #0009;
+    /* modern "story ring": dark gap + crew-colour ring around the avatar tile */
+    box-shadow: 0 0 0 2px #1c150e, 0 0 0 3.5px color-mix(in srgb, var(--mc, var(--accent)) 75%, transparent), 0 4px 14px -4px color-mix(in srgb, var(--mc, var(--accent)) 50%, transparent), inset 0 -8px 14px -8px #0009;
   }
   .sc-face .px { position: absolute; left: 4px; top: 8px; width: 4px; height: 4px; image-rendering: pixelated; }
-  .sc-name { font-size: 18px; font-weight: 800; letter-spacing: .4px; color: #fff; line-height: 1.15; }
-  .sc-role-row { display: flex; align-items: center; gap: 7px; margin-top: 3px; flex-wrap: wrap; }
-  .sc-role { font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--mc, var(--accent)); }
+  .sc-name { font-size: 19px; font-weight: 800; letter-spacing: .2px; color: #fff; line-height: 1.12; }
+  .sc-role-row { display: flex; align-items: center; gap: 7px; margin-top: 4px; flex-wrap: wrap; }
+  .sc-role { font-size: 9.5px; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; color: var(--mc, var(--accent)); }
   /* quiet "online" badge — visible but never louder than the name */
   .sc-live { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 800; letter-spacing: .5px; color: #b9d8c4; background: #93ad8617; border: 1px solid #93ad8630; border-radius: 999px; padding: 2px 7px; }
-  .sc-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--sage); }
+  .sc-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--sage); animation: clPulse 2.6s ease-in-out infinite; }
   .sc-bio {
     margin: 9px 0 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.5; color: var(--muted);
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;   /* keep the card compact — 3 lines max */
@@ -286,13 +289,13 @@
   .sc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .sc-chip {
     display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .3px;
-    color: var(--muted); background: #ffffff08; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px;
-    color: color-mix(in srgb, var(--mc, var(--accent)) 52%, #f1e9dc);
-    border-color: color-mix(in srgb, var(--mc, var(--accent)) 30%, var(--line));
-    background: color-mix(in srgb, var(--mc, var(--accent)) 9%, transparent);
+    color: var(--muted); background: #ffffff08; border: 1px solid transparent; border-radius: 999px; padding: 4px 10px;
+    color: color-mix(in srgb, var(--mc, var(--accent)) 58%, #f7f0e4);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--mc, var(--accent)) 16%, #ffffff05), color-mix(in srgb, var(--mc, var(--accent)) 9%, transparent));
+    box-shadow: inset 0 1px 0 #ffffff10;
   }
-  .sc-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); }
-  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #ffffff0c; }
+  .sc-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 5px color-mix(in srgb, var(--mc, var(--accent)) 80%, transparent); }
+  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid; border-image: linear-gradient(90deg, color-mix(in srgb, var(--mc, var(--accent)) 30%, transparent), #ffffff08 40%, transparent) 1; }
   /* live status as a quiet pill */
   .sc-status {
     display: inline-flex; align-items: center; gap: 6px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -301,7 +304,11 @@
   }
   .sc-status::before { content: ''; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
   /* the crew number as a big ghost numeral in the card's top corner */
-  .sc-id { position: absolute; top: 6px; right: 12px; font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; color: #ffffff10; pointer-events: none; }
+  .sc-id {
+    position: absolute; top: 4px; right: 13px; font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600; font-style: italic; pointer-events: none;
+    background: linear-gradient(160deg, #ffffff1c, color-mix(in srgb, var(--mc, var(--accent)) 30%, transparent) 80%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
   /* pagination dots — clear "you are here" indicator for the crew deck */
   .deck-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
   .deck-dots i { width: 6px; height: 6px; border-radius: 50%; background: #ffffff24; transition: background .25s ease, transform .25s ease; }
@@ -309,7 +316,7 @@
   .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 9px; }
   /* the desktop rail is narrow — give the bio more lines so it never cuts mid-sentence */
   @media (min-width: 721px) {
-    .staff-card.front { height: 272px; }
+    .staff-card.front { height: 276px; }
     .sc-bio { -webkit-line-clamp: 6; }
   }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
@@ -1463,7 +1470,7 @@
   // wallet layout: front card in full at y=0, everyone else a strip below it,
   // each strip tucked slightly under the previous for the layered wallet feel
   const STRIP_H = 46, STACK_GAP = 10, STRIP_OVER = 6;
-  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 272 : 214;
+  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 276 : 218;
   function renderDeck(snapKey) {
     const fh = frontH();
     order.forEach((k, i) => {
