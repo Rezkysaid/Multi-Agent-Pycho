@@ -48,77 +48,73 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ---- header (asymmetric: brand left, live meta right) ---- */
-  /* floating glass command bar — sticks to the top and hovers over content */
+  /* ---- header: an editorial masthead (scrolls away with the page) ---- */
   .topbar {
-    position: sticky; top: calc(env(safe-area-inset-top) + 8px); z-index: 90;
+    position: relative;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    width: min(1000px, 94vw); margin: 10px auto 14px; padding: 9px 12px 9px 10px;
-    background: linear-gradient(165deg, rgba(46, 37, 25, .9), rgba(26, 19, 12, .94));
-    border: 1px solid #ffffff14; border-radius: 18px;
-    box-shadow: 0 14px 34px -18px #000d, inset 0 1px 0 #ffffff0f;
-    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-    overflow: hidden;   /* keeps the brand halo + sweep neatly inside the rounded bar */
+    width: min(1000px, 94vw); margin: 0 auto; padding: 20px 3px 15px;
   }
-  /* faint warm sweep along the bar so it never reads flat */
+  /* masthead rule — a hairline that fades at both ends, like a printed header */
   .topbar::after {
-    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-    background: linear-gradient(100deg, rgba(224, 137, 78, .07), transparent 42%, transparent 78%, rgba(224, 137, 78, .05));
+    content: ''; position: absolute; left: 3px; right: 3px; bottom: 0; height: 1px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, #4a3d2c 20%, #63512f 50%, #4a3d2c 80%, transparent);
   }
-  /* live crew chip beside the API pill */
+  /* live crew — minimal dot + count, no pill */
   .hdr-live {
-    display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
-    font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; color: var(--muted);
-    background: #ffffff07; border: 1px solid #ffffff12; border-radius: 999px; padding: 5px 11px;
-    box-shadow: inset 0 1px 0 #ffffff0a; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .3px; color: var(--muted);
+    white-space: nowrap;
   }
   .hdr-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 6px #93ad86aa; animation: clPulse 2.2s ease-in-out infinite; }
-  @media (max-width: 370px) { .hdr-live { display: none; } }
-  .brand { position: relative; display: flex; align-items: center; gap: 11px; }
-  /* a soft warm halo behind the brand so the header corner feels lit */
+  .hdr-sep { width: 1px; height: 18px; background: #ffffff16; }
+  @media (max-width: 380px) { .hdr-live, .hdr-sep { display: none; } }
+  .brand { position: relative; display: flex; align-items: center; gap: 12px; }
+  /* a soft warm halo behind the brand so the corner feels lit */
   .brand::before {
-    content: ''; position: absolute; left: -26px; top: 50%; transform: translateY(-50%);
-    width: 190px; height: 74px; border-radius: 50%; pointer-events: none;
-    background: radial-gradient(closest-side, rgba(224, 137, 78, .14), transparent 72%);
+    content: ''; position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+    width: 175px; height: 66px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(224, 137, 78, .12), transparent 72%);
   }
-  /* logo as a glowing app-icon tile */
+  /* emblem: a warm app tile with a hand-made pixel face */
   .logo-mark {
-    position: relative; flex: 0 0 auto; width: 38px; height: 38px; border-radius: 12px;
+    position: relative; flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    background: linear-gradient(155deg, #f0ae6e, var(--accent) 62%, #c9713a);
-    color: var(--accent-ink); border: 1px solid #f3bc8570;
-    box-shadow: 0 6px 16px -6px #e0894e66, inset 0 1px 0 #ffffff45, inset 0 -2px 4px #00000030;
+    background: linear-gradient(155deg, #f3b479, var(--accent) 60%, #c56b35);
+    color: var(--accent-ink); border: 1px solid #f3bc8566;
+    box-shadow: 0 7px 16px -7px #e0894e66, inset 0 1px 0 #ffffff55, inset 0 -3px 6px #00000033;
   }
-  .logo-mark svg { display: block; }
-  .brand-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .logo-mark svg { display: block; image-rendering: pixelated; }
+  .brand-txt { position: relative; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   .wordmark {
-    font-family: 'Fraunces', Georgia, serif; font-weight: 800; font-size: 25px; letter-spacing: -.3px; line-height: 1;
-    display: inline-flex; align-items: baseline; gap: 6px;
-    background: linear-gradient(115deg, #f7efe1 30%, #ecc496 75%, #e0894e);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-family: 'Fraunces', Georgia, serif; font-weight: 800; font-size: 28px; letter-spacing: -.5px; line-height: .92;
+    display: inline-flex; align-items: flex-start; gap: 5px; color: #f4ecdd;
   }
+  .wm-word { position: relative; display: inline-block; }
+  /* the hand-drawn accent underline — stretches under "Crew" only */
+  .wm-underline { position: absolute; left: -1px; right: -3px; bottom: -6px; width: auto; height: 7px; color: var(--accent); overflow: visible; }
+  .wm-underline path { stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
   .brand-sub {
-    font-family: 'Nunito', sans-serif; font-style: normal; font-size: 9px; font-weight: 800; letter-spacing: 1.6px;
-    color: var(--accent); -webkit-background-clip: initial; background: #e0894e1c; -webkit-text-fill-color: var(--accent);
-    border: 1px solid #e0894e55; border-radius: 5px; padding: 2px 5px 1px; transform: translateY(-2px);
+    font-family: 'Nunito', sans-serif; font-style: normal; font-size: 8.5px; font-weight: 800; letter-spacing: 1.2px;
+    color: var(--accent-ink); background: var(--accent); -webkit-text-fill-color: var(--accent-ink);
+    border-radius: 4px; padding: 2px 4px 1px; transform: translateY(2px);
   }
-  .brand-tag { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .3px; color: #9c8d79; white-space: nowrap; }
-  .topbar-right { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
+  .brand-tag { font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 1.9px; text-transform: uppercase; color: #9c8d79; white-space: nowrap; }
+  .topbar-right { display: flex; align-items: center; gap: 11px; color: var(--muted); font-size: 12px; }
+  /* API: a restrained ghost control, not a glass pill */
   #ai-btn {
-    display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
-    background: #ffffff07; border: 1px solid #ffffff17; border-radius: 999px; cursor: pointer;
-    color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .6px; padding: 5px 12px;
-    box-shadow: inset 0 1px 0 #ffffff0a;
+    display: inline-flex; align-items: center; gap: 6px; min-height: 34px;
+    background: transparent; border: 1px solid #ffffff1c; border-radius: 10px; cursor: pointer;
+    color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .6px; padding: 6px 11px;
     transition: border-color .15s ease, color .15s ease, background .15s ease;
   }
   #ai-btn .api-ico { flex: 0 0 auto; }
-  #ai-btn:hover { border-color: var(--accent); color: var(--text); background: #e0894e12; }
+  #ai-btn:hover { border-color: var(--accent); color: var(--text); background: #e0894e10; }
   .api-dot { width: 7px; height: 7px; border-radius: 50%; background: #6b5f4e; transition: background .2s ease, box-shadow .2s ease; }
   #ai-btn.on { color: var(--text); border-color: #93ad8640; }
   #ai-btn.on .api-dot { background: var(--sage); box-shadow: 0 0 6px #93ad86cc; animation: clPulse 2.4s ease-in-out infinite; }
   @keyframes clPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.82); } }
   .clock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); }
-  .rule { display: none; }   /* the floating glass bar separates itself — no rule needed */
+  .rule { display: none; }   /* the masthead rule lives on .topbar::after */
 
   /* ---- main: office hero + team rail (asymmetric two-column) ---- */
   .app {
@@ -794,19 +790,25 @@
   <header class="topbar">
     <div class="brand">
       <span class="logo-mark" aria-hidden="true">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="3" width="16" height="18" rx="2.4" stroke="currentColor" stroke-width="2"/>
-          <path d="M4 8.5h16" stroke="currentColor" stroke-width="2"/>
-          <circle cx="14.5" cy="14.8" r="1.5" fill="currentColor"/>
+        <svg width="23" height="23" viewBox="0 0 24 24" shape-rendering="crispEdges" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="7" width="3" height="4"/>
+          <rect x="15" y="7" width="3" height="4"/>
+          <rect x="7" y="15" width="3" height="2"/>
+          <rect x="10" y="17" width="4" height="2"/>
+          <rect x="14" y="15" width="3" height="2"/>
         </svg>
       </span>
       <span class="brand-txt">
-        <span class="wordmark">Crew <em class="brand-sub">AI</em></span>
-        <span class="brand-tag">crew peribadi · 24/7</span>
+        <span class="wordmark">
+          <span class="wm-word">Crew<svg class="wm-underline" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><path d="M1.5 5.4 C 20 1.6, 38 7.6, 55 4.2 C 72 1.2, 86 6.4, 98.5 3"/></svg></span>
+          <em class="brand-sub">AI</em>
+        </span>
+        <span class="brand-tag">krew peribadi kau</span>
       </span>
     </div>
     <div class="topbar-right">
       <span class="hdr-live" id="hdr-live" title="Crew aktif sekarang"><i></i>6 crew</span>
+      <span class="hdr-sep" aria-hidden="true"></span>
       <button id="ai-btn" title="Tetapan API key">
         <svg class="api-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="8" cy="8" r="4.2" stroke="currentColor" stroke-width="1.9"/>
