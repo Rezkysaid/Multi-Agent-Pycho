@@ -825,7 +825,7 @@
   <main class="app">
     <div class="main-col">
       <section class="stage-wrap" style="position:relative">
-        <div class="stage-caption"><span>Hub kau · <b id="here">6 crew aktif</b> · <span id="mood"></span></span>
+        <div class="stage-caption"><span>Hub kau · <b id="here">6 crew sedia</b> · <span id="mood"></span></span>
           <button class="hud-btn" id="hud-sum" type="button" aria-label="Ringkasan aktiviti pejabat">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 20v-7M12 20V5M19 20v-10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
             Ringkasan
@@ -1660,10 +1660,11 @@
   }
 
   // =====================================================================
-  //  WORK vs BREAK — by default everyone sits at their desk working; they only
-  //  wander after a "rehat"/"stop" command, and go back on "kerja".
+  //  ROAM vs WORK — by DEFAULT everyone roams around the office (alive &
+  //  available); they only walk to their desks and sit once the boss says
+  //  "sambung kerja"/"kerja". A "rehat"/"stop" sends them roaming again.
   // =====================================================================
-  let officeMode = 'work';   // 'work' (at desks) | 'break' (wandering)
+  let officeMode = 'break';   // 'break' (roaming — default) | 'work' (at desks)
   let breakTimer = null;
   // walking approach spot just behind each staff's own chair (chairs now sit
   // BEHIND the desks, so the approach corridor runs along the back)…
@@ -1754,12 +1755,12 @@
   }
   function announceMode(mode, mins) {
     const a = staff.aiman;
-    const msg = mode === 'work' ? 'Okay, semua dah standby balik — jom sambung!'
-      : (mins ? `Rehat ${mins} minit dulu, jom relax!` : 'Okay, rehat dulu — korang bebas berkeliaran.');
+    const msg = mode === 'work' ? 'Okay, semua ke meja masing-masing — jom fokus kerja!'
+      : (mins ? `Rehat ${mins} minit dulu, jom relax!` : 'Okay, semua bebas berkeliaran — panggil je bila perlu.');
     addMsg(a.name, msg, 'staff', a.dot);
-    setStatus(mode === 'work' ? 'Mod aktif — semua crew standby.' : 'Mod rehat — crew berkeliaran.');
+    setStatus(mode === 'work' ? 'Mod fokus — semua crew di meja.' : 'Crew berkeliaran — sedia bila kau panggil.');
   }
-  for (const k in staff) setTimeout(() => goToDesk(k), 400 + Math.random() * 1200);   // start at desks (work mode)
+  for (const k in staff) setTimeout(() => scheduleWander(k), 400 + Math.random() * 1200);   // start roaming (default)
 
   // =====================================================================
   //  LAYER AI / LOGIC — routing (mock keyword fallback + Gemini orchestrator)
@@ -2009,14 +2010,14 @@
     c.addEventListener('click', () => submitSuggestion(p.text));   // works for tap + Enter/Space (native button)
     ceChips.appendChild(c);
   });
-  // live crew count shown in the stage caption (reflects active / on a break)
+  // live crew count shown in the stage caption (roaming/ready vs focused at desks)
   function updateChatLive() {
     const el = document.getElementById('here');
     if (!el) return;
     const n = Object.keys(staff).length;
-    el.textContent = officeMode === 'break' ? n + ' crew tengah rehat' : n + ' crew aktif';
+    el.textContent = officeMode === 'work' ? n + ' crew fokus kerja' : n + ' crew sedia';
     const hl = document.getElementById('hdr-live');
-    if (hl) hl.childNodes[1].textContent = officeMode === 'break' ? n + ' rehat' : n + ' crew';
+    if (hl) hl.childNodes[1].textContent = officeMode === 'work' ? n + ' fokus' : n + ' crew';
   }
   updateChatLive();
 
