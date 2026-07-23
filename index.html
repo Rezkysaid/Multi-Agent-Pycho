@@ -52,7 +52,7 @@
   .topbar {
     position: relative;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    width: min(1000px, 94vw); margin: 0 auto; padding: 20px 3px 15px;
+    width: min(760px, 94vw); margin: 0 auto; padding: 20px 3px 15px;
   }
   /* masthead rule — a hairline that fades at both ends, like a printed header */
   .topbar::after {
@@ -118,8 +118,8 @@
 
   /* ---- main: office hero + team rail (asymmetric two-column) ---- */
   .app {
-    width: min(1000px, 94vw); margin: 0 auto; display: grid;
-    grid-template-columns: minmax(0,1fr) 214px; gap: 20px; align-items: start;
+    width: min(760px, 94vw); margin: 0 auto; display: grid;
+    grid-template-columns: 1fr; gap: 20px; align-items: start;   /* single column — crew roster panel removed */
   }
   /* office + chat live together in one column, so the chat is always right
      under the room — no roster panel wedged between them */
@@ -637,7 +637,7 @@
   .fly-msg svg { width: 13px; height: 13px; flex: 0 0 auto; }
   .fly-msg span { overflow: hidden; text-overflow: ellipsis; }
 
-  .foot { width: min(1000px, 94vw); margin: 14px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
+  .foot { width: min(760px, 94vw); margin: 14px auto 0; font-size: 11px; color: #7a6d5c; line-height: 1.7; }
   .foot b { color: var(--muted); font-weight: 700; }
 
   /* deliverables tray — collapsed by default so the page stays calm; the boss
@@ -939,11 +939,6 @@
       </section>
     </div>
 
-    <aside class="rail">
-      <h2 class="rail-title">Crew kau <span class="deck-count" id="deck-count">1/6</span></h2>
-      <div class="deck" id="deck"></div>
-      <div class="crew-switch" id="crew-switch" role="tablist" aria-label="Tukar crew"></div>
-    </aside>
   </main>
 
   <footer class="foot">
@@ -1468,131 +1463,8 @@
     hana:   wsvg('<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
     hafiz:  wsvg('<path d="m8 8-4 4 4 4M16 8l4 4-4 4"/>')
   };
-  // ---- swipeable stacked card deck ----
-  const deck = document.getElementById('deck');
-  const deckCountEl = document.getElementById('deck-count');
-  const deckKeys = Object.keys(staff);
-  const cardEls = {};
-  const switchBtns = {};   // horizontal avatar switcher (built after cards)
-  let order = deckKeys.slice();     // order[0] = front card
-  deckKeys.forEach((k, idx) => {
-    const a = staff[k], info = STAFF_INFO[k] || { bio: '' };
-    const tasks = (QUICK_TASKS[k] || []).map(([label, tpl]) =>
-      `<button class="sc-task" type="button" data-k="${k}" data-tpl="${tpl.replace(/"/g, '&quot;')}">+ ${label}</button>`).join('');
-    const card = document.createElement('div'); card.className = 'staff-card'; card.dataset.k = k;
-    card.style.setProperty('--mc', a.dot);
-    card.tabIndex = 0; card.setAttribute('role', 'button');
-    card.setAttribute('aria-label', a.name + ', ' + a.role + ' — bawa ke depan');
-    card.innerHTML =
-      `<div class="wc-strip"><div class="ws-face"><div class="px"></div></div>`
-      + `<span class="ws-name">${a.name}</span><span class="ws-role">${a.role}</span>`
-      + `<span class="ws-stat js-stat">kat meja</span><span class="ws-ico">${ROLE_ICON[k] || ''}</span></div>`
-      + `<div class="wc-full">`
-      + `<div class="sc-head"><div class="sc-face"><div class="px"></div></div>`
-      + `<div class="sc-headtxt"><div class="sc-name">${a.name}</div>`
-      + `<div class="sc-role-row"><span class="sc-role">${a.role}</span><span class="sc-live">Aktif</span></div>`
-      + `<div class="sc-status js-stat">kat meja</div></div></div>`
-      + `<p class="sc-tag" title="${info.bio.replace(/"/g, '&quot;')}">${STAFF_TAG[k] || ''}</p>`
-      + `<div class="sc-tasks"><span class="sc-tasks-lbl">Tugaskan</span>${tasks}</div>`
-      + `<span class="sc-id">${String(idx + 1).padStart(2, '0')}</span>`
-      + `<span class="sc-mark" aria-hidden="true">${ROLE_ICON[k] || ''}</span>`
-      + `</div>`;
-    deck.appendChild(card);
-    card.querySelector('.sc-face .px').style.boxShadow = faceShadow(a.outfit, k, 4);
-    card.querySelector('.ws-face .px').style.boxShadow = faceShadow(a.outfit, k, 2);
-    // Enter/Space brings a background card to the front (drag has a no-drag fallback)
-    card.addEventListener('keydown', e => {
-      if ((e.key === 'Enter' || e.key === ' ') && !card.classList.contains('front')) { e.preventDefault(); bringToFront(k); }
-    });
-    cardEls[k] = card;
-    sprites[k].statEls = [...card.querySelectorAll('.js-stat')]; sprites[k].memberEl = card;
-  });
-  // compact switcher: one row of mini avatars (fixed order) — tap to bring a crew
-  // to the front. Replaces the tall vertical strip stack so the crew area stays small.
-  const switchWrap = document.getElementById('crew-switch');
-  deckKeys.forEach(k => {
-    const b = document.createElement('button'); b.className = 'cs-av'; b.type = 'button';
-    b.dataset.k = k; b.style.setProperty('--mc', staff[k].dot); b.setAttribute('role', 'tab');
-    b.setAttribute('aria-label', staff[k].name + ' — ' + staff[k].role);
-    b.innerHTML = '<span class="cs-face"><span class="px"></span></span><i class="cs-busy"></i>';
-    b.querySelector('.px').style.boxShadow = faceShadow(staff[k].outfit, k, 2);
-    b.addEventListener('click', () => bringToFront(k));
-    switchWrap.appendChild(b); switchBtns[k] = b;
-  });
-  // only the front card is shown; the rest are hidden behind it, so the deck is
-  // exactly one card tall (switching happens via the avatar row / swipe)
-  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 176 : 168;
-  function renderDeck(snapKey) {
-    order.forEach((k, i) => {
-      const card = cardEls[k], front = i === 0;
-      if (k === snapKey) card.style.transition = 'none';
-      card.classList.toggle('front', front);
-      card.style.zIndex = front ? 60 : 1;
-      card.style.opacity = front ? '1' : '0';
-      card.style.pointerEvents = front ? 'auto' : 'none';
-      card.style.transform = 'translateY(0)';
-      card.setAttribute('aria-current', front ? 'true' : 'false');
-      if (k === snapKey) { void card.offsetWidth; card.style.transition = ''; }
-    });
-    deck.style.height = frontH() + 'px';
-    const idx = deckKeys.indexOf(order[0]);
-    deckCountEl.textContent = (idx + 1) + '/' + deckKeys.length;
-    deckKeys.forEach(k => { const b = switchBtns[k]; if (b) { b.classList.toggle('on', k === order[0]); b.setAttribute('aria-selected', k === order[0]); } });
-  }
-  function bringToFront(k) {
-    if (order[0] === k) return;
-    order = [k, ...order.filter(x => x !== k)];
-    renderDeck();
-  }
-  function cycle(dir) {                 // dir>0 next, dir<0 prev
-    const moved = order[0];
-    if (dir >= 0) order.push(order.shift());
-    else order.unshift(order.pop());
-    renderDeck(dir >= 0 ? moved : order[0]);
-  }
-  // "Tugaskan" quick action: open chat, prefill a task addressed to that crew, focus
-  function quickAssign(k, tpl) {
-    if (typeof openChat === 'function') openChat(70);
-    const inp = document.getElementById('user-input');
-    if (!inp) return;
-    inp.value = staff[k].name + ', ' + tpl;
-    inp.dispatchEvent(new Event('input', { bubbles: true }));   // retire the watermark, mirror state
-    setTimeout(() => { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch {} }, 120);
-  }
-  deck.addEventListener('click', e => {
-    const task = e.target.closest('.sc-task');
-    if (task) { e.stopPropagation(); quickAssign(task.dataset.k, task.dataset.tpl); return; }
-    const c = e.target.closest('.staff-card'); if (!c || c.classList.contains('front')) return;
-    bringToFront(c.dataset.k);                    // tap a background strip → bring that crew to the front
-  });
-  window.addEventListener('resize', () => renderDeck());   // front-card height differs across the breakpoint
-  // drag / swipe on the front card
-  let dragK = null, sx = 0, sy = 0, drag = false;
-  deck.addEventListener('pointerdown', e => {
-    if (e.target.closest('.sc-task')) return;     // tapping a task chip must not start a card drag
-    const c = e.target.closest('.staff-card.front'); if (!c) return;
-    dragK = c.dataset.k; drag = true; sx = e.clientX; sy = e.clientY;
-    c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {}
-  });
-  deck.addEventListener('pointermove', e => {
-    if (!drag || !dragK) return;
-    const dx = e.clientX - sx, dy = (e.clientY - sy) * 0.12;
-    cardEls[dragK].style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg)`;
-  });
-  function endDrag(e) {
-    if (!drag || !dragK) return; drag = false;
-    const c = cardEls[dragK], dx = (e.clientX || sx) - sx; dragK = null;
-    c.style.transition = 'transform .3s ease';
-    if (Math.abs(dx) > 64) {
-      const s = dx > 0 ? 1 : -1;
-      c.style.transform = `translate(${s * 460}px, 24px) rotate(${s * 16}deg)`;
-      setTimeout(() => cycle(s > 0 ? 1 : -1), 200);
-    } else { c.style.transform = ''; }
-  }
-  deck.addEventListener('pointerup', endDrag);
-  deck.addEventListener('pointercancel', () => { if (dragK) { cardEls[dragK].style.transition = 'transform .3s ease'; cardEls[dragK].style.transform = ''; } drag = false; dragK = null; });
-  // (prev/next buttons replaced by the avatar switcher; swipe on the front card still cycles)
-  renderDeck();
+  // (crew cards removed — the office scene + wandering agents are the main view;
+  //  setStat/setActive below become safe no-ops since statEls/memberEl are unset)
   function setStat(k, txt) { (sprites[k].statEls || []).forEach(el => { el.textContent = txt; }); }
   function setActive(k, on) { if (sprites[k].memberEl) sprites[k].memberEl.classList.toggle('active', on); }
 
@@ -3821,10 +3693,14 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     dragGhost.style.left = e.clientX + 'px'; dragGhost.style.top = e.clientY + 'px';
     roomzone.classList.toggle('hot', inRoom(toGrid(e.clientX, e.clientY)));
   });
-  // tapping a sprite (little to no pointer travel) opens that crew's card instead of ending a drag
+  // tapping a wandering agent (little to no pointer travel) → open the chat and
+  // start talking to them (the crew cards are gone; the office IS the roster now)
   function spriteTap(k) {
-    bringToFront(k);
-    if (cardEls[k]) cardEls[k].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (typeof openChat === 'function') openChat(70);
+    const inp = document.getElementById('user-input');
+    if (!inp) return;
+    if (!inp.value.trim()) { inp.value = staff[k].name + ', '; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    setTimeout(() => { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch {} }, 120);
   }
   document.addEventListener('pointerup', e => {
     if (!dragK2) return;
@@ -4003,7 +3879,6 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     for (const k of Object.keys(staff)) {
       const s = sprites[k], z = zoneOf(s.gx, s.gy);
       if (z) zoneOcc[z.id].push(k);
-      const b = switchBtns[k]; if (b) b.classList.toggle('busy', !!s.busy);   // pulse the switcher avatar while working
     }
     if (!popEl.hidden && popKind === 'sum') renderSummary();   // keep an open summary live
   }
@@ -4055,7 +3930,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     const w = sprites[k].wrap;
     w.tabIndex = 0; w.setAttribute('role', 'button');
     w.setAttribute('aria-label', staff[k].name + ', ' + staff[k].role + ' — lihat kad crew');
-    w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bringToFront(k); cardEls[k].scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } });
+    w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); spriteTap(k); } });
   });
 
   // pause the living office while it's scrolled off-screen
