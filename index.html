@@ -326,21 +326,29 @@
     background: linear-gradient(160deg, #ffffff1c, color-mix(in srgb, var(--mc, var(--accent)) 30%, transparent) 80%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  /* pagination dots — clear "you are here" indicator for the crew deck */
-  .deck-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
-  .deck-dots i { width: 6px; height: 6px; border-radius: 50%; background: #ffffff24; transition: background .25s ease, transform .25s ease; }
-  .deck-dots i.on { background: var(--accent); transform: scale(1.3); }
-  .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 9px; }
-  /* desktop rail is narrow: drop the tagline (role + status already carry it) so
-     the Tugaskan chips have room to wrap cleanly */
+  /* compact avatar switcher — one row, replaces the tall vertical strip stack */
+  .crew-switch { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .cs-av { flex: 0 0 auto; position: relative; width: 34px; height: 34px; padding: 0; border: none; background: none; cursor: pointer; border-radius: 10px; opacity: .5; transition: opacity .2s ease, transform .15s ease; -webkit-tap-highlight-color: transparent; }
+  .cs-av:hover { opacity: .85; }
+  .cs-av.on { opacity: 1; transform: translateY(-2px); }
+  .cs-av:focus-visible { outline: none; }
+  .cs-av:focus-visible .cs-face { box-shadow: 0 0 0 2px var(--accent); }
+  .cs-face {
+    display: block; width: 34px; height: 34px; position: relative; border-radius: 10px; overflow: hidden;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--mc, var(--accent)) 26%, #1a140d), #150f09 78%);
+    box-shadow: 0 0 0 1.5px #1c150e, 0 0 0 2.5px color-mix(in srgb, var(--mc, var(--accent)) 40%, transparent);
+    transition: box-shadow .2s ease;
+  }
+  .cs-av.on .cs-face { box-shadow: 0 0 0 1.5px #1c150e, 0 0 0 2.5px var(--mc, var(--accent)), 0 5px 13px -4px color-mix(in srgb, var(--mc, var(--accent)) 60%, transparent); }
+  .cs-face .px { position: absolute; left: 4px; top: 5px; width: 2px; height: 2px; image-rendering: pixelated; }
+  /* a small activity dot that pulses when that crew is busy */
+  .cs-busy { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 0 2px #1c150e; opacity: 0; transition: opacity .25s ease; }
+  .cs-av.busy .cs-busy { opacity: 1; animation: clPulse 1.6s ease-in-out infinite; }
+  /* desktop rail is narrow: drop the tagline (role + status already carry it) */
   @media (min-width: 721px) {
     .staff-card.front { height: 176px; }
     .sc-tag { display: none; }
   }
-  .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
-  .deck-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .deck-btn:active { transform: scale(.92); }
-  .deck-hint { font-family: 'Nunito', sans-serif; font-size: 10.5px; color: var(--muted); }
 
   /* conversation — a real scrollable chat that holds long AI replies + history */
   .convo { width: 100%; position: relative; }
@@ -934,12 +942,7 @@
     <aside class="rail">
       <h2 class="rail-title">Crew kau <span class="deck-count" id="deck-count">1/6</span></h2>
       <div class="deck" id="deck"></div>
-      <div class="deck-dots" id="deck-dots" aria-hidden="true"></div>
-      <div class="deck-nav">
-        <button class="deck-btn" id="deck-prev" aria-label="Sebelum">‹</button>
-        <span class="deck-hint">Tarik kad untuk tukar crew</span>
-        <button class="deck-btn" id="deck-next" aria-label="Seterus">›</button>
-      </div>
+      <div class="crew-switch" id="crew-switch" role="tablist" aria-label="Tukar crew"></div>
     </aside>
   </main>
 
@@ -1469,12 +1472,8 @@
   const deck = document.getElementById('deck');
   const deckCountEl = document.getElementById('deck-count');
   const deckKeys = Object.keys(staff);
-  const deckDots = deckKeys.map(() => {
-    const i = document.createElement('i');
-    document.getElementById('deck-dots').appendChild(i);
-    return i;
-  });
   const cardEls = {};
+  const switchBtns = {};   // horizontal avatar switcher (built after cards)
   let order = deckKeys.slice();     // order[0] = front card
   deckKeys.forEach((k, idx) => {
     const a = staff[k], info = STAFF_INFO[k] || { bio: '' };
@@ -1508,25 +1507,37 @@
     cardEls[k] = card;
     sprites[k].statEls = [...card.querySelectorAll('.js-stat')]; sprites[k].memberEl = card;
   });
-  // wallet layout: front card in full at y=0, everyone else a strip below it,
-  // each strip tucked slightly under the previous for the layered wallet feel
-  const STRIP_H = 46, STACK_GAP = 10, STRIP_OVER = 6;
-  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 182 : 168;
+  // compact switcher: one row of mini avatars (fixed order) — tap to bring a crew
+  // to the front. Replaces the tall vertical strip stack so the crew area stays small.
+  const switchWrap = document.getElementById('crew-switch');
+  deckKeys.forEach(k => {
+    const b = document.createElement('button'); b.className = 'cs-av'; b.type = 'button';
+    b.dataset.k = k; b.style.setProperty('--mc', staff[k].dot); b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', staff[k].name + ' — ' + staff[k].role);
+    b.innerHTML = '<span class="cs-face"><span class="px"></span></span><i class="cs-busy"></i>';
+    b.querySelector('.px').style.boxShadow = faceShadow(staff[k].outfit, k, 2);
+    b.addEventListener('click', () => bringToFront(k));
+    switchWrap.appendChild(b); switchBtns[k] = b;
+  });
+  // only the front card is shown; the rest are hidden behind it, so the deck is
+  // exactly one card tall (switching happens via the avatar row / swipe)
+  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 176 : 168;
   function renderDeck(snapKey) {
-    const fh = frontH();
     order.forEach((k, i) => {
-      const card = cardEls[k];
+      const card = cardEls[k], front = i === 0;
       if (k === snapKey) card.style.transition = 'none';
-      card.classList.toggle('front', i === 0);
-      card.style.zIndex = i === 0 ? 60 : 50 - i;               // strips stack behind each other, front on top
-      card.style.transform = i === 0 ? 'translateY(0)' : `translateY(${fh + STACK_GAP + (i - 1) * (STRIP_H - STRIP_OVER)}px)`;
-      card.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+      card.classList.toggle('front', front);
+      card.style.zIndex = front ? 60 : 1;
+      card.style.opacity = front ? '1' : '0';
+      card.style.pointerEvents = front ? 'auto' : 'none';
+      card.style.transform = 'translateY(0)';
+      card.setAttribute('aria-current', front ? 'true' : 'false');
       if (k === snapKey) { void card.offsetWidth; card.style.transition = ''; }
     });
-    deck.style.height = (fh + STACK_GAP + (deckKeys.length - 2) * (STRIP_H - STRIP_OVER) + STRIP_H) + 'px';
+    deck.style.height = frontH() + 'px';
     const idx = deckKeys.indexOf(order[0]);
     deckCountEl.textContent = (idx + 1) + '/' + deckKeys.length;
-    deckDots.forEach((d, i) => d.classList.toggle('on', i === idx));
+    deckKeys.forEach(k => { const b = switchBtns[k]; if (b) { b.classList.toggle('on', k === order[0]); b.setAttribute('aria-selected', k === order[0]); } });
   }
   function bringToFront(k) {
     if (order[0] === k) return;
@@ -1580,8 +1591,7 @@
   }
   deck.addEventListener('pointerup', endDrag);
   deck.addEventListener('pointercancel', () => { if (dragK) { cardEls[dragK].style.transition = 'transform .3s ease'; cardEls[dragK].style.transform = ''; } drag = false; dragK = null; });
-  document.getElementById('deck-next').addEventListener('click', () => cycle(1));
-  document.getElementById('deck-prev').addEventListener('click', () => cycle(-1));
+  // (prev/next buttons replaced by the avatar switcher; swipe on the front card still cycles)
   renderDeck();
   function setStat(k, txt) { (sprites[k].statEls || []).forEach(el => { el.textContent = txt; }); }
   function setActive(k, on) { if (sprites[k].memberEl) sprites[k].memberEl.classList.toggle('active', on); }
@@ -3993,6 +4003,7 @@ Jawab JSON sahaja. Contoh: {"mode":"one","agent":"meera"} atau {"mode":"team","a
     for (const k of Object.keys(staff)) {
       const s = sprites[k], z = zoneOf(s.gx, s.gy);
       if (z) zoneOcc[z.id].push(k);
+      const b = switchBtns[k]; if (b) b.classList.toggle('busy', !!s.busy);   // pulse the switcher avatar while working
     }
     if (!popEl.hidden && popKind === 'sum') renderSummary();   // keep an open summary live
   }
