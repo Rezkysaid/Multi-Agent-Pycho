@@ -248,7 +248,7 @@
     transition: transform .36s cubic-bezier(.3,.9,.32,1), height .36s cubic-bezier(.3,.9,.32,1), box-shadow .25s ease, filter .15s ease;
   }
   .staff-card:not(.front):hover { filter: brightness(1.12); }
-  .staff-card.front { height: 218px; border-radius: 19px; cursor: grab; box-shadow: 0 22px 40px -18px #000, 0 0 30px -14px color-mix(in srgb, var(--mc, var(--accent)) 55%, transparent), inset 0 1px 0 #ffffff14; }
+  .staff-card.front { height: 168px; border-radius: 19px; cursor: grab; box-shadow: 0 22px 40px -18px #000, 0 0 30px -14px color-mix(in srgb, var(--mc, var(--accent)) 55%, transparent), inset 0 1px 0 #ffffff14; }
   /* faint diagonal sheen across the active card — the "wallet card" glint */
   .staff-card.front::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 42%, #ffffff04 47%, #ffffff08 52%, transparent 60%); }
   .staff-card.front:active { cursor: grabbing; }
@@ -260,8 +260,8 @@
   /* collapsed strip — mini avatar · name · role · live status · role icon */
   .wc-strip { position: absolute; left: 0; right: 0; top: 0; height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 9px; transition: opacity .2s ease .12s; }
   .staff-card.front .wc-strip { opacity: 0; pointer-events: none; transition: opacity .1s ease; }
-  .wc-full { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 13px 14px 11px; opacity: 0; transition: opacity .22s ease .12s; }
-  .staff-card.front .wc-full { opacity: 1; }
+  .wc-full { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 13px 14px 11px; opacity: 0; pointer-events: none; transition: opacity .22s ease .12s; }
+  .staff-card.front .wc-full { opacity: 1; pointer-events: auto; }   /* only the front card's task buttons are tappable */
   /* oversized role glyph as faint card art, bottom-right */
   .sc-mark { position: absolute; right: -12px; bottom: -16px; width: 104px; height: 104px; color: var(--mc, var(--accent)); opacity: .07; transform: rotate(-8deg); pointer-events: none; }
   .sc-mark svg { width: 100%; height: 100%; }
@@ -298,28 +298,28 @@
   /* quiet "online" badge — visible but never louder than the name */
   .sc-live { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 800; letter-spacing: .5px; color: #b9d8c4; background: #93ad8617; border: 1px solid #93ad8630; border-radius: 999px; padding: 2px 7px; }
   .sc-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--sage); animation: clPulse 2.6s ease-in-out infinite; }
-  .sc-bio {
-    margin: 9px 0 0; font-family: 'Nunito', sans-serif; font-size: 12.5px; line-height: 1.5; color: var(--muted);
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;   /* keep the card compact — 3 lines max */
-  }
-  /* two quiet skill chips on the active card */
-  .sc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .sc-chip {
-    display: inline-flex; align-items: center; gap: 5px; font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .3px;
-    color: var(--muted); background: #ffffff08; border: 1px solid transparent; border-radius: 999px; padding: 4px 10px;
-    color: color-mix(in srgb, var(--mc, var(--accent)) 58%, #f7f0e4);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--mc, var(--accent)) 16%, #ffffff05), color-mix(in srgb, var(--mc, var(--accent)) 9%, transparent));
-    box-shadow: inset 0 1px 0 #ffffff10;
-  }
-  .sc-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 5px color-mix(in srgb, var(--mc, var(--accent)) 80%, transparent); }
-  .sc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid; border-image: linear-gradient(90deg, color-mix(in srgb, var(--mc, var(--accent)) 30%, transparent), #ffffff08 40%, transparent) 1; }
-  /* live status as a quiet pill */
+  .sc-headtxt { min-width: 0; }
+  /* live status — the crew's current activity, right under the role */
   .sc-status {
-    display: inline-flex; align-items: center; gap: 6px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 700; font-style: normal; color: #cfe0c5;
-    background: #ffffff07; border: 1px solid #ffffff12; border-radius: 999px; padding: 3px 10px 3px 8px;
   }
-  .sc-status::before { content: ''; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); }
+  .sc-status::before { content: ''; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--mc, var(--accent)); box-shadow: 0 0 5px color-mix(in srgb, var(--mc, var(--accent)) 75%, transparent); }
+  /* one-line tagline (full bio in the title tooltip) */
+  .sc-tag { margin: 11px 0 0; font-family: 'Nunito', sans-serif; font-size: 12px; line-height: 1.4; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* "Tugaskan" — quick task launchers, the card earns its space */
+  .sc-tasks { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 11px; }
+  .sc-tasks-lbl { font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #8f8069; margin-right: 1px; }
+  .sc-task {
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .2px; cursor: pointer;
+    color: color-mix(in srgb, var(--mc, var(--accent)) 62%, #f7f0e4);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--mc, var(--accent)) 20%, #ffffff06), color-mix(in srgb, var(--mc, var(--accent)) 11%, transparent));
+    border: 1px solid color-mix(in srgb, var(--mc, var(--accent)) 32%, transparent); border-radius: 999px; padding: 5px 11px;
+    box-shadow: inset 0 1px 0 #ffffff12; transition: filter .12s ease, transform .08s ease; -webkit-tap-highlight-color: transparent;
+  }
+  .sc-task:hover { filter: brightness(1.15); }
+  .sc-task:active { transform: scale(.95); }
+  .sc-task:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--mc, var(--accent)) 55%, transparent); }
   /* the crew number as a big ghost numeral in the card's top corner */
   .sc-id {
     position: absolute; top: 4px; right: 13px; font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600; font-style: italic; pointer-events: none;
@@ -331,10 +331,11 @@
   .deck-dots i { width: 6px; height: 6px; border-radius: 50%; background: #ffffff24; transition: background .25s ease, transform .25s ease; }
   .deck-dots i.on { background: var(--accent); transform: scale(1.3); }
   .deck-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 9px; }
-  /* the desktop rail is narrow — give the bio more lines so it never cuts mid-sentence */
+  /* desktop rail is narrow: drop the tagline (role + status already carry it) so
+     the Tugaskan chips have room to wrap cleanly */
   @media (min-width: 721px) {
-    .staff-card.front { height: 276px; }
-    .sc-bio { -webkit-line-clamp: 6; }
+    .staff-card.front { height: 176px; }
+    .sc-tag { display: none; }
   }
   .deck-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: border-color .15s ease, color .15s ease, transform .1s ease; }
   .deck-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -1436,10 +1437,24 @@
     hana:   { bio: 'Perancang & jadual — pecah matlamat jadi langkah, urus timeline, reminder & tarikh penting.' },
     hafiz:  { bio: 'Jurutera — kod, debug, automasi, integrasi & code review. Terangkan dengan mudah.' }
   };
-  // two skill chips per crew (active card) + a small role glyph (wallet strip)
-  const STAFF_SKILLS = {
-    aiman: ['Strategi', 'Koordinasi'], meera: ['Research', 'Fakta'], wei: ['Draf', 'Social'],
-    danish: ['Analisa', 'Angka'], hana: ['Jadual', 'Reminder'], hafiz: ['Kod', 'Debug']
+  // one-line tagline per crew (the full bio lives in a tooltip / detail popover)
+  const STAFF_TAG = {
+    aiman:  'Agih & gabung kerja crew.',
+    meera:  'Cari, semak fakta & ringkas.',
+    wei:    'Draf emel, mesej & caption.',
+    danish: 'Banding pilihan & nasihat berangka.',
+    hana:   'Susun jadual, langkah & reminder.',
+    hafiz:  'Kod, debug & hal teknikal.'
+  };
+  // "Tugaskan" quick actions: [label, prompt template] — tap prefills the composer
+  // addressed to that crew so one tap goes from "who" to "doing"
+  const QUICK_TASKS = {
+    aiman:  [['Agih tugas', 'tolong agih tugas ni: '], ['Ringkas', 'ringkaskan ']],
+    meera:  [['Research', 'tolong research pasal '], ['Semak fakta', 'semak fakta pasal ']],
+    wei:    [['Draf emel', 'tolong draf emel pasal '], ['Caption', 'buat caption untuk ']],
+    danish: [['Banding', 'tolong banding pilihan '], ['Analisa', 'analisa ']],
+    hana:   [['Jadual', 'buatkan jadual untuk '], ['Reminder', 'ingatkan aku ']],
+    hafiz:  [['Tulis kod', 'tolong tulis kod '], ['Debug', 'tolong debug ']]
   };
   const wsvg = inner => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
   const ROLE_ICON = {
@@ -1463,7 +1478,8 @@
   let order = deckKeys.slice();     // order[0] = front card
   deckKeys.forEach((k, idx) => {
     const a = staff[k], info = STAFF_INFO[k] || { bio: '' };
-    const chips = (STAFF_SKILLS[k] || []).slice(0, 2).map(s => `<span class="sc-chip">${s}</span>`).join('');
+    const tasks = (QUICK_TASKS[k] || []).map(([label, tpl]) =>
+      `<button class="sc-task" type="button" data-k="${k}" data-tpl="${tpl.replace(/"/g, '&quot;')}">+ ${label}</button>`).join('');
     const card = document.createElement('div'); card.className = 'staff-card'; card.dataset.k = k;
     card.style.setProperty('--mc', a.dot);
     card.tabIndex = 0; card.setAttribute('role', 'button');
@@ -1474,10 +1490,11 @@
       + `<span class="ws-stat js-stat">kat meja</span><span class="ws-ico">${ROLE_ICON[k] || ''}</span></div>`
       + `<div class="wc-full">`
       + `<div class="sc-head"><div class="sc-face"><div class="px"></div></div>`
-      + `<div><div class="sc-name">${a.name}</div><div class="sc-role-row"><span class="sc-role">${a.role}</span><span class="sc-live">Aktif</span></div></div></div>`
-      + `<p class="sc-bio" title="${info.bio.replace(/"/g, '&quot;')}">${info.bio}</p>`
-      + `<div class="sc-chips">${chips}</div>`
-      + `<div class="sc-foot"><span class="sc-status js-stat">kat meja</span></div>`
+      + `<div class="sc-headtxt"><div class="sc-name">${a.name}</div>`
+      + `<div class="sc-role-row"><span class="sc-role">${a.role}</span><span class="sc-live">Aktif</span></div>`
+      + `<div class="sc-status js-stat">kat meja</div></div></div>`
+      + `<p class="sc-tag" title="${info.bio.replace(/"/g, '&quot;')}">${STAFF_TAG[k] || ''}</p>`
+      + `<div class="sc-tasks"><span class="sc-tasks-lbl">Tugaskan</span>${tasks}</div>`
       + `<span class="sc-id">${String(idx + 1).padStart(2, '0')}</span>`
       + `<span class="sc-mark" aria-hidden="true">${ROLE_ICON[k] || ''}</span>`
       + `</div>`;
@@ -1494,7 +1511,7 @@
   // wallet layout: front card in full at y=0, everyone else a strip below it,
   // each strip tucked slightly under the previous for the layered wallet feel
   const STRIP_H = 46, STACK_GAP = 10, STRIP_OVER = 6;
-  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 276 : 218;
+  const frontH = () => window.matchMedia('(min-width: 721px)').matches ? 182 : 168;
   function renderDeck(snapKey) {
     const fh = frontH();
     order.forEach((k, i) => {
@@ -1522,14 +1539,26 @@
     else order.unshift(order.pop());
     renderDeck(dir >= 0 ? moved : order[0]);
   }
-  deck.addEventListener('click', e => {          // tap a background strip → bring that crew to the front
+  // "Tugaskan" quick action: open chat, prefill a task addressed to that crew, focus
+  function quickAssign(k, tpl) {
+    if (typeof openChat === 'function') openChat(70);
+    const inp = document.getElementById('user-input');
+    if (!inp) return;
+    inp.value = staff[k].name + ', ' + tpl;
+    inp.dispatchEvent(new Event('input', { bubbles: true }));   // retire the watermark, mirror state
+    setTimeout(() => { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch {} }, 120);
+  }
+  deck.addEventListener('click', e => {
+    const task = e.target.closest('.sc-task');
+    if (task) { e.stopPropagation(); quickAssign(task.dataset.k, task.dataset.tpl); return; }
     const c = e.target.closest('.staff-card'); if (!c || c.classList.contains('front')) return;
-    bringToFront(c.dataset.k);
+    bringToFront(c.dataset.k);                    // tap a background strip → bring that crew to the front
   });
   window.addEventListener('resize', () => renderDeck());   // front-card height differs across the breakpoint
   // drag / swipe on the front card
   let dragK = null, sx = 0, sy = 0, drag = false;
   deck.addEventListener('pointerdown', e => {
+    if (e.target.closest('.sc-task')) return;     // tapping a task chip must not start a card drag
     const c = e.target.closest('.staff-card.front'); if (!c) return;
     dragK = c.dataset.k; drag = true; sx = e.clientX; sy = e.clientY;
     c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {}
